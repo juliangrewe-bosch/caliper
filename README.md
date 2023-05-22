@@ -10,7 +10,256 @@
 > tested for a specific use case.
 
 Caliper is the Load-Testing-as-Code harness for
-[Carbyne Stack](https://github.com/carbynestack).
+[Carbyne Stack](https://github.com/carbynestack). This project is based on the
+[Gatling](https://github.com/gatling/gatling) load test tool and provides a
+plugin that can be used to communicate with backend services of a Carbyne Stack
+Virtual Cloud using the dedicated java-clients.
+
+## Components
+
+### Protocol
+
+The `cs` object is used to provide a common configuration that is shared between
+all virtual users. A list of Service endpoint URIs and the SPDZ parameters
+matching the backend service configuration are used to initialize a client.
+
+### Action
+
+To test the performance of one or multiple backend services of a Carbyne Stack
+Virtual Cloud we create scenarios that make requests to a backend service. The
+`exec` method is used to execute an Action, in the context of this plugin,
+actions are requests performed by a client that will be sent during a
+simulation.
+
+TODO Wie werden Clients hinzugefügt Java-Scala Kompatibilität Welche Klassen
+müssen geändert/erstellt werden um neue Clients einzufügen
+
+## Usage
+
+To execute a simulation we can use the `gatling-maven-plugin`. Currently two
+Carbyne Stack Clients are supported (Amphora and Ephemeral), so for each service
+we create a collection of tests in a simulation class located under
+`test/scala/`. You can control which simulations will be triggered with the
+`includes` filter.
+
+```xml
+
+<plugin>
+    <groupId>io.gatling</groupId>
+    <artifactId>gatling-maven-plugin</artifactId>
+    <version>${maven-gatling-plugin.version}</version>
+    <configuration>
+        <runMultipleSimulations>true</runMultipleSimulations>
+        <includes>
+            <include>simulation.*</include>
+        </includes>
+    </configuration>
+</plugin>
+```
+
+By default, the results are stored in `${project.build.directory}/gatling`.
+Caliper uses [prometheus](https://prometheus.io/) to visualize the results,
+therefore all results are sent to a graphite endpoint configured in the
+configuration file`test/resources/gatling.conf`. To run Gatling tests simply use
+the `test` goal `./mvnw gatling:test`. The following example shows a simulation
+class that provides the functionality of the millionaires problem example from
+the
+[Carbyne Stack Tutorial](https://carbynestack.io/getting-started/millionaires/).
+
+```scala
+class CarbynestackSimulation extends Simulation { //1
+
+  val csProtocol = cs //2
+    .endpoints(List(apolloFqdn, starbuckFqdn))
+    .prime("198766463529478683931867765928436695041")
+    .r("141515903391459779531506841503331516415")
+    .invR("133854242216446749056083838363708373830")
+    .program("ephemeral-generic.default")
+
+  val jeffTag: java.util.List[Tag] =
+    List(("billionaire", "jeff"))
+      .map(
+        x =>
+          Tag
+            .builder()
+            .key(x._1)
+            .value(x._2)
+            .valueType(TagValueType.STRING)
+            .build()
+      )
+      .asJava
+
+  val elonTag: java.util.List[Tag] =
+    List(("billionaire", "elon"))
+      .map(
+        x =>
+          Tag
+            .builder()
+            .key(x._1)
+            .value(x._2)
+            .valueType(TagValueType.STRING)
+            .build()
+      )
+      .asJava
+
+  val jeffSecret: Array[java.math.BigInteger] = Array(new java.math.BigInteger("180"))
+  val elonSecret: Array[java.math.BigInteger] = Array(new java.math.BigInteger("177"))
+
+  val jeffsNetWorth = Secret.of(jeffTag, jeffSecret)
+  val elonsNetWorth = Secret.of(elonTag, elonSecret)
+
+  val code =
+    "port=regint(10000)\n" +
+      "listen(port)\n" +
+      "socket_id = regint()\n" +
+      "acceptclientconnection(socket_id, port)\n" +
+      "v = sint.read_from_socket(socket_id, 2)\n" +
+      "first_billionaires_net_worth = v[0]\n" +
+      "second_billionaires_net_worth= v[1]\n" +
+      "result = first_billionaires_net_worth < second_billionaires_net_worth\n" +
+      "resp = Array(1, sint)\n" +
+      "resp[0] = result\n" +
+      "sint.write_to_socket(socket_id, resp)"
+
+  val jeffFeeder = Array(
+    Map("secret" -> jeffsNetWorth)
+  )
+
+  val elonFeeder = Array(
+    Map("secret" -> elonsNetWorth)
+  )
+
+  val uuids: Expression[java.util.List[java.util.UUID]] = session =>
+    session("uuids")
+      .asOption[List[java.util.UUID]]
+      .asJava
+
+  val millionairesProblem = scenario("millionaires-problem-scenario") //3
+    .feed(jeffFeeder) //4
+    .exec(amphora.createSecret("#{secret}")) //5
+    .feed(elonFeeder)
+    .exec(amphora.createSecret("#{secret}"))
+    .exec(ephemeral.execute(code, uuids)) //6 TODO UPDATE uuids is Expression now
+
+  setUp( //7
+    millionairesProblem
+      .inject(
+        atOnceUsers(1) //8
+      )
+      .protocols(csProtocol) //9
+  )
+}
+
+```
+
+1. The class declaration, it needs to extend `Simulation`.
+1. The common configuration to all Carbyne Stack clients, see
+   [amphora-java-client](https://github.com/carbynestack/amphora/blob/master/amphora-java-client/README.md)
+1. The
+   [Scenario](https://gatling.io/docs/gatling/reference/current/core/scenario/)
+   definition.
+1. A
+   [Feeder](https://gatling.io/docs/gatling/reference/current/core/session/feeder/)
+   is used to inject data into the virtual user.
+1. An amphora-java-client-request calling the `createSecret` method of the
+   `io.carbynestack.amphora.client.AmphoraClient`. Using the
+   [Gatling Expression Language](https://gatling.io/docs/gatling/reference/current/core/session/el/)
+   we can use dynamic parameters that will be replaced with the value stored in
+   the virtual user's session.
+1. An ephemeral-java-client-request executing the provided program, the secrets
+   used by the program must be created beforehand and are used as input to the
+   function.
+1. Setting up the scenario(s) we want to use in this simulation.
+1. Declaring that 1 virtual user will be injected into the `millionairesProblem`
+   scenario.
+1. Attaching the `cs` configuration matching the backend service configuration.
+
+## Test Infrastructure
+
+To run the load-tests a `Carbyne Stack VC` needs to be deployed. The current
+setup utilizes the \[LINK\] IaC repository and deploys a `two-party VC` hosted
+on Microsoft Azure. The following resources are created by running the IaC
+deployment:
+
+- GraphiteExporter
+- Prometheus
+- PrivateAksStack
+- PrivateAksVirtualCloudStack
+
+| Resource          | Name                             | Role                                                  | Usage                           | Expiration |
+| ----------------- | -------------------------------- | ----------------------------------------------------- | ------------------------------- | ---------- |
+| Managed Identity  | `caliper-aks-managed-identity`   | `Private DNS Zone Contributor`, `Network Contributor` | Peer networks ?                 |            |
+| Service Principal | `caliper-test-infrastructure-sp` | `Contributer-Role`                                    | Authenticate Terraform to Azure | 2/27/2024  |
+
+TODO add
+[OpenID Connect to Service Principal](https://github.com/Azure/login?tab=readme-ov-file#login-with-openid-connect-oidc-recommended)
+
+## Report
+
+The report provides metrics about resource consumption and response time of the
+deployed `VC` services:
+
+### cAdvisor
+
+### Gatling
+
+- gatling.((groups.)\*.request|allRequests).(ok|ko|all).(count|min|max|mean|stdDev|percentilesXX)
+
+- prometheus Query example
+
+[gatling-realtime](https://gatling.io/docs/gatling/guides/realtime_monitoring)
+[prometheus graphite exporter](https://github.com/prometheus/graphite_exporter)
+
+### GitHub Actions Workflow
+
+The GitHub Actions Workflow can be split into two parts:
+
+`Deploy an AzureVM` this step deploys an AzureVM. The VM is later peered with
+the AKS-Clusters that form the `Carbyne Stack VC`.
+
+- The Caliper-load-tests are executed from the VM.
+
+`Run load-tests` this step connects to the AzureVM via SSH and executes
+`scripts/run_caliper_load_tests.sh`. The VM then deploys the aks cluster and all
+resouces for a working `VC`. After deploying all relevant resources, the
+Caliper-Load-Tests are executed using the Gatling Simulation classes
+`src/test/scala/simulation/`. The final step is to collect all metrics for the
+load-test report and create the actual report using
+`scripts/generate_report.py`.
+
+The following secrets are mandatory to run the GitHub Actions Workflow:
+
+| Secret                  | Description                                                              |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `AZURE_CREDENTIALS`     | Azure CLI Github Action                                                  |
+| `AZURE_SUBSCRIPTION_ID` | Authenticate Terraform to Azure                                          |
+| `AZURE_CLIENT_SECRET`   | Authenticate Terraform to Azure                                          |
+| `AZURE_TENANT_ID`       | Authenticate Terraform to Azure                                          |
+| `AZURE_CLIENT_ID`       | Authenticate Terraform to Azure                                          |
+| `CALIPER_PAT`           | Caliper maven project uses this to download Clients from Github Packages |
+| `ADMIN_PASSWORD`        | Password for the AzureVM that is peered with the AKS                     |
+
+### Add/ Remove Test-cases
+
+To add or remove test-cases the following steps must be peformed:
+
+A Simulation class contains multiple scenario(s)
+
+- scenario(s) definieren
+
+  - was sind scenarios (deckt mehrere Testfälle ab)
+
+- groups innerhalb eines scenarios erstellen
+
+  - Was sind groups (deckt mindestesns einen Testfall ab)
+
+- PromQL queries collecting metrics for the tests needs to be added to
+  `scripts/generate_report.py`
+
+- Graphen sind unter /img/simulationX/scenarioY/groupZ/ gespeichert
+
+  - Datei(en) erstellen und Grafiken einbinden
+  - Datei(en) nav.yaml hinzufügen
 
 ## Namesake
 

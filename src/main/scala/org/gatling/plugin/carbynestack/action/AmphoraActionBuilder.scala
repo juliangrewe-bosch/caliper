@@ -1,24 +1,22 @@
-/*
- * Copyright (c) 2023 - for information on the respective copyright owner
- * see the NOTICE file and/or the repository https://github.com/carbynestack/caliper.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
 package org.gatling.plugin.carbynestack.action
 
+import io.carbynestack.amphora.client.AmphoraClient
 import io.gatling.core.action.Action
 import io.gatling.core.action.builder.ActionBuilder
 import io.gatling.core.session.Session
 import io.gatling.core.structure.ScenarioContext
 import org.gatling.plugin.carbynestack.protocol.CsProtocol
-import org.gatling.plugin.carbynestack.request.client.ProtocolBuilder
+import org.gatling.plugin.carbynestack.request.client.AmphoraClientBuilder
 
-class CsActionBuilder[C, R](protocolBuilder: ProtocolBuilder[C], function: (C, Session) => R) extends ActionBuilder {
-
+class AmphoraActionBuilder[R](
+  clientBuilder: AmphoraClientBuilder,
+  requestFunction: (AmphoraClient, Session) => R
+) extends ActionBuilder {
   override def build(ctx: ScenarioContext, next: Action): Action = {
+
     val csComponents = ctx.protocolComponentsRegistry.components(CsProtocol.CsProtocolKey)
     val coreComponents = ctx.coreComponents
 
-    new CsAction(protocolBuilder, function, csComponents, coreComponents, next)
+    new AmphoraAction[R](clientBuilder.build(csComponents), requestFunction, coreComponents, next)
   }
 }

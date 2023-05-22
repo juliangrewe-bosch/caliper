@@ -1,20 +1,13 @@
-/*
- * Copyright (c) 2023 - for information on the respective copyright owner
- * see the NOTICE file and/or the repository https://github.com/carbynestack/caliper.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+package simulation
+
 import io.carbynestack.amphora.client.Secret
 import io.carbynestack.amphora.common.{Tag, TagValueType}
 import io.gatling.core.Predef._
-import io.gatling.core.session.Expression
 import org.gatling.plugin.carbynestack.PreDef._
 
-import java.math.BigInteger
 import scala.jdk.CollectionConverters._
-import scala.util.Random
 
-class CarbynestackSimulation {
+class EphemeralSimulation extends Simulation {
 
   val apolloFqdn: String = sys.env.get("APOLLO_FQDN") match {
     case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}(?:\.sslip\.io)?$""") => fqdn
@@ -81,18 +74,24 @@ class CarbynestackSimulation {
       )
       .asJava
 
-  val secretValues: Int = 10000
+  val secretValues: Int = 10
   val dataSize: Int = secretValues * 2
 
-  val vectorAValues3: Array[java.math.BigInteger] =
-    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("999"))
-  val vectorBValues18: Array[java.math.BigInteger] =
-    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("333333333333333333"))
+  val feeder = Iterator.continually {
+    Map(
+      "secret" -> Secret
+        .of(vectorBTag, Array.fill[java.math.BigInteger](secretValues)(new java.math.BigInteger("10")))
+    )
+  }
 
-  val vectorASecret3: Secret = Secret.of(vectorATag, vectorAValues3)
-  val vectorBSecret18: Secret = Secret.of(vectorBTag, vectorBValues18)
+  def performDeleteSecretRequest() = {
+    exec(amphora.getSecrets())
+      .foreach("#{uuids}", "uuid") {
+        exec(amphora.deleteSecret("#{uuid}"))
+      }
+  }
 
-  val multiplicationProgram: String =
+  val scalarValueProgram: String =
     s"""port=regint(10000)
        |listen(port)
        |socket_id = regint()
@@ -104,7 +103,7 @@ class CarbynestackSimulation {
        |   scalar_product[0] += data[i] * data[$secretValues + i]
        |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
 
-  val multiplicationProgramOpt: String =
+  val scalarValueProgramOpt: String =
     s"""port=regint(10000)
        |listen(port)
        |socket_id = regint()
@@ -114,6 +113,18 @@ class CarbynestackSimulation {
        |@for_range_opt($secretValues)
        |def f(i):
        |   scalar_product[0] += data[i] * data[$secretValues + i]
+       |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
+
+  val additionProgram: String =
+    s"""port=regint(10000)
+       |listen(port)
+       |socket_id = regint()
+       |acceptclientconnection(socket_id, port)
+       |data = Array.create_from(sint.read_from_socket(socket_id, $dataSize))
+       |result = Array(1, sint)
+       |@for_range_opt($secretValues)
+       |def f(i):
+       |   result[0] += data[i] + data[$secretValues + i]
        |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
 
   val emptyProgram: String =
@@ -128,111 +139,43 @@ class CarbynestackSimulation {
        |   result[i] = data[i]
        |sint.write_to_socket(socket_id, result)""".stripMargin
 
-  val vectorAFeeder3: Array[Map[String, Secret]] = Array(
-    Map("secret" -> vectorASecret3)
-  )
-
-  val vectorBFeeder18: Array[Map[String, Secret]] = Array(
-    Map("secret" -> vectorBSecret18)
-  )
-
-  val tags: java.util.List[Tag] =
-    List
-      .fill[(String, String)](10)(Random.alphanumeric.take(10).mkString, Random.alphanumeric.take(10).mkString)
-      .map(
-        x =>
-          Tag
-            .builder()
-            .key(x._1)
-            .value(x._2)
-            .valueType(TagValueType.STRING)
-            .build()
-      )
-      .asJava
-
-  val lowerBound = 1000000000L
-  val upperBound = 9999999999L
-
-  val generateSecretsFunction: () => Secret = () => {
-
-    val secrets = Array.fill[java.math.BigInteger](1)(
-      new java.math.BigInteger((lowerBound + Random.nextLong(upperBound - lowerBound)).toString)
-    )
-    Secret.of(tags, secrets)
-  }
-
-  val feeder: Iterator[Map[String, Secret]] = Iterator.continually {
-    Map("secret" -> generateSecretsFunction())
-  }
-
-  val uuids: Expression[java.util.List[java.util.UUID]] = session =>
-    session("uuids")
-      .asOption[List[java.util.UUID]]
-      .getOrElse(throw new NoSuchElementException("No element of type java.util.List[java.util.UUID] found"))
-      .asJava
-
-  val ephemealScenario3 = scenario("ephemeral_scenario_3_digits")
-    .feed(vectorAFeeder3)
-    .group("amphora") {
-      exec(amphora.createSecret("#{secret}"))
-    }
-    .group("amphora") {
-      exec(amphora.createSecret("#{secret}"))
-    }
-    .group("empty_program_3_digits") {
-      repeat(10) {
-        exec(ephemeral.execute(emptyProgram, uuids))
-      }
-    }
-    .pause(60 * 3)
-    .group("multiplication_program_opt_3_digits") {
-      repeat(10) {
-        exec(ephemeral.execute(multiplicationProgramOpt, uuids))
-      }
-    }
-    .pause(60 * 3)
-
-  val ephemealScenario18 = scenario("ephemeral_scenario_18_digits")
-    .group("amphora") {
-      exec(amphora.createSecret("#{secret}"))
-    }
-    .feed(vectorBFeeder18)
-    .group("amphora") {
-      exec(amphora.createSecret("#{secret}"))
-    }
-    .group("empty_program_18_digits") {
-      repeat(10) {
-        exec(ephemeral.execute(emptyProgram, uuids))
-      }
-    }
-    .pause(60 * 3)
-    .group("multiplication_program_opt_18_digits") {
-      repeat(10) {
-        exec(ephemeral.execute(multiplicationProgramOpt, uuids))
-      }
-    }
-
-  val deleteAllSecretsScenario = scenario("delete-all-secrets-scenario")
+  val emptyProgramScenario = scenario("emptyProgram")
+    .feed(feeder)
+    .exec(amphora.createSecret("#{secret}"))
+    .feed((feeder))
+    .exec(amphora.createSecret("#{secret}"))
     .exec(amphora.getSecrets())
-    .foreach(
-      session => {
-        session("uuids")
-          .asOption[List[java.util.UUID]]
-          .getOrElse {
-            throw new NoSuchElementException(s"no UUID found in session ${session.userId}")
-          }
-      },
-      "uuid"
-    ) {
-      exec(amphora.deleteSecret("#{uuid}"))
+    .group("secret_values_10000") {
+      repeat(10) {
+        exec(ephemeral.execute(emptyProgram, "#{uuids}"))
+      }
     }
+    .pause(60 * 3)
 
-  /* setUp(
-    ephemealScenario3
+  val scalarValueOptProgramScenario = scenario("scalarValueOptProgrma")
+    .feed(feeder)
+    .exec(amphora.createSecret("#{secret}"))
+    .feed((feeder))
+    .exec(amphora.createSecret("#{secret}"))
+    .exec(amphora.getSecrets())
+    .group("secret_values_10000") {
+      repeat(10) {
+        exec(ephemeral.execute(scalarValueProgramOpt, "#{uuids}"))
+      }
+    }
+    .pause(60 * 3)
+
+  val deleteAllSecretsAfterEmptyProgramScenario = scenario("deleteAllSecretsAfterEmptyProgram")
+    .exec(performDeleteSecretRequest())
+
+  val deleteAllSecretsAfterScalarValueOptProgramScenario = scenario("deleteAllSecretsAfterScalarValueOptProgram")
+    .exec(performDeleteSecretRequest())
+
+  setUp(
+    emptyProgramScenario
       .inject(atOnceUsers(1))
-      .andThen(
-        ephemealScenario18
-          .inject(atOnceUsers(1))
-      )
-  ).protocols(csProtocol)*/
+      .andThen(deleteAllSecretsAfterEmptyProgramScenario.inject(atOnceUsers(1)))
+      .andThen(scalarValueOptProgramScenario.inject(atOnceUsers(1)))
+      .andThen(deleteAllSecretsAfterScalarValueOptProgramScenario.inject(atOnceUsers(1)))
+  ).protocols(csProtocol)
 }

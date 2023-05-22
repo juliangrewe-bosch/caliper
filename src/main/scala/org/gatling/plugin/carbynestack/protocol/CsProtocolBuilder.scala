@@ -14,16 +14,24 @@ object CsProtocolBuilder {
 
   def apply(): CsProtocolBuilder = new CsProtocolBuilder(CsProtocol())
 }
+
 case class CsProtocolBuilder(protocol: CsProtocol) {
 
-  def endpoints(endpoints: List[String]): CsProtocolBuilder =
-    this.modify(_.protocol.endpoints).setTo(endpoints)
+  def endpoints(endpointsValue: List[String]): CsProtocolBuilder = {
+    this
+      .modify(_.protocol.amphoraEndpoints)
+      .setTo(endpointsValue.map(endpoint => endpoint + "/amphora"))
+      .modify(_.protocol.ephemeralEndpoints)
+      .setTo(endpointsValue.map(endpoint => endpoint + "/"))
+  }
 
   def prime(primeValue: String): CsProtocolBuilder = this.modify(_.protocol.prime).setTo(primeValue)
 
   def r(rValue: String): CsProtocolBuilder = this.modify(_.protocol.r).setTo(rValue)
 
   def invR(invRValue: String): CsProtocolBuilder = this.modify(_.protocol.invR).setTo(invRValue)
+
+  def program(programValue: String): CsProtocolBuilder = this.modify(_.protocol.program).setTo(programValue)
 
   def build: CsProtocol = protocol
 }
