@@ -20,3 +20,7 @@ jobs:
       - run: npm install
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: cdktf diff
+        env:
+          TF_VAR_azureSubscriptionUsername: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
+          TF_VAR_azureSubscriptionPassword: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
+          TF_VAR_azureSubscriptionTenant: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
