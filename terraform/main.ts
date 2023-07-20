@@ -210,6 +210,8 @@ class CaliperStack extends TerraformStack {
             },
             computerName: "caliper-vm",
             adminUsername: "caliper",
+            adminPassword: "admin",
+            disablePasswordAuthentication: true,
             customData: Fn.base64encode(Fn.rawString(
                 "#cloud-config\n" +
                 "    packages:\n" +
