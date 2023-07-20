@@ -1,5 +1,5 @@
 import {Construct} from "constructs";
-import {App, Fn, TerraformOutput, TerraformStack} from "cdktf";
+import {App, Fn, TerraformOutput, TerraformStack, TerraformVariable} from "cdktf";
 import {AzurermProvider} from "@cdktf/provider-azurerm/lib/provider";
 import {ResourceGroup} from "@cdktf/provider-azurerm/lib/resource-group";
 import {KubernetesCluster} from "@cdktf/provider-azurerm/lib/kubernetes-cluster";
@@ -177,6 +177,21 @@ class CaliperStack extends TerraformStack {
             networkSecurityGroupId: vm_network_security_group.id
         });
 
+        const azureSubscriptionUsername = new TerraformVariable(this, "azureSubscriptionUsername", {
+            type: "string",
+            description: "Azure Service Principal App-ID"
+        });
+
+        const azureSubscriptionPassword = new TerraformVariable(this, "azureSubscriptionPassword", {
+            type: "string",
+            description: "Azure Service Principal Password"
+        });
+
+        const azureSubscriptionTenant = new TerraformVariable(this, "azureSubscriptionTenant", {
+            type: "string",
+            description: "Azure Service Principal Tenant"
+        });
+
         const caliper_linux_virtual_machine = new LinuxVirtualMachine(this, "caliper-vm", {
             name: "caliper-vm",
             location: caliper_resource_group.location,
@@ -210,7 +225,7 @@ class CaliperStack extends TerraformStack {
                 "      - cd /home/caliper\n" +
                 "      - git clone https://github.com/carbynestack/caliper.git\n" +
                 "      - git clone https://github.com/carbynestack/carbynestack.git\n" +
-                "      - sudo su - caliper -c \"az login --service-principal -u AZURE_SUBSCRIPTION_USERNAME -p AZURE_SUBSCRIPTION_PASSWORD --tenant AZURE_SUBSCRIPTION_TENANT\"\n" +
+                "      - sudo su - caliper -c \"az login --service-principal --username " + azureSubscriptionUsername.value + " --password " + azureSubscriptionPassword.value + " --tenant " + azureSubscriptionTenant.value + "\"\n" +
                 "      - sudo su - caliper -c \"az aks get-credentials -g caliper-rg -n apollo-private\"\n" +
                 "      - sudo su - caliper -c \"az aks get-credentials -g caliper-rg -n starbuck-private\"\n"
             )),
@@ -256,6 +271,15 @@ class CaliperStack extends TerraformStack {
         // Output
         new TerraformOutput(this, "caliper-vm-public-ip", {
             value: caliper_linux_virtual_machine.publicIpAddress,
+        });
+        new TerraformOutput(this, "a", {
+            value: azureSubscriptionUsername.value,
+        });
+        new TerraformOutput(this, "b", {
+            value: azureSubscriptionPassword.value,
+        });
+        new TerraformOutput(this, "c", {
+            value: azureSubscriptionTenant.value,
         });
     }
 }

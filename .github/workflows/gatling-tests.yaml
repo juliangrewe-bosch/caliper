@@ -1,11 +1,11 @@
 name: 'Gatling-Tests'
 
-on: [push]
+on: [ push ]
 
 defaults:
   run:
     working-directory: terraform
-    
+
 jobs:
   terraform:
     name: "Deploy Azure infrastructure"
