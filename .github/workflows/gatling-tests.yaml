@@ -25,9 +25,11 @@ jobs:
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: cdktf deploy --auto-approve true
         working-directory: terraform
-      - uses: appleboy/ssh-action@v1.0.0
+      - run: cdktf output --outputs-file vm_public_ip.json && cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
+        working-directory: terraform
         env:
           IP: cdktf output --outputs-file vm_public_ip.json && cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
+      - uses: appleboy/ssh-action@v1.0.0
         with:
           host: IP
           username: caliper
