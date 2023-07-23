@@ -6,7 +6,7 @@ jobs:
   bla:
     runs-on: ubuntu-latest
     steps:
-      - run: apt install jq
+      - run: sudo apt install jq
   terraform:
     name: "Deploy Azure infrastructure"
     runs-on: ubuntu-latest
@@ -18,8 +18,10 @@ jobs:
       - uses: hashicorp/setup-terraform@v2
       - run: npm install --global cdktf-cli@0.16.3
       - run: npm install
+        working-directory: terraform
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: cdktf deploy --auto-approve true
+        working-directory: terraform
       - uses: appleboy/ssh-action@v1.0.0
         env:
           IP: cdktf output --outputs-file vm_public_ip.json && cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
