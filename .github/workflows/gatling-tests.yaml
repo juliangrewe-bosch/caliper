@@ -11,6 +11,7 @@ jobs:
     name: "Deploy Azure infrastructure"
     runs-on: ubuntu-latest
     steps:
+      - run: apt install jq
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
@@ -21,8 +22,10 @@ jobs:
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: cdktf deploy --auto-approve true
       - uses: appleboy/ssh-action@v1.0.0
+        env:
+          IP: cdktf output --outputs-file vm_public_ip.json && cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
         with:
-          host: $(cdktf output --outputs-file vm_public_ip.json && cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
+          host: IP
           username: caliper
           password: TEST
           port: 22
