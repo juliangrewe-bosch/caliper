@@ -20,10 +20,6 @@ jobs:
       - run: npm install
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: cdktf deploy --auto-approve true
-        env:
-          TF_VAR_azureSubscriptionUsername: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
-          TF_VAR_azureSubscriptionPassword: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
-          TF_VAR_azureSubscriptionTenant: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - uses: appleboy/ssh-action@v1.0.0
         with:
           host: $(cdktf output --outputs-file vm_public_ip.json && cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
