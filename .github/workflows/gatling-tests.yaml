@@ -2,16 +2,15 @@ name: 'Gatling-Tests'
 
 on: [ push ]
 
-defaults:
-  run:
-    working-directory: terraform
-
 jobs:
+  bla:
+    runs-on: ubuntu-latest
+    steps:
+      - run: apt install jq
   terraform:
     name: "Deploy Azure infrastructure"
     runs-on: ubuntu-latest
     steps:
-      - run: apt install jq
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
