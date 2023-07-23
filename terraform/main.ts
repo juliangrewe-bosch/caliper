@@ -176,22 +176,7 @@ class CaliperStack extends TerraformStack {
             networkInterfaceId: vm_network_interface.id,
             networkSecurityGroupId: vm_network_security_group.id
         });
-        /*
-                const azureSubscriptionUsername = new TerraformVariable(this, "azureSubscriptionUsername", {
-                    type: "string",
-                    description: "Azure Service Principal App-ID"
-                });
 
-                const azureSubscriptionPassword = new TerraformVariable(this, "azureSubscriptionPassword", {
-                    type: "string",
-                    description: "Azure Service Principal Password"
-                });
-
-                const azureSubscriptionTenant = new TerraformVariable(this, "azureSubscriptionTenant", {
-                    type: "string",
-                    description: "Azure Service Principal Tenant"
-                });
-        */
         const caliper_linux_virtual_machine = new LinuxVirtualMachine(this, "caliper-vm", {
             name: "caliper-vm",
             location: caliper_resource_group.location,
