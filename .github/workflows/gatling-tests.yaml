@@ -19,6 +19,8 @@ jobs:
         with:
           node-version: "16"
       - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
       - run: npm install --global cdktf-cli@0.16.3
       - run: npm install
         working-directory: terraform
