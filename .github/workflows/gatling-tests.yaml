@@ -24,3 +24,11 @@ jobs:
           TF_VAR_azureSubscriptionUsername: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
           TF_VAR_azureSubscriptionPassword: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
           TF_VAR_azureSubscriptionTenant: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+      - uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: $(cdktf output --outputs-file vm_public_ip.json && cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
+          username: caliper
+          password: TEST
+          port: 22
+          script:
+              ls
