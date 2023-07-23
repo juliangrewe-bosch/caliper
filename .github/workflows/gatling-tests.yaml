@@ -7,6 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: sudo apt install jq
+      - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"20.238.68.85"}}' > test.json
+      - run: ls
+      - run: cat test.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
   terraform:
     name: "Deploy Azure infrastructure"
     runs-on: ubuntu-latest
