@@ -19,9 +19,7 @@ jobs:
       - run: npm install --global cdktf-cli@0.16.3
       - run: npm install
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
-      - run: cdktf --version
-      - run: cdktf synth
-      - run: cdktf deploy
+      - run: cdktf deploy --auto-approve true
       - uses: appleboy/ssh-action@v1.0.0
         with:
           host: $(cdktf output --outputs-file vm_public_ip.json && cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
