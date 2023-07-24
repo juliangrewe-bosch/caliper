@@ -25,11 +25,20 @@ jobs:
       - run: cdktf output --outputs-file vm_public_ip.json
       - run: ls
       - run: cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
+      - run: echo $IP
+        env:
+          IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
+      - run: echo IP
+        env:
+          IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
       - uses: appleboy/ssh-action@v1.0.0
+        env:
+          IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
         with:
-          host: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
+          envs: IP
+          host: IP
           username: caliper
-          password: ADMINadmin123456!?
+          password: ${{secrets.SSH_PASSWORD}}
           port: 22
           script: |
               ls
