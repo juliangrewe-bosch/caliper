@@ -3,15 +3,7 @@ name: 'Gatling-Tests'
 on: [ push ]
 
 jobs:
-  bla:
-    runs-on: ubuntu-latest
-    steps:
-      - run: sudo apt install jq
-      - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"20.238.68.85"}}' > test.json
-      - run: ls
-      - run: cat test.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
-  terraform:
-    name: "Deploy Azure infrastructure"
+  Caliper-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,5 +19,7 @@ jobs:
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: cdktf deploy --auto-approve true
         working-directory: terraform
-      - run: ls
-        working-directory: terraform
+      - run: sudo apt install jq
+      - run: echo "ssh into vm"
+      - run: echo "run load-tests"
+      - run: cdktf destroy --auto-approve true
