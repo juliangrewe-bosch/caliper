@@ -23,17 +23,9 @@ jobs:
       - run: cdktf deploy --auto-approve true
       - run: sudo apt install jq
       - run: cdktf output --outputs-file vm_public_ip.json
-      - run: ls
-      - run: cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
-      - run: echo $IP
-        env:
-          IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
-      - run: echo IP
-        env:
-          IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
       - uses: appleboy/ssh-action@v1.0.0
         env:
-          IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
+          IP: cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
         with:
           envs: IP
           host: IP
