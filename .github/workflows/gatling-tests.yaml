@@ -1,7 +1,11 @@
-name: 'Gatling-Tests'
+name: 'Caliper'
 
 on: [ push ]
 
+defaults:
+  run:
+    working-directory: terraform
+    
 jobs:
   Caliper-tests:
     runs-on: ubuntu-latest
@@ -15,11 +19,11 @@ jobs:
           terraform_wrapper: false
       - run: npm install --global cdktf-cli@0.16.3
       - run: npm install
-        working-directory: terraform
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: cdktf deploy --auto-approve true
-        working-directory: terraform
       - run: sudo apt install jq
-      - run: echo "ssh into vm"
+      - run: cdktf output --outputs-file vm_public_ip.json
+      - run: ls
+      - run: cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]'
       - run: echo "run load-tests"
       - run: cdktf destroy --auto-approve true
