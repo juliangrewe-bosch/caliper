@@ -23,7 +23,9 @@ jobs:
           password: ${{secrets.SSH_PASSWORD}}
           port: 22
           script: |
+              ls
               cd caliper/caliper
+              ls
               git clone https://github.com/carbynestack/caliper.git /home/caliper/caliper
               chmod +x /home/caliper/caliper/mvnw
               ./mvnw compile
