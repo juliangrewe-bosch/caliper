@@ -11,15 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_wrapper: false
-      - run: npm install --global cdktf-cli@0.16.3
-      - run: npm install
-      - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: sudo apt install jq
       - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"13.79.234.119"}}' > test.json
       - uses: appleboy/ssh-action@v1.0.0
@@ -32,7 +23,7 @@ jobs:
           password: ${{secrets.SSH_PASSWORD}}
           port: 22
           script: |
-              cd caliper/caliper
-              chmod +x mvnw
-              ./mvnw compile
+              git clone https://github.com/carbynestack/caliper.git /home/caliper/caliper
+              chmod +x /home/caliper/caliper/mvnw
+              /home/caliper/caliper/mvnw compile
       - run: echo "run load-tests"
