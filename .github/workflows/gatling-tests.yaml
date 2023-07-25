@@ -22,7 +22,6 @@ jobs:
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: sudo apt install jq
       - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"13.79.234.119"}}' > test.json
-      - run: c
       - uses: appleboy/ssh-action@v1.0.0
         env:
           IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
