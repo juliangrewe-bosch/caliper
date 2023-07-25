@@ -223,9 +223,7 @@ class CaliperStack extends TerraformStack {
                 "  - curl -sLO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl\n" +
                 "  - chmod +x kubectl\n" +
                 "  - mv kubectl /usr/local/bin\n" +
-                "  - git clone https://github.com/carbynestack/caliper.git /home/caliper/caliper\n" +
                 "  - mv /.m2 /home/caliper/.m2\n" +
-                "  - chown -R caliper:caliper /home/caliper/caliper\n" +
                 "  - chown -R caliper:caliper /home/caliper/.m2/"))
             //  dependsOn: [apollo_k8s_cluster, starbuck_k8s_cluster]
         });
