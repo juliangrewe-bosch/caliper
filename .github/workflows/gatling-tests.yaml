@@ -27,7 +27,7 @@ jobs:
           IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
         with:
           envs: IP
-          host: $IP
+          host: IP
           username: caliper
           password: ${{secrets.SSH_PASSWORD}}
           port: 22
