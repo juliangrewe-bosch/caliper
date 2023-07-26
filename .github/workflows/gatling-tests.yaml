@@ -11,12 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: sudo apt install jq
-      - run: sudo apt-get install sshpass
+      - run: |
+          sudo apt-get update
+          sudo apt-get install jq
+          sudo apt-get install sshpass
       - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"104.45.86.93"}}' > vm_public_ip.json
       - run: |
          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
-         az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
          echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
                       "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
                       "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
@@ -29,6 +30,7 @@ jobs:
                       "    </server>\n" \
                       "  </servers>\n" \
                       "</settings>" > .m2/settings.xml
+         az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
          git clone https://github.com/carbynestack/caliper.git /home/caliper/caliper
          cd caliper
          chmod +x mvnw
