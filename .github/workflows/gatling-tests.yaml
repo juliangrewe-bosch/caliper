@@ -15,7 +15,7 @@ jobs:
       - run: sudo apt-get install sshpass
       - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"104.45.86.93"}}' > vm_public_ip.json
       - run: |
-         sshpass -p ${{secrets.SSH_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
+         sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
          az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
          echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
                       "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
