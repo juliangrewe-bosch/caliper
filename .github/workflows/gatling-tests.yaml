@@ -11,20 +11,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+      - run: npm install --global cdktf-cli@0.16.3
+      - run: npm install
+      - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+      - run: cdktf deploy --auto-approve true
       - run: sudo apt install jq
-      - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"13.79.234.119"}}' > test.json
+      - run: cdktf output --outputs-file vm_public_ip.json
       - uses: appleboy/ssh-action@v1.0.0
         env:
           IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
         with:
           envs: IP
-          host: 13.79.234.119
+          host: IP
           username: caliper
           password: ${{secrets.SSH_PASSWORD}}
           port: 22
           script: |
+              echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
+                      "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
+                      "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
+                      "          xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd\">\n" \
+                      "  <servers>\n" \
+                      "    <server>\n" \
+                      "      <id>github</id>\n" \
+                      "      <username>juliangrewe-bosch</username>\n" \
+                      "      <password> ${{secrets.ACCESS_TOKEN}}</password>\n" \
+                      "    </server>\n" \
+                      "  </servers>\n" \
+                      "</settings>" > .m2/settings.xml
               git clone https://github.com/carbynestack/caliper.git /home/caliper/caliper
               cd caliper
               chmod +x mvnw
               ./mvnw compile
-      - run: echo "run load-tests"
+      - run: cdktf destroy --auto-approve true
