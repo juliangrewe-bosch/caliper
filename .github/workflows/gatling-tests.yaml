@@ -11,24 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_wrapper: false
-      - run: npm install --global cdktf-cli@0.16.3
-      - run: npm install
-      - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
-      - run: cdktf deploy --auto-approve true
       - run: sudo apt install jq
-      - run: cdktf output --outputs-file vm_public_ip.json
       - uses: appleboy/ssh-action@v1.0.0
         env:
           IP: $(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
+          IP2: 1.1.1.1
         with:
-          envs: IP
-          host: IP
+          envs: IP, IP2
+          host: IP2
           username: caliper
           password: ${{secrets.SSH_PASSWORD}}
           port: 22
