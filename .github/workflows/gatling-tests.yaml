@@ -1,13 +1,13 @@
-name: 'Caliper'
+name: 'Caliper-load-tests'
 
 on: [ push ]
-  
+
 defaults:
   run:
     working-directory: terraform
-    
+
 jobs:
-  Caliper-tests:
+  Caliper-load-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -15,7 +15,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install jq
           sudo apt-get install sshpass
-      - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"104.45.86.93"}}' > vm_public_ip.json
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+      - run: npm install --global cdktf-cli@0.16.3
+      - run: npm install
+      - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+      - run: cdktf deploy --auto-approve true
+      - run: cdktf output --outputs-file vm_public_ip.json
       - run: |
          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
          echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
@@ -36,4 +46,4 @@ jobs:
          chmod +x mvnw
          ./mvnw compile
          EOF
-         
+      - run: cdktf destroy --auto-approve true

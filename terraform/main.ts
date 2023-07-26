@@ -1,5 +1,5 @@
 import {Construct} from "constructs";
-import {App, Fn, TerraformOutput, TerraformStack} from "cdktf";
+import {App, Fn, TerraformOutput, TerraformStack, TerraformVariable} from "cdktf";
 import {AzurermProvider} from "@cdktf/provider-azurerm/lib/provider";
 import {ResourceGroup} from "@cdktf/provider-azurerm/lib/resource-group";
 //import {KubernetesCluster} from "@cdktf/provider-azurerm/lib/kubernetes-cluster";
@@ -177,6 +177,10 @@ class CaliperStack extends TerraformStack {
             networkSecurityGroupId: vm_network_security_group.id
         });
 
+        const adminPassword = new TerraformVariable(this, "adminPassword", {
+            type: "string"
+        });
+
         const caliper_linux_virtual_machine = new LinuxVirtualMachine(this, "caliper-vm", {
             name: "caliper-vm",
             location: caliper_resource_group.location,
@@ -195,36 +199,19 @@ class CaliperStack extends TerraformStack {
             },
             computerName: "caliper-vm",
             adminUsername: "caliper",
-            adminPassword: "ADMINadmin123456!?",
+            adminPassword: adminPassword.value,
             disablePasswordAuthentication: false,
-            customData: Fn.base64encode(Fn.rawString(
+            customData: Fn.base64encode(
                 "#cloud-config\n" +
                 "packages:\n" +
                 "  - openjdk-8-jdk\n" +
                 "  - npm\n" +
                 "  - nodejs\n" +
-                "write_files:\n" +
-                "  - path: /.m2/settings.xml\n" +
-                "    content: |\n" +
-                "      <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "      <settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" +
-                "                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-                "                xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd\">\n" +
-                "         <servers>\n" +
-                "          <server>\n" +
-                "            <id>github</id>\n" +
-                "            <username>juliangrewe-bosch</username>\n" +
-                "            <password>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</password>\n" +
-                "          </server>\n" +
-                "        </servers>\n" +
-                "      </settings>\n" +
                 "runcmd:\n" +
                 "  - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash\n" +
                 "  - curl -sLO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl\n" +
                 "  - chmod +x kubectl\n" +
-                "  - mv kubectl /usr/local/bin\n" +
-                "  - mv /.m2 /home/caliper/.m2\n" +
-                "  - chown -R caliper:caliper /home/caliper/.m2/"))
+                "  - mv kubectl /usr/local/bin")
             //  dependsOn: [apollo_k8s_cluster, starbuck_k8s_cluster]
         });
         /*
