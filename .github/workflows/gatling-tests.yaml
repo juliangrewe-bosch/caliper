@@ -14,9 +14,4 @@ jobs:
       - run: sudo apt install jq
       - run: sudo apt-get install sshpass
       - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"4.210.123.184"}}' > vm_public_ip.json
-      - run: sudo sshpass -p ${{secrets.SSH_PASSWORD}} ssh caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
-              git clone https://github.com/carbynestack/caliper.git /home/caliper/caliper
-              cd caliper
-              chmod +x mvnw
-              ./mvnw compile
-              EOF
+      - run: sudo sshpass -p ${{secrets.SSH_PASSWORD}} ssh caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]')
