@@ -16,6 +16,18 @@ jobs:
       - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"4.210.123.184"}}' > vm_public_ip.json
       - run: |
          sshpass -p ${{secrets.SSH_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
+         echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
+                      "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
+                      "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
+                      "          xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd\">\n" \
+                      "  <servers>\n" \
+                      "    <server>\n" \
+                      "      <id>github</id>\n" \
+                      "      <username>juliangrewe-bosch</username>\n" \
+                      "      <password> ${{secrets.ACCESS_TOKEN}}</password>\n" \
+                      "    </server>\n" \
+                      "  </servers>\n" \
+                      "</settings>" > .m2/settings.xml
          git clone https://github.com/carbynestack/caliper.git /home/caliper/caliper
          cd caliper
          chmod +x mvnw
