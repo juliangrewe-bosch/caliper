@@ -25,6 +25,8 @@ jobs:
       - run: npm install
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: cdktf deploy --auto-approve true
+        env:
+          TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
       - run: cdktf output --outputs-file vm_public_ip.json
       - run: |
          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
