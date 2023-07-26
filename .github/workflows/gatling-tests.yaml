@@ -16,5 +16,7 @@ jobs:
       - run: echo '{"caliper-azure-deployment":{"caliper-vm-public-ip":"4.210.123.184"}}' > vm_public_ip.json
       - run: |
          sshpass -p ${{secrets.SSH_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
-         ls
+         git clone https://github.com/carbynestack/caliper.git /home/caliper/caliper
+         cd caliper
+         chmod +x mvnw
          EOF
