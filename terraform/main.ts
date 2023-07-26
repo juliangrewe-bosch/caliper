@@ -1,5 +1,5 @@
 import {Construct} from "constructs";
-import {App, Fn, TerraformOutput, TerraformStack, TerraformVariable} from "cdktf";
+import {App, TerraformOutput, TerraformStack, TerraformVariable} from "cdktf";
 import {AzurermProvider} from "@cdktf/provider-azurerm/lib/provider";
 import {ResourceGroup} from "@cdktf/provider-azurerm/lib/resource-group";
 //import {KubernetesCluster} from "@cdktf/provider-azurerm/lib/kubernetes-cluster";
@@ -200,13 +200,7 @@ class CaliperStack extends TerraformStack {
             computerName: "caliper-vm",
             adminUsername: "caliper",
             adminPassword: adminPassword.value,
-            disablePasswordAuthentication: false,
-            customData: Fn.base64encode(
-                "#cloud-config\n" +
-                "packages:\n" +
-                "  - openjdk-8-jdk\n" +
-                "  - npm\n" +
-                "  - nodejs\n")
+            disablePasswordAuthentication: false
             //  dependsOn: [apollo_k8s_cluster, starbuck_k8s_cluster]
         });
         /*

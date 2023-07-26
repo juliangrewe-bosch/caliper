@@ -42,6 +42,10 @@ jobs:
                       "    </server>\n" \
                       "  </servers>\n" \
                       "</settings>" > .m2/settings.xml
+         sudo apt-get update
+         sudo apt-get install openjdk-8-jdk
+         sudo apt-get install nodejs
+         sudo apt-get install npm
          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
          az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
          git clone https://github.com/carbynestack/caliper.git
