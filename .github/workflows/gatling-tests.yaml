@@ -31,7 +31,7 @@ jobs:
                       "  </servers>\n" \
                       "</settings>" > .m2/settings.xml
          az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
-         git clone https://github.com/carbynestack/caliper.git /home/caliper/caliper
+         git clone https://github.com/carbynestack/caliper.git
          cd caliper
          chmod +x mvnw
          ./mvnw compile
