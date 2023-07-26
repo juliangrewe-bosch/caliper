@@ -206,12 +206,7 @@ class CaliperStack extends TerraformStack {
                 "packages:\n" +
                 "  - openjdk-8-jdk\n" +
                 "  - npm\n" +
-                "  - nodejs\n" +
-                "runcmd:\n" +
-                "  - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash\n" +
-                "  - curl -sLO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl\n" +
-                "  - chmod +x kubectl\n" +
-                "  - mv kubectl /usr/local/bin")
+                "  - nodejs\n")
             //  dependsOn: [apollo_k8s_cluster, starbuck_k8s_cluster]
         });
         /*

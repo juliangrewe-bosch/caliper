@@ -42,6 +42,7 @@ jobs:
                       "    </server>\n" \
                       "  </servers>\n" \
                       "</settings>" > .m2/settings.xml
+         curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
          az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
          git clone https://github.com/carbynestack/caliper.git
          cd caliper
