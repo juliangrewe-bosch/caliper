@@ -1,10 +1,6 @@
 name: 'Caliper'
 
 on: [ push ]
-
-defaults:
-  run:
-    working-directory: terraform
     
 jobs:
   Caliper-tests:
@@ -21,8 +17,10 @@ jobs:
           terraform_wrapper: false
       - run: npm install --global cdktf-cli@0.16.3
       - run: npm install
+        working-directory: terraform
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - run: cdktf deploy --auto-approve true
+        working-directory: terraform
       - run: |
          sshpass -p ${{secrets.SSH_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
          echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
@@ -43,3 +41,4 @@ jobs:
          ./mvnw compile
          EOF
       - run: cdktf destroy --auto-approve true
+        working-directory: terraform
