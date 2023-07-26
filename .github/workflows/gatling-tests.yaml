@@ -34,4 +34,4 @@ jobs:
          chmod +x mvnw
          ./mvnw compile
          EOF
-      - run: cdktf destroy --auto-approve true
+         
