@@ -1,1 +1,93 @@
-<h1>Hello World</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Apollo-Private</title>
+    <style>
+        body {
+            position: relative;
+        }
+
+        .separator {
+            width: 100%;
+            border-top: 1px solid #ccc;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .label-container {
+            position: relative;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .timestamp {
+            font-weight: bold;
+        }
+
+        .timerange {
+            font-weight: bold;
+        }
+
+        .title {
+            text-align: left;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .graph-container {
+            display: inline-block;
+            width: 45%; /* Adjust the width as needed */
+            margin: 10px;
+            text-align: center;
+        }
+        
+        .graph-container img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+    <script>
+        // Calculate the default data timerange
+        var now = new Date();
+        var oneHourAgo = new Date(now);
+        oneHourAgo.setHours(now.getHours() - 1);
+
+        var formattedStartTime = oneHourAgo.toLocaleString();
+        var formattedEndTime = now.toLocaleString();
+        
+        window.onload = function() {
+            // Update the data timerange span
+            var timerangeSpan = document.querySelector('.timerange');
+            timerangeSpan.textContent = 'Data Timerange ' + formattedStartTime + ' to ' + formattedEndTime;
+        };
+    </script>
+</head>
+<body>
+    <div class="label-container">
+        <span class="timestamp">Generated on August 2, 2023</span>
+        <span class="timerange">Data Timerange (calculating...)</span>
+    </div>
+
+    <h1 class="title">Apollo-Private</h1>
+
+    <div class="separator"></div>
+
+    <div class="graph-container">
+        <img src="Prometheus_metrics/plot.png" alt="Graph 1">
+    </div>
+
+    <div class="graph-container">
+        <img src="Prometheus_metrics/plot.png" alt="Graph 2">
+    </div>
+
+    <div class="graph-container">
+        <img src="Prometheus_metrics/plot.png" alt="Graph 3">
+    </div>
+
+    <div class="graph-container">
+        <img src="Prometheus_metrics/plot.png" alt="Graph 4">
+    </div>
+</body>
+</html>
