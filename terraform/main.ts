@@ -2,7 +2,7 @@ import {Construct} from "constructs";
 import {App, TerraformOutput, TerraformStack, TerraformVariable} from "cdktf";
 import {AzurermProvider} from "@cdktf/provider-azurerm/lib/provider";
 import {ResourceGroup} from "@cdktf/provider-azurerm/lib/resource-group";
-//import {KubernetesCluster} from "@cdktf/provider-azurerm/lib/kubernetes-cluster";
+import {KubernetesCluster} from "@cdktf/provider-azurerm/lib/kubernetes-cluster";
 import {LinuxVirtualMachine} from "@cdktf/provider-azurerm/lib/linux-virtual-machine";
 import {NetworkInterface} from "@cdktf/provider-azurerm/lib/network-interface";
 import {Subnet} from "@cdktf/provider-azurerm/lib/subnet";
@@ -12,9 +12,9 @@ import {NetworkSecurityGroup} from "@cdktf/provider-azurerm/lib/network-security
 import {
     NetworkInterfaceSecurityGroupAssociation
 } from "@cdktf/provider-azurerm/lib/network-interface-security-group-association";
-//import {VirtualNetworkPeering} from "@cdktf/provider-azurerm/lib/virtual-network-peering";
-//import {PrivateDnsZone} from "@cdktf/provider-azurerm/lib/private-dns-zone";
-//import {PrivateDnsZoneVirtualNetworkLink} from "@cdktf/provider-azurerm/lib/private-dns-zone-virtual-network-link";
+import {VirtualNetworkPeering} from "@cdktf/provider-azurerm/lib/virtual-network-peering";
+import {PrivateDnsZone} from "@cdktf/provider-azurerm/lib/private-dns-zone";
+import {PrivateDnsZoneVirtualNetworkLink} from "@cdktf/provider-azurerm/lib/private-dns-zone-virtual-network-link";
 
 class CaliperStack extends TerraformStack {
     constructor(scope: Construct, name: string) {
@@ -34,92 +34,92 @@ class CaliperStack extends TerraformStack {
         });
 
         //Kubernetes
-        /* const apollo_virtual_network = new VirtualNetwork(this, "apollo-vnet", {
-             name: "apollo-vnet",
-             addressSpace: ["10.1.0.0/16"],
-             location: caliper_resource_group.location,
-             resourceGroupName: caliper_resource_group.name
-         });
+        const apollo_virtual_network = new VirtualNetwork(this, "apollo-vnet", {
+            name: "apollo-vnet",
+            addressSpace: ["10.1.0.0/16"],
+            location: caliper_resource_group.location,
+            resourceGroupName: caliper_resource_group.name
+        });
 
-         const apollo_subnet = new Subnet(this, "apollo-subnet", {
-             name: "apollo-subnet",
-             resourceGroupName: caliper_resource_group.name,
-             virtualNetworkName: apollo_virtual_network.name,
-             addressPrefixes: ["10.1.1.0/24"]
-         });
+        const apollo_subnet = new Subnet(this, "apollo-subnet", {
+            name: "apollo-subnet",
+            resourceGroupName: caliper_resource_group.name,
+            virtualNetworkName: apollo_virtual_network.name,
+            addressPrefixes: ["10.1.1.0/24"]
+        });
 
-         const starbuck_virtual_network = new VirtualNetwork(this, "starbuck-vnet", {
-             name: "starbuck-vnet",
-             addressSpace: ["10.2.0.0/16"],
-             location: caliper_resource_group.location,
-             resourceGroupName: caliper_resource_group.name
-         });
+        const starbuck_virtual_network = new VirtualNetwork(this, "starbuck-vnet", {
+            name: "starbuck-vnet",
+            addressSpace: ["10.2.0.0/16"],
+            location: caliper_resource_group.location,
+            resourceGroupName: caliper_resource_group.name
+        });
 
-         const starbuck_subnet = new Subnet(this, "starbuck-subnet", {
-             name: "starbuck-subnet",
-             resourceGroupName: caliper_resource_group.name,
-             virtualNetworkName: starbuck_virtual_network.name,
-             addressPrefixes: ["10.2.1.0/24"]
-         });
+        const starbuck_subnet = new Subnet(this, "starbuck-subnet", {
+            name: "starbuck-subnet",
+            resourceGroupName: caliper_resource_group.name,
+            virtualNetworkName: starbuck_virtual_network.name,
+            addressPrefixes: ["10.2.1.0/24"]
+        });
 
-         new VirtualNetworkPeering(this, "vnet-peering-apollo-to-starbuck", {
-             name: "vnet-peering-apollo-to-starbuck",
-             resourceGroupName: caliper_resource_group.name,
-             virtualNetworkName: apollo_virtual_network.name,
-             remoteVirtualNetworkId: starbuck_virtual_network.id
-         });
+        new VirtualNetworkPeering(this, "vnet-peering-apollo-to-starbuck", {
+            name: "vnet-peering-apollo-to-starbuck",
+            resourceGroupName: caliper_resource_group.name,
+            virtualNetworkName: apollo_virtual_network.name,
+            remoteVirtualNetworkId: starbuck_virtual_network.id
+        });
 
-         new VirtualNetworkPeering(this, "vnet-peering-starbuck-to-apollo", {
-             name: "vnet-peering-starbuck-to-apollo",
-             resourceGroupName: caliper_resource_group.name,
-             virtualNetworkName: starbuck_virtual_network.name,
-             remoteVirtualNetworkId: apollo_virtual_network.id
-         });
+        new VirtualNetworkPeering(this, "vnet-peering-starbuck-to-apollo", {
+            name: "vnet-peering-starbuck-to-apollo",
+            resourceGroupName: caliper_resource_group.name,
+            virtualNetworkName: starbuck_virtual_network.name,
+            remoteVirtualNetworkId: apollo_virtual_network.id
+        });
 
-         const caliper_private_dns_zone = new PrivateDnsZone(this, "caliper-private-dns-zone", {
-             name: "privatelink." + caliper_resource_group.location + ".azmk8s.io",
-             resourceGroupName: caliper_resource_group.name,
-         });
+        const caliper_private_dns_zone = new PrivateDnsZone(this, "caliper-private-dns-zone", {
+            name: "privatelink." + caliper_resource_group.location + ".azmk8s.io",
+            resourceGroupName: caliper_resource_group.name,
+        });
 
-         const apollo_k8s_cluster = new KubernetesCluster(this, "apollo-private", {
-             name: "apollo-private",
-             location: caliper_resource_group.location,
-             resourceGroupName: caliper_resource_group.name,
-             dnsPrefix: "dns",
-             privateDnsZoneId: caliper_private_dns_zone.id,
-             defaultNodePool: {
-                 name: "agentpool",
-                 nodeCount: 1,
-                 vmSize: "Standard_D3_v2",
-                 vnetSubnetId: apollo_subnet.id
-             },
-             identity: {
-                 type: "UserAssigned",
-                 identityIds: ["/subscriptions/a0d4b3b2-cbb5-42c5-b496-9b5a1c48daf0/resourceGroups/caliper-managed-identity-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/caliper-aks-managed-identity"]
-             },
-             privateClusterEnabled: true,
-             privateClusterPublicFqdnEnabled: false
-         });
+        const apollo_k8s_cluster = new KubernetesCluster(this, "apollo-private", {
+            name: "apollo-private",
+            location: caliper_resource_group.location,
+            resourceGroupName: caliper_resource_group.name,
+            dnsPrefix: "dns",
+            privateDnsZoneId: caliper_private_dns_zone.id,
+            defaultNodePool: {
+                name: "agentpool",
+                nodeCount: 1,
+                vmSize: "Standard_D3_v2",
+                vnetSubnetId: apollo_subnet.id
+            },
+            identity: {
+                type: "UserAssigned",
+                identityIds: ["/subscriptions/a0d4b3b2-cbb5-42c5-b496-9b5a1c48daf0/resourceGroups/caliper-managed-identity-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/caliper-aks-managed-identity"]
+            },
+            privateClusterEnabled: true,
+            privateClusterPublicFqdnEnabled: false
+        });
 
-         const starbuck_k8s_cluster = new KubernetesCluster(this, "starbuck-private", {
-             name: "starbuck-private",
-             location: caliper_resource_group.location,
-             resourceGroupName: caliper_resource_group.name,
-             dnsPrefix: "dns",
-             privateDnsZoneId: caliper_private_dns_zone.id,
-             defaultNodePool: {
-                 name: "agentpool",
-                 nodeCount: 1,
-                 vmSize: "Standard_D3_v2",
-                 vnetSubnetId: starbuck_subnet.id
-             },
-             identity: {
-                 type: "UserAssigned",
-                 identityIds: ["/subscriptions/a0d4b3b2-cbb5-42c5-b496-9b5a1c48daf0/resourceGroups/caliper-managed-identity-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/caliper-aks-managed-identity"]
-             },
-             privateClusterEnabled: true,
-             privateClusterPublicFqdnEnabled: false
-         });*/
+        const starbuck_k8s_cluster = new KubernetesCluster(this, "starbuck-private", {
+            name: "starbuck-private",
+            location: caliper_resource_group.location,
+            resourceGroupName: caliper_resource_group.name,
+            dnsPrefix: "dns",
+            privateDnsZoneId: caliper_private_dns_zone.id,
+            defaultNodePool: {
+                name: "agentpool",
+                nodeCount: 1,
+                vmSize: "Standard_D3_v2",
+                vnetSubnetId: starbuck_subnet.id
+            },
+            identity: {
+                type: "UserAssigned",
+                identityIds: ["/subscriptions/a0d4b3b2-cbb5-42c5-b496-9b5a1c48daf0/resourceGroups/caliper-managed-identity-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/caliper-aks-managed-identity"]
+            },
+            privateClusterEnabled: true,
+            privateClusterPublicFqdnEnabled: false
+        });
 
         // VM
         const vm_virtual_network = new VirtualNetwork(this, "vm-vnet", {
@@ -200,45 +200,45 @@ class CaliperStack extends TerraformStack {
             computerName: "caliper-vm",
             adminUsername: "caliper",
             adminPassword: adminPassword.value,
-            disablePasswordAuthentication: false
-            //  dependsOn: [apollo_k8s_cluster, starbuck_k8s_cluster]
+            disablePasswordAuthentication: false,
+            dependsOn: [apollo_k8s_cluster, starbuck_k8s_cluster]
         });
-        /*
-                new VirtualNetworkPeering(this, "vnet-peering-vm-to-apollo", {
-                    name: "vnet-peering-vm-to-apollo",
-                    resourceGroupName: caliper_resource_group.name,
-                    virtualNetworkName: vm_virtual_network.name,
-                    remoteVirtualNetworkId: apollo_virtual_network.id
-                });
 
-                new VirtualNetworkPeering(this, "vnet-peering-apollo-to-vm", {
-                    name: "vnet-peering-apollo-to-vm",
-                    resourceGroupName: caliper_resource_group.name,
-                    virtualNetworkName: apollo_virtual_network.name,
-                    remoteVirtualNetworkId: vm_virtual_network.id
-                });
+        new VirtualNetworkPeering(this, "vnet-peering-vm-to-apollo", {
+            name: "vnet-peering-vm-to-apollo",
+            resourceGroupName: caliper_resource_group.name,
+            virtualNetworkName: vm_virtual_network.name,
+            remoteVirtualNetworkId: apollo_virtual_network.id
+        });
 
-                new VirtualNetworkPeering(this, "vnet-peering-vm-to-starbuck", {
-                    name: "vnet-peering-vm-to-starbuck",
-                    resourceGroupName: caliper_resource_group.name,
-                    virtualNetworkName: vm_virtual_network.name,
-                    remoteVirtualNetworkId: starbuck_virtual_network.id
-                });
+        new VirtualNetworkPeering(this, "vnet-peering-apollo-to-vm", {
+            name: "vnet-peering-apollo-to-vm",
+            resourceGroupName: caliper_resource_group.name,
+            virtualNetworkName: apollo_virtual_network.name,
+            remoteVirtualNetworkId: vm_virtual_network.id
+        });
 
-                new VirtualNetworkPeering(this, "vnet-peering-starbuck-to-vm", {
-                    name: "vnet-peering-starbuck-to-vm",
-                    resourceGroupName: caliper_resource_group.name,
-                    virtualNetworkName: starbuck_virtual_network.name,
-                    remoteVirtualNetworkId: vm_virtual_network.id
-                });
+        new VirtualNetworkPeering(this, "vnet-peering-vm-to-starbuck", {
+            name: "vnet-peering-vm-to-starbuck",
+            resourceGroupName: caliper_resource_group.name,
+            virtualNetworkName: vm_virtual_network.name,
+            remoteVirtualNetworkId: starbuck_virtual_network.id
+        });
 
-                new PrivateDnsZoneVirtualNetworkLink(this, "caliper-vm-vnet-caliper-private-dns-zone-link", {
-                    name: "caliper-vm-vnet-caliper-private-dns-zone-link",
-                    resourceGroupName: caliper_resource_group.name,
-                    privateDnsZoneName: caliper_private_dns_zone.name,
-                    virtualNetworkId: vm_virtual_network.id,
-                    registrationEnabled: true
-                });*/
+        new VirtualNetworkPeering(this, "vnet-peering-starbuck-to-vm", {
+            name: "vnet-peering-starbuck-to-vm",
+            resourceGroupName: caliper_resource_group.name,
+            virtualNetworkName: starbuck_virtual_network.name,
+            remoteVirtualNetworkId: vm_virtual_network.id
+        });
+
+        new PrivateDnsZoneVirtualNetworkLink(this, "caliper-vm-vnet-caliper-private-dns-zone-link", {
+            name: "caliper-vm-vnet-caliper-private-dns-zone-link",
+            resourceGroupName: caliper_resource_group.name,
+            privateDnsZoneName: caliper_private_dns_zone.name,
+            virtualNetworkId: vm_virtual_network.id,
+            registrationEnabled: true
+        });
 
         // Output
         new TerraformOutput(this, "caliper-vm-public-ip", {

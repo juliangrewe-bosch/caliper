@@ -1,0 +1,10 @@
+{
+  "simulation": "CarbynestackSimulation",
+  "simulationId": "carbynestacksimulation-20230801173044165",
+  "start": 1690911044520,
+  "description": "",
+  "scenarios": ["Amphora-getSecrets_Secrets_16000_Users_1"],
+  "assertions": [
+
+  ]
+}
