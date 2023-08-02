@@ -1,6 +1,7 @@
 name: 'Caliper-load-tests'
 
-on: [ push ]
+on: 
+ workflow_dispatch:
 
 defaults:
   run:
