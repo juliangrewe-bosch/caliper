@@ -10,6 +10,7 @@ import io.gatling.core.config.GatlingPropertiesBuilder
 import org.gatling.plugin.carbynestack.PreDef._
 import org.gatling.plugin.carbynestack.util.{SecretGenerator, TagGenerator}
 
+import java.util.UUID
 import scala.util.Random
 
 class CarbynestackSimulation extends Simulation {
@@ -44,7 +45,10 @@ class CarbynestackSimulation extends Simulation {
   val getSecrets = scenario("Amphora-getSecrets-scenario")
     .exec(amphora.getSecrets())
 
-  setUp(getSecrets.inject(atOnceUsers(10)).protocols(csProtocol))
+  val executeProgram = scenario("Ephemeral-execute-scenario")
+    .exec(ephemeral.execute("Dummy", new java.util.ArrayList[UUID](java.util.Arrays.asList())))
+
+  setUp(createSecret.inject(atOnceUsers(1)).protocols(csProtocol))
 }
 
 object Main {

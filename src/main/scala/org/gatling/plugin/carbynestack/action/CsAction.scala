@@ -12,10 +12,10 @@ import io.gatling.core.action.Action
 import io.gatling.core.session.Session
 import io.gatling.core.util.NameGen
 import org.gatling.plugin.carbynestack.protocol.CsComponents
-import org.gatling.plugin.carbynestack.request.client.ProtocolBuilder
+import org.gatling.plugin.carbynestack.request.client.ClientBuilder
 
 class CsAction[C, R](
-  protocolBuilder: ProtocolBuilder[C],
+  protocolBuilder: ClientBuilder[C],
   requestFunction: (C, Session) => R,
   csComponents: CsComponents,
   coreComponents: CoreComponents,

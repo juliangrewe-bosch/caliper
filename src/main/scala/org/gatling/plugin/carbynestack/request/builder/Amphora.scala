@@ -12,13 +12,13 @@ import io.carbynestack.amphora.common.{Metadata, TagFilter}
 import io.gatling.commons.validation.{Failure, Success}
 import io.gatling.core.session.{Expression, Session}
 import org.gatling.plugin.carbynestack.action.CsActionBuilder
-import org.gatling.plugin.carbynestack.request.client.AmphoraProtocolBuilder
+import org.gatling.plugin.carbynestack.request.client.AmphoraClientBuilder
 
 class Amphora() {
 
   def createSecret(secret: Expression[Secret]): CsActionBuilder[AmphoraClient, java.util.UUID] =
     new CsActionBuilder[AmphoraClient, java.util.UUID](
-      new AmphoraProtocolBuilder(),
+      new AmphoraClientBuilder(),
       (client: AmphoraClient, session: Session) => {
         val secretValue = secret(session) match {
           case Success(value)   => value
@@ -30,7 +30,7 @@ class Amphora() {
 
   def getSecrets(): CsActionBuilder[AmphoraClient, java.util.List[Metadata]] =
     new CsActionBuilder[AmphoraClient, java.util.List[Metadata]](
-      new AmphoraProtocolBuilder(),
+      new AmphoraClientBuilder(),
       (client: AmphoraClient, _: Session) => {
         client.getSecrets
       }
@@ -38,13 +38,13 @@ class Amphora() {
 
   def getSecrets(filterCriteria: java.util.List[TagFilter]): CsActionBuilder[AmphoraClient, java.util.List[Metadata]] =
     new CsActionBuilder[AmphoraClient, java.util.List[Metadata]](
-      new AmphoraProtocolBuilder(),
+      new AmphoraClientBuilder(),
       (client: AmphoraClient, _: Session) => { client.getSecrets(filterCriteria) }
     )
 
   def getSecrets(sort: Sort): CsActionBuilder[AmphoraClient, java.util.List[Metadata]] =
     new CsActionBuilder[AmphoraClient, java.util.List[Metadata]](
-      new AmphoraProtocolBuilder(),
+      new AmphoraClientBuilder(),
       (client: AmphoraClient, _: Session) => {
         client.getSecrets(sort)
       }

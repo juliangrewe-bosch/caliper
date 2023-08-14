@@ -31,7 +31,7 @@
         <slf4j.version>1.7.32</slf4j.version>
         <log4j.version>2.17.0</log4j.version>
         <amphora-java-client.version>0.1-SNAPSHOT-4321979342-23-f538a43</amphora-java-client.version>
-        <ephemeral-java-client.version>0.1-SNAPSHOT-4404775200-24-30ce5fa</ephemeral-java-client.version>
+        <ephemeral-java-client.version>0.1.3</ephemeral-java-client.version>
     </properties>
     <dependencies>
         <dependency>

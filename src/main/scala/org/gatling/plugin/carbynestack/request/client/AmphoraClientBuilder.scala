@@ -11,7 +11,7 @@ import io.carbynestack.amphora.common.AmphoraServiceUri
 import org.gatling.plugin.carbynestack.protocol.CsComponents
 import scala.jdk.CollectionConverters._
 
-class AmphoraProtocolBuilder extends ProtocolBuilder[AmphoraClient] {
+class AmphoraClientBuilder extends ClientBuilder[AmphoraClient] {
 
   override def build(csComponents: CsComponents): AmphoraClient = {
     DefaultAmphoraClient
