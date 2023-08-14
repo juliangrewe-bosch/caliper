@@ -1,17 +1,20 @@
 name: 'Caliper-load-tests'
 
-on: 
- workflow_dispatch:
+on:
+  workflow_dispatch:
 
 defaults:
   run:
-    working-directory: terraform
+    working-directory: deployments
 
 jobs:
   Caliper-load-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          repository: juliangrewe-bosch/carbynestack
+          ref: cdktf-caliper
       - uses: actions/setup-node@v3
         with:
           node-version: "16"
@@ -20,44 +23,47 @@ jobs:
           terraform_wrapper: false
       - run: npm install --global cdktf-cli@0.16.3
       - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
-      - run: |
-         npm install
-         cdktf get
-         cdktf deploy private-aks-vm --auto-approve   
-         cdktf output --outputs-file vm_public_ip.json
-        env:
+      - name: Provision Azure Virtual Machine
+        run: |
+          npm install
+          cdktf get
+          cdktf deploy private-aks --auto-approve
+          cdktf output --outputs-file vm_public_ip.json
+        genv:
           TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
-      - run: |
-         sudo apt-get install jq
-         sudo apt-get install sshpass
-         sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
-         echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
-                      "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
-                      "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
-                      "          xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd\">\n" \
-                      "  <servers>\n" \
-                      "    <server>\n" \
-                      "      <id>github</id>\n" \
-                      "      <username>juliangrewe-bosch</username>\n" \
-                      "      <password> ${{secrets.ACCESS_TOKEN}}</password>\n" \
-                      "    </server>\n" \
-                      "  </servers>\n" \
-                      "</settings>" > .m2/settings.xml
-         sudo apt-get update
-         sudo apt-get install -y openjdk-8-jdk nodejs npm python3-pip
-         sudo npm install --global cdktf-cli@0.16.3
-         az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
-         git clone https://github.com/carbynestack/carbynestack.git
-         git clone https://github.com/carbynestack/caliper.git
-         cd carbynestack/deployments
-         npm install 
-         cdktf get
-         cdktf synth
-         terraform init -chdir cdktf.out/stacks/private-aks-virtual-cloud -input=false
-         terraform apply  -chdir cdktf.out/stacks/private-aks-virtual-cloud -auto-approve -input=false
-         cd /home/caliper/caliper
-         chmod +x mvnw
-         ./mvnw gatling:test
-         python3 ../scripts/generate_metrics_report.py
-         EOF
-      - run: cdktf destroy --auto-approve true
+      - name: Deploy a Carbynestack Virtual Cloud
+        run: |
+          sudo apt-get install jq
+          sudo apt-get install sshpass
+          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
+          echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
+                       "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
+                       "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
+                       "          xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd\">\n" \
+                       "  <servers>\n" \
+                       "    <server>\n" \
+                       "      <id>github</id>\n" \
+                       "      <username>juliangrewe-bosch</username>\n" \
+                       "      <password> ${{secrets.ACCESS_TOKEN}}</password>\n" \
+                       "    </server>\n" \
+                       "  </servers>\n" \
+                       "</settings>" > .m2/settings.xml
+          sudo apt-get update
+          sudo apt-get install -y openjdk-8-jdk nodejs npm python3-pip
+          sudo npm install --global cdktf-cli@0.16.3
+          az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+          git clone https://github.com/juliangrewe-bosch/carbynestack.git
+          git clone https://github.com/carbynestack/caliper.git
+          cd carbynestack/deployments
+          npm install
+          cdktf get
+          cdktf synth
+          terraform init -chdir cdktf.out/stacks/private-aks-virtual-cloud -input=false
+          terraform apply  -chdir cdktf.out/stacks/private-aks-virtual-cloud -auto-approve -input=false
+          cd /home/caliper/caliper
+          chmod +x mvnw
+          ./mvnw gatling:test
+          python3 ../scripts/generate_metrics_report.py
+          EOF
+      - name: Destroy Azure Resources
+        run: cdktf destroy --auto-approve true
