@@ -29,9 +29,11 @@ class CsAction[C, R](
 
     val client = protocolBuilder.build(csComponents)
     val start = coreComponents.clock.nowMillis
+    var newSession = session
     try {
 
-      requestFunction(client, session)
+      val response: R = requestFunction(client, session)
+      newSession = session.set("response", response)
 
       coreComponents.statsEngine.logResponse(
         session.scenario,
@@ -57,6 +59,6 @@ class CsAction[C, R](
           Some(e.getMessage),
         )
     }
-    next ! session
+    next ! newSession
   }
 }
