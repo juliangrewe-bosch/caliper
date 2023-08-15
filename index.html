@@ -7,6 +7,12 @@
             position: relative;
         }
 
+        iframe {
+            width: 100%;
+            height: 100vh; /* Use viewport height for full screen height */
+            border: none; /* Remove iframe border */
+        }
+
         .separator {
             width: 100%;
             border-top: 1px solid #ccc;
@@ -22,10 +28,6 @@
         }
 
         .timestamp {
-            font-weight: bold;
-        }
-
-        .timerange {
             font-weight: bold;
         }
 
@@ -48,48 +50,43 @@
             height: auto;
         }
     </style>
-    <script>
-        // Calculate the default data timerange
-        var now = new Date();
-        var oneHourAgo = new Date(now);
-        oneHourAgo.setHours(now.getHours() - 1);
-
-        var formattedStartTime = oneHourAgo.toLocaleString();
-        var formattedEndTime = now.toLocaleString();
-
-        window.onload = function() {
-            // Update the data timerange span
-            var timerangeSpan = document.querySelector('.timerange');
-            timerangeSpan.textContent = 'Data Timerange ' + formattedStartTime + ' to ' + formattedEndTime;
-        };
-    </script>
 </head>
 <body>
-    <div class="label-container">
-        <span class="timestamp">Generated on August 2, 2023</span>
-        <span class="timerange">Data Timerange (calculating...)</span>
-    </div>
+<div class="label-container">
+    <span class="timestamp">Generated on August 2, 2023</span>
+</div>
 
-    <h1 class="title">Apollo-Private</h1>
-    <a href="subpage/index.html">Click here to open another index.html</a>
+<h1 class="title">Apollo-Private</h1>
+<a href="subpage/index.html">Click here to open another index.html</a>
 
 
-    <div class="separator"></div>
+<div class="separator"></div>
 
-    <div class="graph-container">
-        <img src="plot.png" alt="Graph 1">
-    </div>
+<div class="graph-container">
+    <img src="assets/img/container_cpu_usage_seconds_total.png" alt="Graph 1">
+</div>
 
-    <div class="graph-container">
-        <img src="plot.png" alt="Graph 2">
-    </div>
+<div class="graph-container">
+    <img src="assets/img/container_memory_working_set_bytes.png" alt="Graph 2">
+</div>
 
-    <div class="graph-container">
-        <img src="plot.png" alt="Graph 3">
-    </div>
+<div class="graph-container">
+    <img src="assets/img/container_fs_writes_bytes_total.png" alt="Graph 3">
+</div>
 
-    <div class="graph-container">
-        <img src="plot.png" alt="Graph 4">
-    </div>
+<div class="graph-container">
+    <img src="assets/img/container_fs_reads_bytes_total.png" alt="Graph 4">
+</div>
+
+<div class="graph-container">
+    <img src="assets/img/container_network_transmit_bytes_total.png" alt="Graph 5">
+</div>
+
+<div class="graph-container">
+    <img src="assets/img/container_network_receive_bytes_total.png" alt="Graph 6">
+</div>
+
+<iframe src="subpage/index.html" frameborder="0"></iframe>
+
 </body>
 </html>
