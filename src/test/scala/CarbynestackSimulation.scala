@@ -24,13 +24,13 @@ class CarbynestackSimulation extends Simulation {
 
   val csProtocol = cs
     .amphoraEndpoints(
-      List("http://" + "20.67.183.75.sslip.io" + "/amphora", "http://" + "20.67.183.140.sslip.io" + "/amphora")
+      List("http://" + apolloFqdn + "/amphora", "http://" + starbuckFqdn + "/amphora")
     )
     .prime("198766463529478683931867765928436695041")
     .r("141515903391459779531506841503331516415")
     .invR("133854242216446749056083838363708373830")
     .ephemeralEndpoints(
-      List("http://" + "20.67.183.75.sslip.io", "http://" + "20.67.183.140.sslip.io")
+      List("http://" + apolloFqdn, "http://" + starbuckFqdn)
     )
     .program("ephemeral-generic.default")
 
