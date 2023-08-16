@@ -30,7 +30,7 @@ class CarbynestackSimulation extends Simulation {
     .r("141515903391459779531506841503331516415")
     .invR("133854242216446749056083838363708373830")
     .ephemeralEndpoints(
-      List("http://" + apolloFqdn, "http://" + starbuckFqdn)
+      List("http://" + apolloFqdn + "/", "http://" + starbuckFqdn + "/")
     )
     .program("ephemeral-generic.default")
 
