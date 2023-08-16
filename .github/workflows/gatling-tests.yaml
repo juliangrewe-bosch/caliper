@@ -61,12 +61,19 @@ jobs:
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
+          # Configure Kubectl GPG key and repository
+          curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+          echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
           # Install NodeSource PPA
           curl -s https://deb.nodesource.com/setup_18.x | sudo bash
 
           # Update repositories and install required packages
           sudo apt-get update
-          sudo apt-get install -y openjdk-8-jdk nodejs terraform python3-pip jq
+          sudo apt-get install -y openjdk-8-jdk nodejs terraform kubectl python3-pip jq
+
+          # Install Azure-CLI
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
           # Install cdktf
           sudo npm install --global cdktf-cli@0.16.3
@@ -74,34 +81,42 @@ jobs:
           # Clone repositories
           git clone https://github.com/juliangrewe-bosch/caliper.git
           git clone https://github.com/juliangrewe-bosch/carbynestack.git
-          cd carbynestack/deployments
 
-          # Set environment variables for Terraform authentication
-          export ARM_CLIENT_ID=${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
-          export ARM_CLIENT_SECRET=${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
-          export ARM_TENANT_ID=${{secrets.AZURE_SUBSCRIPTION_TENANT}}
-          export ARM_SUBSCRIPTION_ID=${{secrets.AZURE_SUBSCRIPTION_ID}}
+          # Authenticate Terraform to Azure
+          az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
 
           # Download Prometheus Operator bundle
           LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
           curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/${LATEST}/bundle.yaml
 
           # Install dependencies and synthesize infrastructure using cdktf
+          cd carbynestack/deployments
           npm install
           cdktf get
           cdktf synth
 
           # Initialize and apply Terraform
-          export TF_VAR_azureSubscriptionID="a0d4b3b2-cbb5-42c5-b496-9b5a1c48daf0"
+          export TF_VAR_azureSubscriptionID=${{secrets.AZURE_SUBSCRIPTION_ID}}
           terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ init -input=false
           terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ apply -auto-approve -input=false
 
+          # Get access credentials for private aks cluster
+          az aks get-credentials --name apollo-private --resource-group caliper-rg
+          az aks get-credentials --name starbuck-private --resource-group caliper-rg
+
           # Run load-tests
           cd /home/caliper/caliper
+          export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
+          kubectl config use-context apollo-private
+          export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
           chmod +x mvnw
           ./mvnw gatling:test
 
           # Generate report and export to Github Pages
+          export APOLLO_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+          kubectl config use-context starbuck-private
+          export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+
           python3 scripts/generate_metrics_report.py
           EOF
       - name: Destroy Azure Resources
