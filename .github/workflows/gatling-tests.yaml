@@ -27,43 +27,82 @@ jobs:
         run: |
           npm install
           cdktf get
-          cdktf deploy private-aks --auto-approve
+          cdktf deploy private-aks --auto-approve true
           cdktf output --outputs-file vm_public_ip.json
-        genv:
+        env:
           TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
+          TF_VAR_isPrivateCluster: true # oder "true"
+          # gleiche Authentifizierung wie in der VM ?
       - name: Deploy a Carbynestack Virtual Cloud
         run: |
-          sudo apt-get install jq
-          sudo apt-get install sshpass
-          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
-          echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
-                       "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
-                       "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
-                       "          xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd\">\n" \
-                       "  <servers>\n" \
-                       "    <server>\n" \
-                       "      <id>github</id>\n" \
-                       "      <username>juliangrewe-bosch</username>\n" \
-                       "      <password> ${{secrets.ACCESS_TOKEN}}</password>\n" \
-                       "    </server>\n" \
-                       "  </servers>\n" \
-                       "</settings>" > .m2/settings.xml
+          # Update package repositories and install necessary tools
           sudo apt-get update
-          sudo apt-get install -y openjdk-8-jdk nodejs npm python3-pip
+          sudo apt-get install jq -y
+          sudo apt-get install sshpass -y
+
+          # SSH into the remote server using sshpass and execute commands
+          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
+
+          # Set up access to Carbynestacks Github Packages
+          echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
+                     "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
+                     "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
+                     "          xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd\">\n" \
+                     "  <servers>\n" \
+                     "    <server>\n" \
+                     "      <id>github</id>\n" \
+                     "      <username>juliangrewe-bosch</username>\n" \
+                     "      <password> ${{secrets.ACCESS_TOKEN}}</password>\n" \
+                     "    </server>\n" \
+                     "  </servers>\n" \
+                     "</settings>" > .m2/settings.xml
+
+          # Configure HashiCorp GPG key and repository
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+
+          # Install NodeSource PPA
+          curl -s https://deb.nodesource.com/setup_18.x | sudo bash
+
+          # Update repositories and install required packages
+          sudo apt-get update
+          sudo apt-get install -y openjdk-8-jdk nodejs terraform python3-pip jq
+
+          # Install cdktf
           sudo npm install --global cdktf-cli@0.16.3
-          az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+
+          # Clone repositories
+          git clone https://github.com/juliangrewe-bosch/caliper.git
           git clone https://github.com/juliangrewe-bosch/carbynestack.git
-          git clone https://github.com/carbynestack/caliper.git
           cd carbynestack/deployments
+
+          # Set environment variables for Terraform authentication
+          export ARM_CLIENT_ID=${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
+          export ARM_CLIENT_SECRET=${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
+          export ARM_TENANT_ID=${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+          export ARM_SUBSCRIPTION_ID=${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+          # Download Prometheus Operator bundle
+          LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
+          curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/${LATEST}/bundle.yaml
+
+          # Install dependencies and synthesize infrastructure using cdktf
           npm install
           cdktf get
           cdktf synth
-          terraform init -chdir cdktf.out/stacks/private-aks-virtual-cloud -input=false
-          terraform apply  -chdir cdktf.out/stacks/private-aks-virtual-cloud -auto-approve -input=false
+
+          # Initialize and apply Terraform
+          export TF_VAR_azureSubscriptionID="a0d4b3b2-cbb5-42c5-b496-9b5a1c48daf0"
+          terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ init -input=false
+          terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ apply -auto-approve -input=false
+
+          # Run load-tests
           cd /home/caliper/caliper
           chmod +x mvnw
           ./mvnw gatling:test
-          python3 ../scripts/generate_metrics_report.py
+
+          # Generate report and export to Github Pages
+          python3 scripts/generate_metrics_report.py
           EOF
       - name: Destroy Azure Resources
         run: cdktf destroy --auto-approve true
