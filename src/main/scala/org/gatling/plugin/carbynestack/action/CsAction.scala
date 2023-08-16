@@ -29,16 +29,19 @@ class CsAction[C, R](
 
     val client = protocolBuilder.build(csComponents)
     val start = coreComponents.clock.nowMillis
-    var newSession = session
+    var modifiedSession = session
     try {
 
       val response: R = requestFunction(client, session)
-      newSession = session.set("response", response)
+
+      val resultList: List[Any] = modifiedSession("response").asOption[List[Any]].getOrElse(Nil)
+      val updatedResultList = response :: resultList
+      modifiedSession = modifiedSession.set("response", updatedResultList)
 
       coreComponents.statsEngine.logResponse(
-        session.scenario,
-        session.groups,
-        session.scenario,
+        modifiedSession.scenario,
+        modifiedSession.groups,
+        modifiedSession.scenario,
         start,
         coreComponents.clock.nowMillis,
         OK,
@@ -49,9 +52,9 @@ class CsAction[C, R](
       case e: Throwable =>
         logger.error(e.getMessage, e)
         coreComponents.statsEngine.logResponse(
-          session.scenario,
-          session.groups,
-          session.scenario,
+          modifiedSession.scenario,
+          modifiedSession.groups,
+          modifiedSession.scenario,
           start,
           coreComponents.clock.nowMillis,
           KO,
@@ -59,6 +62,6 @@ class CsAction[C, R](
           Some(e.getMessage),
         )
     }
-    next ! newSession
+    next ! modifiedSession
   }
 }

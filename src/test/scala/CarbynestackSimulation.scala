@@ -24,13 +24,13 @@ class CarbynestackSimulation extends Simulation {
 
   val csProtocol = cs
     .amphoraEndpoints(
-      List("http://" + "20.234.76.71.sslip.io" + "/amphora", "http://" + "20.234.79.122.sslip.io" + "/amphora")
+      List("http://" + "20.67.183.75.sslip.io" + "/amphora", "http://" + "20.67.183.140.sslip.io" + "/amphora")
     )
     .prime("198766463529478683931867765928436695041")
     .r("141515903391459779531506841503331516415")
     .invR("133854242216446749056083838363708373830")
     .ephemeralEndpoints(
-      List("http://" + "20.234.76.71.sslip.io" + "/ephemeral", "http://" + "20.234.79.122.sslip.io" + "/ephemeral")
+      List("http://" + "20.67.183.75.sslip.io", "http://" + "20.67.183.140.sslip.io")
     )
     .program("ephemeral-generic.default")
 
@@ -67,23 +67,18 @@ class CarbynestackSimulation extends Simulation {
   val elonsNetWorth = Secret.of(elonTag, elonSecret)
 
   val code =
-    """val port = regint(10000)
-       listen(port)
-       val socket_id = regint()
-       acceptclientconnection(socket_id, port)
-       val v = sint.read_from_socket(socket_id, 2)
+    "port=regint(10000)\n" +
+      "listen(port)\n" +
+      "socket_id = regint()\n" +
+      "acceptclientconnection(socket_id, port)\n" +
+      "v = sint.read_from_socket(socket_id, 2)\n" +
+      "first_billionaires_net_worth = v[0]\n" +
+      "second_billionaires_net_worth= v[1]\n" +
+      "result = first_billionaires_net_worth < second_billionaires_net_worth\n" +
+      "resp = Array(1, sint)\n" +
+      "resp[0] = result\n" +
+      "sint.write_to_socket(socket_id, resp)"
 
-       val first_billionaires_net_worth = v(0)
-       val second_billionaires_net_worth = v(1)
-       val result = first_billionaires_net_worth < second_billionaires_net_worth
-
-       val resp = Array(1, sint)
-       resp(0) = result
-       sint.write_to_socket(socket_id, resp) """
-
-  val feeder = Iterator(jeffsNetWorth, elonsNetWorth).map { secret =>
-    Map("secret" -> secret)
-  }
 
   val jeffFeeder = Array(
     Map("secret" -> jeffsNetWorth)
