@@ -93,6 +93,7 @@ class CarbynestackSimulation extends Simulation {
     .exec(amphora.createSecret("#{secret}"))
     .feed(elonFeeder)
     .exec(amphora.createSecret("#{secret}"))
+    //TODO secret ids hier übergeben
     .exec(ephemeral.execute(code))
 
   setUp(
