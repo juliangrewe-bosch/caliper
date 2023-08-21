@@ -132,4 +132,4 @@ jobs:
           # git push https://${{secrets.CALIPER_PAT}}@github.com/juliangrewe-bosch/caliper.git
           EOF
       - name: Destroy Azure Resources
-        run: cdktf destroy --auto-approve true
+        run: echo "destroy"
