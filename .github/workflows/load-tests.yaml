@@ -22,7 +22,6 @@ jobs:
         with:
           terraform_wrapper: false
       - run: npm install --global cdktf-cli@0.16.3
-      - run: az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
       - name: Provision Azure Virtual Machine
         run: |
           npm install
@@ -30,9 +29,12 @@ jobs:
           cdktf deploy private-aks --auto-approve true
           cdktf output --outputs-file vm_public_ip.json
         env:
-          TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
           TF_VAR_isPrivateCluster: true # oder "true"
-          # gleiche Authentifizierung wie in der VM ?
+          TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
+          ARM_CLIENT_ID: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
+          ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
+          ARM_TENANT_ID: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+          ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
       - name: Deploy a Carbynestack Virtual Cloud
         run: |
           # Update package repositories and install necessary tools
@@ -52,18 +54,18 @@ jobs:
                      "    <server>\n" \
                      "      <id>github</id>\n" \
                      "      <username>juliangrewe-bosch</username>\n" \
-                     "      <password> ${{secrets.ACCESS_TOKEN}}</password>\n" \
+                     "      <password> ${{secrets.CALIPER_PAT}}</password>\n" \
                      "    </server>\n" \
                      "  </servers>\n" \
                      "</settings>" > .m2/settings.xml
 
           # Configure HashiCorp GPG key and repository
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list > /dev/null
 
           # Configure Kubectl GPG key and repository
           curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-          echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+          echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
 
           # Install NodeSource PPA
           curl -s https://deb.nodesource.com/setup_18.x | sudo bash
@@ -80,7 +82,7 @@ jobs:
 
           # Clone repositories
           git clone https://github.com/juliangrewe-bosch/caliper.git
-          git clone https://github.com/juliangrewe-bosch/carbynestack.git
+          git clone https://${{secrets.CALIPER_PAT}}@github.com/juliangrewe-bosch/carbynestack.git
 
           # Authenticate Terraform to Azure
           az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
@@ -91,6 +93,7 @@ jobs:
 
           # Install dependencies and synthesize infrastructure using cdktf
           cd carbynestack/deployments
+          git checkout -b cdktf-caliper origin/cdktf-caliper
           npm install
           cdktf get
           cdktf synth
@@ -106,6 +109,7 @@ jobs:
 
           # Run load-tests
           cd /home/caliper/caliper
+          git checkout -b ephemeral-client origin/ephemeral-client
           export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
           kubectl config use-context apollo-private
           export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
@@ -118,8 +122,14 @@ jobs:
           kubectl config use-context starbuck-private
           export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
-          pip3 install -r scripts/requirements.txt
-          python3 scripts/generate_metrics_report.py
+          pip3 install -r scripts/generate_report_requirements.txt
+          python3 scripts/generate_report.py
+
+          # Push report to Github Pages Repository
+          # git config user.name ""
+          # git config user.email ""
+          # git add index.html # oder assets.* ?
+          # git push https://${{secrets.CALIPER_PAT}}@github.com/juliangrewe-bosch/caliper.git
           EOF
       - name: Destroy Azure Resources
         run: cdktf destroy --auto-approve true
