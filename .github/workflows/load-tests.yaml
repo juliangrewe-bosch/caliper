@@ -5,7 +5,7 @@ on:
 
 defaults:
   run:
-    working-directory: deployments
+    working-directory: $GITHUB_WORKSPACE/deployments
 
 jobs:
   Caliper-load-tests:
