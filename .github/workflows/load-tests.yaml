@@ -28,8 +28,9 @@ jobs:
         run: |
           npm install
           cdktf get
-          cdktf deploy private-aks --auto-approve true
-          cdktf output --outputs-file vm_public_ip.json
+          cdktf synth
+          terraform -chdir=cdktf.out/stacks/private-aks/ init -input=false
+          terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
         env:
           TF_VAR_isPrivateCluster: true # oder "true"
           TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
@@ -41,11 +42,10 @@ jobs:
         run: |
           # Update package repositories and install necessary tools
           sudo apt-get update
-          sudo apt-get install jq -y
           sudo apt-get install sshpass -y
 
           # SSH into the remote server using sshpass and execute commands
-          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(cat vm_public_ip.json | jq -r '.["caliper-azure-deployment"]["caliper-vm-public-ip"]') << EOF
+          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(terraform output -raw caliper-vm-public-ip) << EOF
 
           # Set up access to Carbynestacks Github Packages
           echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
