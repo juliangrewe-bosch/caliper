@@ -46,20 +46,20 @@ jobs:
 
           # SSH into the remote server using sshpass and execute commands
           sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(terraform -chdir=cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip) << EOF
-
+          
           # Set up access to Carbynestacks Github Packages
           echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
-                     "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
-                     "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
-                     "          xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd\">\n" \
-                     "  <servers>\n" \
-                     "    <server>\n" \
-                     "      <id>github</id>\n" \
-                     "      <username>juliangrewe-bosch</username>\n" \
-                     "      <password> ${{secrets.CALIPER_PAT}}</password>\n" \
-                     "    </server>\n" \
-                     "  </servers>\n" \
-                     "</settings>" > .m2/settings.xml
+          "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
+          "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
+          "          xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd\">\n" \
+          "  <servers>\n" \
+          "    <server>\n" \
+          "      <id>github</id>\n" \
+          "      <username>juliangrewe-bosch</username>\n" \
+          "      <password> ${{secrets.CALIPER_PAT}}</password>\n" \
+          "    </server>\n" \
+          "  </servers>\n" \
+          "</settings>" > .m2/settings.xml
 
           # Configure HashiCorp GPG key and repository
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
@@ -87,15 +87,15 @@ jobs:
           git clone https://${{secrets.CALIPER_PRIVATE_REPOS_PAT}}@github.com/juliangrewe-bosch/carbynestack.git
 
           # Authenticate Terraform to Azure
-          az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+          az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}} --output none
 
           # Download Prometheus Operator bundle
           LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
           curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/${LATEST}/bundle.yaml
 
           # Install dependencies and synthesize infrastructure using cdktf
+          git checkout -b cdktf-caliper origin/cdktf-caliper 
           cd carbynestack/deployments
-          git checkout -b cdktf-caliper origin/cdktf-caliper
           npm install
           cdktf get
           cdktf synth
