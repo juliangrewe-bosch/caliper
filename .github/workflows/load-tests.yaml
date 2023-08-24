@@ -86,6 +86,10 @@ jobs:
           # Clone repositories
           git clone https://github.com/juliangrewe-bosch/caliper.git
           git clone https://${{secrets.CALIPER_PRIVATE_REPOS_PAT}}@github.com/juliangrewe-bosch/carbynestack.git
+          # temporär 
+          cd carbynestack
+          git checkout -b cdktf-caliper origin/cdktf-caliper 
+          cd $HOME
 
           # Authenticate Terraform to Azure
           az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}} --output none
@@ -95,7 +99,6 @@ jobs:
           curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/${LATEST}/bundle.yaml
 
           # Install dependencies and synthesize infrastructure using cdktf
-          git checkout -b cdktf-caliper origin/cdktf-caliper 
           cd carbynestack/deployments
           npm install
           cdktf get
