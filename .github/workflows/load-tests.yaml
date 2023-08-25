@@ -102,12 +102,12 @@ jobs:
           cd carbynestack/deployments
           npm install > /dev/null
           cdktf get
-          cdktf synth
+          cdktf synth > /dev/null
 
           # Initialize and apply Terraform
           export TF_VAR_azureSubscriptionID=${{secrets.AZURE_SUBSCRIPTION_ID}}
-          terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ init -input=false > /dev/null 2>&1
-          terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ apply -auto-approve -input=false > /dev/null 2>&1
+          terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ init -input=false > /dev/null 
+          terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ apply -auto-approve -input=false > /dev/null 
 
           # Get access credentials for private aks cluster
           az aks get-credentials --name apollo-private --resource-group caliper-rg
