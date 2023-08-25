@@ -17,11 +17,10 @@ object CsProtocolBuilder {
 
 case class CsProtocolBuilder(protocol: CsProtocol) {
 
-  def amphoraEndpoints(amphoraEndpointsValue: List[String]): CsProtocolBuilder =
-    this.modify(_.protocol.amphoraEndpoints).setTo(amphoraEndpointsValue)
-
-  def ephemeralEndpoints(ephemeralEndpointsValue: List[String]): CsProtocolBuilder =
-    this.modify(_.protocol.ephemeralEndpoints).setTo(ephemeralEndpointsValue)
+  def endpoints(endpointsValue: List[String]): CsProtocolBuilder = {
+    this.modify(_.protocol.amphoraEndpoints).setTo(endpointsValue.map(endpoint => "http://" + endpoint + "/amphora"))
+    this.modify(_.protocol.ephemeralEndpoints).setTo(endpointsValue.map(endpoint => "http://" + endpoint + "/"))
+  }
 
   def prime(primeValue: String): CsProtocolBuilder = this.modify(_.protocol.prime).setTo(primeValue)
 

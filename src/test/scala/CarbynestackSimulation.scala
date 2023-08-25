@@ -14,24 +14,23 @@ import org.gatling.plugin.carbynestack.PreDef._
 import scala.jdk.CollectionConverters._
 class CarbynestackSimulation extends Simulation {
 
-  val apolloFqdn = sys.env
-    .get("APOLLO_FQDN")
-    .getOrElse(throw new IllegalStateException("Environment variable APOLLO_FQDN not set"))
+  val apolloFqdn = sys.env.get("APOLLO_FQDN") match {
+    case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}$""") => fqdn
+    case Some(fqdn) => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
+    case None => throw new IllegalStateException("Environment variable APOLLO_FQDN not set")
+  }
 
-  val starbuckFqdn = sys.env
-    .get("STARBUCK_FQDN")
-    .getOrElse(throw new IllegalStateException("Environment variable STARBUCK_FQDN not set"))
+  val starbuckFqdn = sys.env.get("STARBUCK_FQDN") match {
+    case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}$""") => fqdn
+    case Some(fqdn) => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
+    case None => throw new IllegalStateException("Environment variable STARBUCK_FQDN not set")
+  }
 
   val csProtocol = cs
-    .amphoraEndpoints(
-      List("http://" + apolloFqdn + "/amphora", "http://" + starbuckFqdn + "/amphora")
-    )
+    .endpoints(List(apolloFqdn, starbuckFqdn))
     .prime("198766463529478683931867765928436695041")
     .r("141515903391459779531506841503331516415")
     .invR("133854242216446749056083838363708373830")
-    .ephemeralEndpoints(
-      List("http://" + apolloFqdn + "/", "http://" + starbuckFqdn + "/")
-    )
     .program("ephemeral-generic.default")
 
   val jeffTag: java.util.List[Tag] =
@@ -79,7 +78,6 @@ class CarbynestackSimulation extends Simulation {
       "resp[0] = result\n" +
       "sint.write_to_socket(socket_id, resp)"
 
-
   val jeffFeeder = Array(
     Map("secret" -> jeffsNetWorth)
   )
@@ -93,19 +91,9 @@ class CarbynestackSimulation extends Simulation {
     .exec(amphora.createSecret("#{secret}"))
     .feed(elonFeeder)
     .exec(amphora.createSecret("#{secret}"))
-    //TODO secret ids hier übergeben
     .exec(ephemeral.execute(code))
 
   setUp(
     millionairesProblem.inject(atOnceUsers(1)).protocols(csProtocol)
   )
-}
-
-object Main {
-  def main(args: Array[String]): Unit =
-    Gatling.fromMap(
-      (new GatlingPropertiesBuilder)
-        .simulationClass(classOf[CarbynestackSimulation].getName)
-        .build,
-    )
 }
