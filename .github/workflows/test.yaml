@@ -19,6 +19,7 @@ jobs:
           STARBUCK_FQDN=\$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
           kubectl config use-context apollo-private
           APOLLO_FQDN=\$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
+          cd caliper
           chmod +x mvnw
           ./mvnw gatling:test
           EOF
