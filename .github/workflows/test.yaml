@@ -33,6 +33,5 @@ jobs:
           # SSH into the remote server using sshpass and execute commands
           sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@68.219.100.76 << EOF
 
-          latest_tag=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -r .tag_name)
-          url="https://github.com/prometheus-operator/prometheus-operator/releases/download/$latest_tag/bundle.yaml"
-          curl -sL $url > bundle.yaml
+          curl -sL "https://github.com/prometheus-operator/prometheus-operator/releases/download/$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -r .tag_name)/bundle.yaml" > bundle.yaml
+          
