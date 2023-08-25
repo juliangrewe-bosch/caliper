@@ -15,9 +15,9 @@ jobs:
 
           # SSH into the remote server using sshpass and execute commands
           sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@68.219.95.118 << EOF
-
-          L=\$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-          echo \$L
+          
+          LATEST=\$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
+          curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/\${LATEST}/bundle.yaml
           EOF
 
        
