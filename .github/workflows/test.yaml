@@ -1,0 +1,62 @@
+name: 'Test'
+
+on:
+  push
+
+defaults:
+  run:
+    working-directory: carbynestack/deployments
+
+jobs:
+  Caliper-load-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: juliangrewe-bosch/carbynestack
+          token: ${{secrets.CALIPER_PRIVATE_REPOS_PAT}}
+          path: carbynestack
+          ref: cdktf-caliper
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+      - run: npm install --global cdktf-cli@0.16.3
+      - name: Provision Azure Virtual Machine
+        run: |
+          npm install
+          cdktf get
+          cdktf synth
+          terraform -chdir=cdktf.out/stacks/private-aks/ init -input=false
+          terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
+        env:
+          TF_VAR_isPrivateCluster: true # oder "true"
+          TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
+          ARM_CLIENT_ID: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
+          ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
+          ARM_TENANT_ID: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+          ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+      - name: Deploy a Carbynestack Virtual Cloud
+        run: |
+          # Update package repositories and install necessary tools
+          sudo apt-get update
+          sudo apt-get install sshpass -y
+
+          # SSH into the remote server using sshpass and execute commands
+          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(terraform -chdir=cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip) << EOF
+          
+           # Clone repositories
+          git clone https://github.com/juliangrewe-bosch/caliper.git
+          git clone https://${{secrets.CALIPER_PRIVATE_REPOS_PAT}}@github.com/juliangrewe-bosch/carbynestack.git
+          # temporär 
+          cd carbynestack
+          git checkout -b cdktf-caliper origin/cdktf-caliper 
+          cd /home/caliper
+
+             # Download Prometheus Operator bundle
+          LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
+          curl -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/${LATEST}/bundle.yaml > bundle.yaml
+          curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/${LATEST}/bundle.yaml
+  
