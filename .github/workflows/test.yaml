@@ -8,7 +8,7 @@ defaults:
     working-directory: carbynestack/deployments
 
 jobs:
-  Caliper-load-tests:
+  Test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -24,20 +24,6 @@ jobs:
         with:
           terraform_wrapper: false
       - run: npm install --global cdktf-cli@0.16.3
-      - name: Provision Azure Virtual Machine
-        run: |
-          npm install
-          cdktf get
-          cdktf synth
-          terraform -chdir=cdktf.out/stacks/private-aks/ init -input=false
-          terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
-        env:
-          TF_VAR_isPrivateCluster: true # oder "true"
-          TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
-          ARM_CLIENT_ID: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
-          ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
-          ARM_TENANT_ID: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
-          ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
       - name: Deploy a Carbynestack Virtual Cloud
         run: |
           # Update package repositories and install necessary tools
@@ -45,7 +31,7 @@ jobs:
           sudo apt-get install sshpass -y
 
           # SSH into the remote server using sshpass and execute commands
-          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@$(terraform -chdir=cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip) << EOF
+          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@68.219.100.76 << EOF
           
            # Clone repositories
           git clone https://github.com/juliangrewe-bosch/caliper.git
