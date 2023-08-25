@@ -16,7 +16,8 @@ jobs:
           # SSH into the remote server using sshpass and execute commands
           sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@68.219.95.118 << EOF
 
-          kubectl get pod
+          L=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          echo $L
           EOF
 
        
