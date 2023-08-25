@@ -3,10 +3,6 @@ name: 'Test'
 on:
   push
 
-defaults:
-  run:
-    working-directory: carbynestack/deployments
-
 jobs:
   Test:
     runs-on: ubuntu-latest
