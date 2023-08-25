@@ -84,29 +84,21 @@ jobs:
           sudo npm install --global cdktf-cli@0.16.3
 
           # Clone repositories
-          pwd
-          ls -l 
           git clone https://github.com/juliangrewe-bosch/caliper.git
           git clone https://${{secrets.CALIPER_PRIVATE_REPOS_PAT}}@github.com/juliangrewe-bosch/carbynestack.git
           # temporär 
-          pwd 
-          ls -l 
           cd carbynestack
           git checkout -b cdktf-caliper origin/cdktf-caliper 
-          cd ..
-          pwd
-          ls -l
+          cd /home/caliper
 
           # Authenticate Terraform to Azure
           az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}} --output none
 
           # Download Prometheus Operator bundle
+          export LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
           pwd
-          LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
-          curl -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/${LATEST}/bundle.yaml
-          pwd 
-          ls -l 
-
+          curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/${LATEST}/bundle.yaml
+  
           # Install dependencies and synthesize infrastructure using cdktf
           cd carbynestack/deployments
           npm install
