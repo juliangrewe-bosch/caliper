@@ -16,7 +16,7 @@ jobs:
           # SSH into the remote server using sshpass and execute commands
           sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@68.219.95.118 << EOF
 
-          ls
+          kubectl get pod
           EOF
 
        
