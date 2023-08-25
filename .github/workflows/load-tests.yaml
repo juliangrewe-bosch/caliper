@@ -84,14 +84,18 @@ jobs:
           sudo npm install --global cdktf-cli@0.16.3
 
           # Clone repositories
+          pwd
+          ls -l 
           git clone https://github.com/juliangrewe-bosch/caliper.git
           git clone https://${{secrets.CALIPER_PRIVATE_REPOS_PAT}}@github.com/juliangrewe-bosch/carbynestack.git
           # temporär 
+          pwd 
+          ls -l 
           cd carbynestack
           git checkout -b cdktf-caliper origin/cdktf-caliper 
-          cd /home/caliper
           cd ..
           pwd
+          ls -l
 
           # Authenticate Terraform to Azure
           az login --service-principal -u ${{secrets.AZURE_SUBSCRIPTION_USERNAME}} -p ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}} --tenant ${{secrets.AZURE_SUBSCRIPTION_TENANT}} --output none
