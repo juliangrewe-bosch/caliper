@@ -32,14 +32,6 @@ jobs:
 
           # SSH into the remote server using sshpass and execute commands
           sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" caliper@68.219.100.76 << EOF
-          
-           # Clone repositories
-          git clone https://github.com/juliangrewe-bosch/caliper.git
-          git clone https://${{secrets.CALIPER_PRIVATE_REPOS_PAT}}@github.com/juliangrewe-bosch/carbynestack.git
-          # temporär 
-          cd carbynestack
-          git checkout -b cdktf-caliper origin/cdktf-caliper 
-          cd /home/caliper
 
           latest_tag=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -r .tag_name)
           url="https://github.com/prometheus-operator/prometheus-operator/releases/download/$latest_tag/bundle.yaml"
