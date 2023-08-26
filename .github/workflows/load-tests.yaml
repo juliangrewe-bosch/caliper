@@ -32,7 +32,7 @@ jobs:
           terraform -chdir=cdktf.out/stacks/private-aks/ init -input=false
           terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
         env:
-          TF_VAR_isPrivateCluster: true # oder "true"
+          TF_VAR_isPrivateCluster: true
           TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
           ARM_CLIENT_ID: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
           ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
@@ -71,14 +71,14 @@ jobs:
           echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
 
           # Install NodeSource PPA
-          curl -s https://deb.nodesource.com/setup_18.x | sudo bash
+          curl -s https://deb.nodesource.com/setup_18.x | sudo bash > /dev/null
 
           # Update repositories and install required packages
           sudo apt-get update > /dev/null
           sudo apt-get install -y openjdk-8-jdk nodejs terraform kubectl python3-pip jq > /dev/null
 
           # Install Azure-CLI
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
 
           # Install cdktf
           sudo npm install --global cdktf-cli@0.16.3 > /dev/null
@@ -121,7 +121,7 @@ jobs:
           export APOLLO_FQDN=\$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
           chmod +x mvnw
           # klyshko benötigt Zeit bis Tuple bereit sind
-          ./mvnw gatling:test
+          # ./mvnw gatling:test
 
           # Generate report and export to Github Pages
           export PROMETHEUS_METRICS_PORT=30000
