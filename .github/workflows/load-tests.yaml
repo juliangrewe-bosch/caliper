@@ -7,6 +7,15 @@ defaults:
   run:
     working-directory: carbynestack/deployments
 
+concurrency:
+  group: "Caliper"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   Caliper-load-tests:
     runs-on: ubuntu-latest
@@ -17,13 +26,17 @@ jobs:
           token: ${{secrets.CALIPER_PRIVATE_REPOS_PAT}}
           path: carbynestack
           ref: cdktf-caliper
+
       - uses: actions/setup-node@v3
         with:
           node-version: "16"
+
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
+
       - run: npm install --global cdktf-cli@0.16.3
+
       - name: Provision Azure Virtual Machine
         run: |
           npm install
@@ -38,6 +51,7 @@ jobs:
           ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
           ARM_TENANT_ID: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
           ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
       - name: Deploy a Carbynestack Virtual Cloud
         run: |
           # Update package repositories and install necessary tools
@@ -63,11 +77,11 @@ jobs:
           "</settings>" > .m2/settings.xml
 
           # Configure HashiCorp GPG key and repository
-          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list > /dev/null
 
           # Configure Kubectl GPG key and repository
-          curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+          curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg > /dev/null
           echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
 
           # Install NodeSource PPA
@@ -99,9 +113,9 @@ jobs:
           curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/\${LATEST}/bundle.yaml
 
           # Install dependencies and synthesize infrastructure using cdktf
-          cd carbynestack/deployments
+          cd carbynestack/deployments || exit
           npm install > /dev/null
-          cdktf get
+          cdktf get > /dev/null
           cdktf synth > /dev/null
 
           # Initialize and apply Terraform
@@ -114,7 +128,7 @@ jobs:
           az aks get-credentials --name starbuck-private --resource-group caliper-rg
 
           # Run load-tests
-          cd /home/caliper/caliper
+          cd /home/caliper/caliper || exit
           git checkout -b ephemeral-client origin/ephemeral-client
           export STARBUCK_FQDN=\$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
           kubectl config use-context apollo-private
@@ -140,3 +154,24 @@ jobs:
           EOF
       - name: Destroy Azure Resources
         run: echo "destroy"
+
+  Deploy-Github-Pages:
+    needs: Caliper-load-tests
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: |
+            index.html
+            assets/
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
