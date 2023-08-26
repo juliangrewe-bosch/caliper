@@ -11,9 +11,9 @@ import io.gatling.core.action.builder.ActionBuilder
 import io.gatling.core.session.Session
 import io.gatling.core.structure.ScenarioContext
 import org.gatling.plugin.carbynestack.protocol.CsProtocol
-import org.gatling.plugin.carbynestack.request.client.ProtocolBuilder
+import org.gatling.plugin.carbynestack.request.client.ClientBuilder
 
-class CsActionBuilder[C, R](protocolBuilder: ProtocolBuilder[C], requestFunction: (C, Session) => R)
+class CsActionBuilder[C, R](protocolBuilder: ClientBuilder[C], requestFunction: (C, Session) => R)
     extends ActionBuilder {
 
   override def build(ctx: ScenarioContext, next: Action): Action = {
