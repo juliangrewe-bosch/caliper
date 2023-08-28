@@ -20,9 +20,9 @@ Virtual Cloud using the dedicated java-clients.
 ### Protocol
 
 The `cs` object is used to provide a common configuration that is shared between
-all virtual users. A list of Amphora Service endpoint URIs and the SPDZ
-parameters matching the backend service configuration are used to initialize an
-Amphora client.
+all virtual users. A list of Service endpoint URIs and the SPDZ parameters
+matching the backend service configuration are used to initialize an Amphora
+client.
 
 ### Action
 
@@ -34,54 +34,95 @@ simulation.
 
 ## Usage
 
-To execute the simulation we can use the `gatling-maven-plugin` where we specify
-the simulation class we want to use, e.g.
+To execute the simulation we can use the `gatling-maven-plugin`
 
 ```xml
  <plugin>
     <groupId>io.gatling</groupId>
     <artifactId>gatling-maven-plugin</artifactId>
     <version>${gatling-maven-plugin-version}</version>
-    <configuration>
-        <simulationClass>CarbynestackSimulation</simulationClass>
-    </configuration>
 </plugin>
 ```
 
-Multiple simulations can be executed using
-`<runMultipleSimulations>true</runMultipleSimulations>`, by default the results
-are stored in `${project.build.directory}/gatling` but this value can be
-overriden using `<resultsFolder>path/to/folder</resultsFolder>`. To run the
-simulation simply use the `test` goal `./mvnw gatling:test`. The following
-example shows a simulation class that provides the functionality to upload data
-to a Carbyne Stack Virtual Cloud.
+By default, the results are stored in `${project.build.directory}/gatling`. To
+run the simulation simply use the `test` goal `./mvnw gatling:test`. The
+following example shows a simulation class that provides the functionality of
+the millionaires problem example from the
+[Carbyne Stack Tutorial](https://carbynestack.io/getting-started/millionaires/).
 
 ```scala
 class CarbynestackSimulation extends Simulation { //1
 
   val csProtocol = cs //2
-    .endpoints(List("http://172.18.1.128/amphora", "http://172.18.2.128/amphora"))
+    .endpoints(List(apolloFqdn, starbuckFqdn))
     .prime("198766463529478683931867765928436695041")
     .r("141515903391459779531506841503331516415")
     .invR("133854242216446749056083838363708373830")
+    .program("ephemeral-generic.default")
 
-  val tagKeys = List.fill[String](2)(Random.alphanumeric.take(10).mkString)
-  val tagGenerator =
-     new TagGenerator(tagKeys, Some(1000000000L), Some(9999999999L))
-  val secretGenerator =
-     new SecretGenerator(tagGenerator, 1000000000L, 9999999999L, 1) //3
+  val jeffTag: java.util.List[Tag] =
+    List(("billionaire", "jeff"))
+      .map(
+        x =>
+          Tag
+            .builder()
+            .key(x._1)
+            .value(x._2)
+            .valueType(TagValueType.STRING)
+            .build()
+      )
+      .asJava
 
-  val feeder = Iterator.continually { //4
-    Map("secret" -> secretGenerator.generate)
-  }
+  val elonTag: java.util.List[Tag] =
+    List(("billionaire", "elon"))
+      .map(
+        x =>
+          Tag
+            .builder()
+            .key(x._1)
+            .value(x._2)
+            .valueType(TagValueType.STRING)
+            .build()
+      )
+      .asJava
 
-  val createSecret = scenario("Amphora-createSecret-scenario") //5
-    .feed(feeder) //6
-    .exec(amphora.createSecret("#{secret}")) //7
+  val jeffSecret: Array[java.math.BigInteger] = Array(new java.math.BigInteger("180"))
+  val elonSecret: Array[java.math.BigInteger] = Array(new java.math.BigInteger("177"))
 
-  setUp( //8
-    createSecret.inject(atOnceUsers(10) //9
-    ).protocols(csProtocol)) //10
+  val jeffsNetWorth = Secret.of(jeffTag, jeffSecret)
+  val elonsNetWorth = Secret.of(elonTag, elonSecret)
+
+  val code =
+    "port=regint(10000)\n" +
+      "listen(port)\n" +
+      "socket_id = regint()\n" +
+      "acceptclientconnection(socket_id, port)\n" +
+      "v = sint.read_from_socket(socket_id, 2)\n" +
+      "first_billionaires_net_worth = v[0]\n" +
+      "second_billionaires_net_worth= v[1]\n" +
+      "result = first_billionaires_net_worth < second_billionaires_net_worth\n" +
+      "resp = Array(1, sint)\n" +
+      "resp[0] = result\n" +
+      "sint.write_to_socket(socket_id, resp)"
+
+  val jeffFeeder = Array(
+    Map("secret" -> jeffsNetWorth)
+  )
+
+  val elonFeeder = Array(
+    Map("secret" -> elonsNetWorth)
+  )
+
+  val millionairesProblem = scenario("millionaires-problem-scenario") //3
+    .feed(jeffFeeder) //4
+    .exec(amphora.createSecret("#{secret}")) //5
+    .feed(elonFeeder)
+    .exec(amphora.createSecret("#{secret}"))
+    .exec(ephemeral.execute(code)) //6
+
+  setUp( //7
+    millionairesProblem.inject(atOnceUsers(10) //8
+    ).protocols(csProtocol)) //9
 }
 ```
 
@@ -103,7 +144,7 @@ class CarbynestackSimulation extends Simulation { //1
    we can use dynamic parameters that will be replaced with the value stored in
    the virtual user's session
 1. Setting up the scenario(s) we want to use in this simulation
-1. Declaring that 10 virtual users will be injected at once into the
+1. Declaring that 10 virtual user will be injected at once into the
    `createSecret` scenario
 1. Attaching the `cs` configuration matching the backend service configuration
 

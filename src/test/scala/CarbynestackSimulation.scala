@@ -12,16 +12,17 @@ import io.gatling.core.config.GatlingPropertiesBuilder
 import org.gatling.plugin.carbynestack.PreDef._
 
 import scala.jdk.CollectionConverters._
+import scala.util.Random
 class CarbynestackSimulation extends Simulation {
 
   val apolloFqdn = sys.env.get("APOLLO_FQDN") match {
-    case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}$""") => fqdn
+    case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}(?:\.sslip\.io)?$""") => fqdn
     case Some(fqdn) => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
     case None => throw new IllegalStateException("Environment variable APOLLO_FQDN not set")
   }
 
   val starbuckFqdn = sys.env.get("STARBUCK_FQDN") match {
-    case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}$""") => fqdn
+    case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}(?:\.sslip\.io)?$""") => fqdn
     case Some(fqdn) => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
     case None => throw new IllegalStateException("Environment variable STARBUCK_FQDN not set")
   }
@@ -86,6 +87,35 @@ class CarbynestackSimulation extends Simulation {
     Map("secret" -> elonsNetWorth)
   )
 
+  val tags: java.util.List[Tag] =
+    List
+      .fill[(String, String)](10)(Random.alphanumeric.take(10).mkString, Random.alphanumeric.take(10).mkString)
+      .map(
+        x =>
+          Tag
+            .builder()
+            .key(x._1)
+            .value(x._2)
+            .valueType(TagValueType.STRING)
+            .build()
+      )
+      .asJava
+
+  val lowerBound = 1000000000L
+  val upperBound = 9999999999L
+
+  val generateSecretsFunction = () => {
+
+    val secrets = Array.fill[java.math.BigInteger](1)(
+      new java.math.BigInteger((lowerBound + Random.nextLong(upperBound - lowerBound)).toString)
+    )
+    Secret.of(tags, secrets)
+  }
+
+  val feeder = Iterator.continually{
+    Map("secret" -> generateSecretsFunction())
+  }
+
   val millionairesProblem = scenario("millionaires-problem-scenario")
     .feed(jeffFeeder)
     .exec(amphora.createSecret("#{secret}"))
@@ -93,7 +123,18 @@ class CarbynestackSimulation extends Simulation {
     .exec(amphora.createSecret("#{secret}"))
     .exec(ephemeral.execute(code))
 
+  val createSecretSoakTest = scenario("createSecret-soak-test-30min")
+    .feed(feeder)
+    .exec(amphora.createSecret("#{secret}"))
+
+  val createSecret = scenario("createSecret-scenario")
+    .feed(feeder)
+    .exec(amphora.createSecret("#{secret}"))
+
   setUp(
-    millionairesProblem.inject(atOnceUsers(1)).protocols(csProtocol)
+    createSecret.inject(atOnceUsers(1)).protocols(csProtocol)
+      .andThen(millionairesProblem.inject(atOnceUsers(1)).protocols(csProtocol))
+    /*.andThen(createSecretSoakTest.inject(constantUsersPerSec(550).during(60 * 30)))
+    .protocols(csProtocol)*/
   )
 }
