@@ -45,7 +45,6 @@ jobs:
           terraform -chdir=cdktf.out/stacks/private-aks/ init -input=false
           terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
         env:
-          TF_VAR_isPrivateCluster: true
           TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
           ARM_CLIENT_ID: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
           ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
