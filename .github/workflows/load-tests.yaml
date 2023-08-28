@@ -155,7 +155,7 @@ jobs:
         run: echo "destroy"
 
   Deploy-Github-Pages:
-    needs: Caliper-load-tests
+    #needs: Caliper-load-tests
     runs-on: ubuntu-latest
     environment:
       name: github-pages
