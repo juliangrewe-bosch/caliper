@@ -44,6 +44,7 @@ cd carbynestack
 git checkout -b cdktf-caliper origin/cdktf-caliper
 cd /home/caliper/caliper
 git checkout -b caliper-workflow origin/caliper-workflow
+cd /home/caliper
 
 # Authenticate Terraform to Azure
 az login --service-principal -u "$AZURE_SP_USERNAME" -p "$AZURE_SP_PASSWORD" --tenant "$AZURE_SP_TENANT" --output none
