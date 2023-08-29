@@ -60,7 +60,7 @@ jobs:
 
           # SSH into the remote server using sshpass and execute script
           sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" \
-          caliper@$(terraform -chdir=cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip) \
+          caliper@$(terraform -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip) \
           'bash -s' < scripts/run_caliper_load_tests.sh
         working-directory: caliper
         env:
