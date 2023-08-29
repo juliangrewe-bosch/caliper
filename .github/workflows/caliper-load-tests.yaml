@@ -1,0 +1,95 @@
+name: 'Caliper-Load-Tests'
+
+on:
+  push
+
+concurrency:
+  group: "Caliper"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  Caliper-Load-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/checkout@v3
+        with:
+          repository: juliangrewe-bosch/carbynestack
+          token: ${{secrets.CALIPER_PRIVATE_REPOS_PAT}}
+          path: carbynestack
+          ref: cdktf-caliper
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - run: npm install --global cdktf-cli@0.16.3
+
+      - name: Provision Azure Virtual Machine
+        run: |
+          npm install
+          cdktf get
+          cdktf synth
+          terraform -chdir=cdktf.out/stacks/private-aks/ init -input=false
+          terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
+        working-directory: carbynestack/deployments
+        env:
+          TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
+          ARM_CLIENT_ID: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
+          ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
+          ARM_TENANT_ID: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+          ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+      - name: Deploy a Carbynestack Virtual Cloud
+        run: |
+          # Update package repositories and install necessary tools
+          sudo apt-get update > /dev/null
+          sudo apt-get install sshpass -y
+
+          # SSH into the remote server using sshpass and execute script
+          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" \
+          caliper@$(terraform -chdir=cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip) \
+          'bash -s' < scripts/run_caliper_load_tests.sh
+        working-directory: caliper
+        env:
+          CALIPER_PAT: ${{secrets.CALIPER_PAT}}
+          CALIPER_PRIVATE_REPOS_PAT: ${{secrets.CALIPER_PRIVATE_REPOS_PAT}}
+          AZURE_SP_USERNAME: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
+          AZURE_SP_PASSWORD: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
+          AZURE_SP_TENANT: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
+          AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+      - name: Push Load-Test-Report to Repository
+        run: echo "push report"
+
+      - name: Destroy Azure Resources
+        run: echo "destroy"
+
+  Deploy-Github-Pages:
+    #needs: Caliper-load-tests
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: docs/
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

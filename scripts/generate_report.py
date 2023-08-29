@@ -70,7 +70,7 @@ for query_name, query in queries:
     plt.legend()
     plt.subplots_adjust(left=0.04, right=0.99, bottom=0.1, top=0.95)
 
-    plot_path = 'assets/img/' + query_name + '.png'
+    plot_path = 'docs/assets/img/' + query_name + '.png'
     plt.savefig(plot_path)
     plt.close()
 
@@ -88,7 +88,7 @@ html_content = f'''
 <html>
 <head>
     <title>Caliper load-tests result</title>
-    <link rel="stylesheet" type="text/css" href="assets/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="docs/assets/css/styles.css">
 </head>
 <body>
 <div class="label-container">
@@ -109,5 +109,5 @@ html_content = f'''
 </html>
 '''
 
-with open('index.html', 'w') as file:
+with open('docs/index.html', 'w') as file:
     file.write(html_content)
