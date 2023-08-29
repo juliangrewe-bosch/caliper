@@ -28,7 +28,7 @@ curl -s https://deb.nodesource.com/setup_18.x | sudo bash >/dev/null
 
 # Update repositories and install required packages
 sudo apt-get update >/dev/null
-sudo apt-get install -y openjdk-8-jdk nodejs terraform kubectl python3-pip jq >/dev/null
+sudo apt-get install -y openjdk-8-jdk nodejs terraform kubectl python3-pip jq zip >/dev/null
 
 # Install Azure-CLI
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash >/dev/null
@@ -42,7 +42,8 @@ git clone https://$CALIPER_PRIVATE_REPOS_PAT@github.com/juliangrewe-bosch/carbyn
 # temporär
 cd carbynestack
 git checkout -b cdktf-caliper origin/cdktf-caliper
-cd /home/caliper
+cd /home/caliper/caliper
+git checkout -b caliper-workflow origin/caliper-workflow
 
 # Authenticate Terraform to Azure
 az login --service-principal -u "$AZURE_SP_USERNAME" -p "$AZURE_SP_PASSWORD" --tenant "$AZURE_SP_TENANT" --output none
@@ -68,13 +69,23 @@ az aks get-credentials --name starbuck-private --resource-group caliper-rg
 
 # Run load-tests
 cd /home/caliper/caliper || exit
-git checkout -b ephemeral-client origin/ephemeral-client
 export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
 kubectl config use-context apollo-private
 export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
+kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p '{"spec":{"threshold":3000000, "concurrency": 20}}' --type=merge
+
+while true; do
+    tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
+
+    if [[ $tuples_available -ge 1000000 ]]; then
+        break
+    else
+        sleep 60 * 5
+    fi
+done
+
 chmod +x mvnw
-# klyshko benötigt Zeit bis Tuple bereit sind
-# ./mvnw gatling:test
+./mvnw gatling:test
 
 # Generate report and export to Github Pages
 export PROMETHEUS_METRICS_PORT=30000
@@ -82,5 +93,7 @@ export APOLLO_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresse
 kubectl config use-context starbuck-private
 export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
-#pip3 install -r scripts/generate_report_requirements.txt
-#python3 scripts/generate_report.py
+pip3 install -r scripts/generate_report_requirements.txt
+python3 scripts/generate_report.py
+
+zip -r docs.zip docs
