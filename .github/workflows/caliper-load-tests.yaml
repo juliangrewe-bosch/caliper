@@ -17,13 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: caliper
 
       - uses: actions/checkout@v3
         with:
           repository: juliangrewe-bosch/carbynestack
           token: ${{secrets.CALIPER_PRIVATE_REPOS_PAT}}
-          path: carbynestack
           ref: cdktf-caliper
+          path: carbynestack
 
       - uses: actions/setup-node@v3
         with:
