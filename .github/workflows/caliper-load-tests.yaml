@@ -61,15 +61,14 @@ jobs:
           # SSH into the remote server using sshpass and execute script
           sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" \
           caliper@$(terraform -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip) \
-          'bash -s' < scripts/run_caliper_load_tests.sh
+          "export CALIPER_PAT=${{secrets.CALIPER_PAT}}; \
+          export CALIPER_PRIVATE_REPOS_PAT=${{secrets.CALIPER_PRIVATE_REPOS_PAT}}; \
+          export AZURE_SP_USERNAME=${{secrets.AZURE_SUBSCRIPTION_USERNAME}}; \
+          export AZURE_SP_PASSWORD=${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}; \
+          export AZURE_SP_TENANT=${{secrets.AZURE_SUBSCRIPTION_TENANT}}; \
+          export AZURE_SUBSCRIPTION_ID=${{secrets.AZURE_SUBSCRIPTION_ID}}; \
+          bash -s" < scripts/run_caliper_load_tests.sh
         working-directory: caliper
-        env:
-          CALIPER_PAT: ${{secrets.CALIPER_PAT}}
-          CALIPER_PRIVATE_REPOS_PAT: ${{secrets.CALIPER_PRIVATE_REPOS_PAT}}
-          AZURE_SP_USERNAME: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
-          AZURE_SP_PASSWORD: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
-          AZURE_SP_TENANT: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
-          AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
 
       - name: Push Load-Test-Report to Repository
         run: echo "push report"
