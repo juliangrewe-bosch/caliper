@@ -97,4 +97,8 @@ export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addres
 pip3 install -r scripts/generate_report_requirements.txt
 python3 scripts/generate_report.py
 
-zip -r docs.zip docs
+# git config user.name = ""
+# git config user.email = ""
+# git add docs/*
+# git commit -m "chore: update github-pages
+# git push https://TOKEN@github.com/repo

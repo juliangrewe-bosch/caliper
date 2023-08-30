@@ -69,26 +69,7 @@ jobs:
           export AZURE_SP_TENANT=${{secrets.AZURE_SUBSCRIPTION_TENANT}}; \
           export AZURE_SUBSCRIPTION_ID=${{secrets.AZURE_SUBSCRIPTION_ID}}; \
           bash -s" < scripts/run_caliper_load_tests.sh
-
-          # Copy the load-tests report into the local repository
-          while true; do
-          if [ -f "docs.zip" ]; then
-          break
-          else
-          fi
-          sleep 60 * 5
-          done
-          sshpass -p ${{secrets.ADMIN_PASSWORD}} scp caliper@$(terraform \
-          -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ \
-          output -raw caliper-vm-public-ip):/home/caliper/caliper/docs.zip .
-          unzip docs.zip
         working-directory: caliper
-
-      - uses: EndBug/add-and-commit@v9
-        with:
-          default_author: github_actions
-          add: 'docs/*'
-          message: 'chore: update Github Pages'
 
       - name: Destroy Azure Resources
         run: |
