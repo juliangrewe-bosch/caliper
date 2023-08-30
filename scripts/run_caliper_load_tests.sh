@@ -78,10 +78,10 @@ kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p '{
 while true; do
     tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
 
-    if [[ $tuples_available -ge 1000000 ]]; then
+    if [[ $tuples_available -ge 3000000 ]]; then
         break
     else
-        sleep 60 * 5
+        sleep 300
     fi
 done
 
