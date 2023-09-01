@@ -73,7 +73,7 @@ jobs:
 
       - name: Destroy Azure Resources
         run: |
-          terraform -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ destroy \
+          terraform -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ destroy \ #-chdir mit $ACTIONS_WORKING_DIRECTORY
           -auto-approve -input=false
 
   Deploy-Github-Pages:

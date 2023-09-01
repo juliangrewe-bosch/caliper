@@ -73,7 +73,7 @@ cd /home/caliper/caliper || exit
 export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
 kubectl config use-context apollo-private
 export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
-kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p '{"spec":{"threshold":3000000, "concurrency": 20}}' --type=merge
+kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p '{"spec":{"threshold":3000000, "concurrency": 16}}' --type=merge # concurrency 16 da azure max 16 Volumes/Node erlaubt
 
 while true; do
     tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
