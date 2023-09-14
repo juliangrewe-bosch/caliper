@@ -24,17 +24,17 @@ curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --
 echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list >/dev/null
 
 # Install NodeSource PPA
-curl -s https://deb.nodesource.com/setup_18.x | sudo bash >/dev/null &
+curl -s https://deb.nodesource.com/setup_18.x | sudo bash >/dev/null
 
 # Update repositories and install required packages
 sudo apt-get update >/dev/null
-sudo apt-get install -y openjdk-8-jdk nodejs terraform kubectl python3-pip jq zip >/dev/null &
+sudo apt-get install -y openjdk-8-jdk nodejs terraform kubectl python3-pip jq zip >/dev/null
 
 # Install Azure-CLI
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash >/dev/null &
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash >/dev/null
 
 # Install cdktf
-sudo npm install --global cdktf-cli@0.16.3 >/dev/null &
+sudo npm install --global cdktf-cli@0.16.3 >/dev/null
 
 # Clone repositories
 git clone https://github.com/juliangrewe-bosch/caliper.git
@@ -47,7 +47,6 @@ git checkout -b caliper-workflow origin/caliper-workflow
 cd /home/caliper
 
 # Authenticate Terraform to Azure
-wait
 az login --service-principal -u "$AZURE_SP_USERNAME" -p "$AZURE_SP_PASSWORD" --tenant "$AZURE_SP_TENANT" --output none
 
 # Download Prometheus Operator bundle
