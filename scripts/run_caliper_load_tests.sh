@@ -90,7 +90,7 @@ chmod +x mvnw
 ./mvnw -q gatling:test
 
 # Generate report and export to Github Pages
-export PROMETHEUS_METRICS_PORT=30000
+export PROMETHEUS_METRICS_PORT=32767
 export APOLLO_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 kubectl config use-context starbuck-private
 export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')

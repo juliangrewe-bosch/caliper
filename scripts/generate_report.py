@@ -20,12 +20,12 @@ PROMETHEUS_QUERIES = [
      'container_memory_working_set_bytes{container="ephemeral-ephemeral", pod=~"ephemeral.*", service="kubelet"}'),
     # container_cpu_usage_seconds_total
     ('container_cpu_usage_seconds_total_amphora',
-     'irate(container_cpu_usage_seconds_total{container="amphora", pod=~"cs-amphora.*", service="kubelet"}[1m])'),
+     'irate(container_cpu_usage_seconds_total{container="amphora", pod=~"cs-amphora.*", service="kubelet"}[5m])'),
     ('container_cpu_usage_seconds_total_castor',
-     'irate(container_cpu_usage_seconds_total{container="castor", pod=~"cs-castor.*", service="kubelet"}[1m])'),
+     'irate(container_cpu_usage_seconds_total{container="castor", pod=~"cs-castor.*", service="kubelet"}[5m])'),
     ('container_cpu_usage_seconds_total_ephemeral',
      'irate(container_cpu_usage_seconds_total{container="ephemeral-ephemeral", pod=~"ephemeral.*", ' \
-     'service="kubelet"}[1m])'),
+     'service="kubelet"}[5m])'),
     # container_fs_writes_bytes_total
     ('container_fs_writes_bytes_total_amphora',
      'container_fs_writes_bytes_total{container="amphora", pod=~"cs-amphora.*", service="kubelet"}'),
