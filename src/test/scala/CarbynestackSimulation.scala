@@ -4,8 +4,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-import io.carbynestack.amphora.client.Secret
-import io.carbynestack.amphora.common.{Tag, TagValueType}
+import io.carbynestack.amphora.client.{AmphoraClient, DefaultAmphoraClient, Secret}
+import io.carbynestack.amphora.common.{AmphoraServiceUri, Tag, TagValueType}
 import io.gatling.core.Predef._
 import org.gatling.plugin.carbynestack.PreDef._
 
@@ -15,16 +15,16 @@ import scala.util.Random
 
 class CarbynestackSimulation extends Simulation {
 
-  val apolloFqdn = sys.env.get("APOLLO_FQDN") match {
+  val apolloFqdn: String = sys.env.get("APOLLO_FQDN") match {
     case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}(?:\.sslip\.io)?$""") => fqdn
-    case Some(fqdn) => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
-    case None => throw new IllegalStateException("Environment variable APOLLO_FQDN not set")
+    case Some(fqdn)                                                                => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
+    case None                                                                      => throw new IllegalStateException("Environment variable APOLLO_FQDN not set")
   }
 
-  val starbuckFqdn = sys.env.get("STARBUCK_FQDN") match {
+  val starbuckFqdn: String = sys.env.get("STARBUCK_FQDN") match {
     case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}(?:\.sslip\.io)?$""") => fqdn
-    case Some(fqdn) => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
-    case None => throw new IllegalStateException("Environment variable STARBUCK_FQDN not set")
+    case Some(fqdn)                                                                => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
+    case None                                                                      => throw new IllegalStateException("Environment variable STARBUCK_FQDN not set")
   }
 
   val csProtocol = cs
@@ -60,25 +60,25 @@ class CarbynestackSimulation extends Simulation {
       )
       .asJava
 
-  val vectorAValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](3)(new BigInteger("999"))
-  val vectorBValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](3)(new BigInteger("888"))
+  val vectorAValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](100000)(new BigInteger("999"))
+  val vectorBValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](100000)(new BigInteger("888"))
 
-  val vectorASecret = Secret.of(vectorATag, vectorAValues)
-  val vectorBSecret = Secret.of(vectorBTag, vectorBValues)
+  val vectorASecret: Secret = Secret.of(vectorATag, vectorAValues)
+  val vectorBSecret: Secret = Secret.of(vectorBTag, vectorBValues)
 
-  val multiplicationProgram =
+  val multiplicationProgram: String =
     "port=regint(10000)\n" +
       "listen(port)\n" +
       "socket_id = regint()\n" +
       "acceptclientconnection(socket_id, port)\n" +
-      "data = Array.create_from(sint.read_from_socket(socket_id, 6))\n" +
+      "data = Array.create_from(sint.read_from_socket(socket_id, 200000))\n" +
       "scalar_product = Array(1, sint)\n" +
-      "@for_range(3)\n" +
+      "@for_range(100000)\n" +
       "def f(i):\n" +
-      "   scalar_product[0] += data[i] * data[3 +i]\n" +
+      "   scalar_product[0] += data[i] * data[100000 +i]\n" +
       "sint.write_to_socket(socket_id, scalar_product)"
 
-  val emptyProgram =
+  val emptyProgram: String =
     "port=regint(10000)\n" +
       "listen(port)\n" +
       "socket_id=regint()\n" +
@@ -88,11 +88,11 @@ class CarbynestackSimulation extends Simulation {
       "resp[0] = number\n" +
       "sint.write_to_socket(socket_id, resp)"
 
-  val vectorAFeeder = Array(
+  val vectorAFeeder: Array[Map[String, Secret]] = Array(
     Map("secret" -> vectorASecret)
   )
 
-  val vectorBFeeder = Array(
+  val vectorBFeeder: Array[Map[String, Secret]] = Array(
     Map("secret" -> vectorBSecret)
   )
 
@@ -113,7 +113,7 @@ class CarbynestackSimulation extends Simulation {
   val lowerBound = 1000000000L
   val upperBound = 9999999999L
 
-  val generateSecretsFunction = () => {
+  val generateSecretsFunction: () => Secret = () => {
 
     val secrets = Array.fill[java.math.BigInteger](1)(
       new java.math.BigInteger((lowerBound + Random.nextLong(upperBound - lowerBound)).toString)
@@ -121,31 +121,51 @@ class CarbynestackSimulation extends Simulation {
     Secret.of(tags, secrets)
   }
 
-  val feeder = Iterator.continually {
+  val feeder: Iterator[Map[String, Secret]] = Iterator.continually {
     Map("secret" -> generateSecretsFunction())
   }
 
-  val emptyProgramScenario = scenario("empty-program-execution-scenario")
+  /*  val emptyProgramScenario = scenario("empty-program-execution-scenario")
     .feed(feeder)
     .exec(amphora.createSecret("#{secret}"))
-    .exec(ephemeral.execute(emptyProgram))
+    .exec(ephemeral.execute(emptyProgram))*/
 
-  val multiplicationProgramScenario = scenario("multiplication-program-execution-scenario")
+  val createSecretScenario = scenario("create-secret-scenario")
     .feed(vectorAFeeder)
     .exec(amphora.createSecret("#{secret}"))
     .feed(vectorBFeeder)
     .exec(amphora.createSecret("#{secret}"))
-    .exec(ephemeral.execute(multiplicationProgram))
+
+  val client: AmphoraClient = DefaultAmphoraClient
+    .builder()
+    .endpoints(csProtocol.protocol.amphoraEndpoints.map(uri => new AmphoraServiceUri(uri)).asJava)
+    .prime(new java.math.BigInteger(csProtocol.protocol.prime))
+    .r(new java.math.BigInteger(csProtocol.protocol.r))
+    .rInv(new java.math.BigInteger(csProtocol.protocol.invR))
+    .build()
+
+  val x = List(
+    java.util.UUID.fromString("ffbf304e-5dbd-4817-943e-50850ba23535"),
+    java.util.UUID.fromString("ebfef766-2071-4431-acfe-8fcc96c409d9")
+  ).asJava
+
+  val multiplicationProgramScenario = scenario("multiplication-program-execution-scenario")
+    .exec(
+      ephemeral.execute(
+        multiplicationProgram,
+        client.getSecrets.asScala.map(_.getSecretId).asJava
+      )
+    )
 
   setUp(
-    emptyProgramScenario
+    //createSecretScenario
+    // .inject(atOnceUsers(1))
+    // .protocols(csProtocol)
+    // .andThen(
+    multiplicationProgramScenario
       .inject(atOnceUsers(1))
       .protocols(csProtocol)
-      .andThen(
-        multiplicationProgramScenario
-          .inject(atOnceUsers(1))
-          .protocols(csProtocol)
-      )
+    //  )
     /*.andThen(createSecretSoakTest.inject(constantUsersPerSec(550).during(60 * 30)))
     .protocols(csProtocol)*/
   )

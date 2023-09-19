@@ -1,0 +1,59 @@
+package org.gatling.plugin.carbynestack.action
+
+import io.carbynestack.ephemeral.client.{ActivationError, ActivationResult, EphemeralMultiClient}
+import io.gatling.commons.stats.{KO, OK}
+import io.gatling.core.CoreComponents
+import io.gatling.core.action.Action
+import io.gatling.core.session.Session
+import io.gatling.core.util.NameGen
+import io.vavr.concurrent.Future
+
+class EphemeralAction(
+  client: EphemeralMultiClient,
+  requestFunction: EphemeralMultiClient => Future[
+    io.vavr.control.Either[ActivationError, java.util.List[ActivationResult]]
+  ],
+  coreComponents: CoreComponents,
+  val next: Action
+) extends Action
+    with NameGen {
+
+  override def name: String = genName("EphemeralAction")
+
+  override def execute(session: Session): Unit = {
+
+    val start = coreComponents.clock.nowMillis
+    try {
+
+      val response: Future[io.vavr.control.Either[ActivationError, java.util.List[ActivationResult]]] =
+        requestFunction(client)
+
+      response.get().get()
+
+      coreComponents.statsEngine.logResponse(
+        session.scenario,
+        List("Ephemeral"),
+        name,
+        start,
+        coreComponents.clock.nowMillis,
+        OK,
+        None,
+        None
+      )
+    } catch {
+      case e: Throwable =>
+        logger.error(e.getMessage, e)
+        coreComponents.statsEngine.logResponse(
+          session.scenario,
+          List("Ephemeral"),
+          name,
+          start,
+          coreComponents.clock.nowMillis,
+          KO,
+          Some("500"),
+          Some(e.getMessage),
+        )
+    }
+    next ! session
+  }
+}

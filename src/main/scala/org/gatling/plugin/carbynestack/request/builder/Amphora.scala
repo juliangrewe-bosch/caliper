@@ -6,20 +6,18 @@
  */
 package org.gatling.plugin.carbynestack.request.builder
 
-import io.carbynestack.amphora.client.{AmphoraClient, Secret}
-import io.carbynestack.amphora.common.paging.Sort
-import io.carbynestack.amphora.common.{Metadata, TagFilter}
+import io.carbynestack.amphora.client.Secret
 import io.gatling.commons.validation.{Failure, Success}
-import io.gatling.core.session.{Expression, Session}
-import org.gatling.plugin.carbynestack.action.CsActionBuilder
+import io.gatling.core.session.Expression
+import org.gatling.plugin.carbynestack.action.AmphoraActionBuilder
 import org.gatling.plugin.carbynestack.request.client.AmphoraClientBuilder
 
 class Amphora() {
 
-  def createSecret(secret: Expression[Secret]): CsActionBuilder[AmphoraClient, java.util.UUID] =
-    new CsActionBuilder[AmphoraClient, java.util.UUID](
-      new AmphoraClientBuilder(),
-      (client: AmphoraClient, session: Session) => {
+  def createSecret(secret: Expression[Secret]): AmphoraActionBuilder =
+    new AmphoraActionBuilder(
+      new AmphoraClientBuilder,
+      (client, session) => {
         val secretValue = secret(session) match {
           case Success(value)   => value
           case Failure(message) => throw new IllegalArgumentException(message)
@@ -28,25 +26,12 @@ class Amphora() {
       }
     )
 
-  def getSecrets(): CsActionBuilder[AmphoraClient, java.util.List[Metadata]] =
-    new CsActionBuilder[AmphoraClient, java.util.List[Metadata]](
-      new AmphoraClientBuilder(),
-      (client: AmphoraClient, _: Session) => {
-        client.getSecrets
-      }
-    )
+  /* def getSecrets(): BaseActionBuilder[AmphoraClient, java.util.List[Metadata]] =
+    new BaseActionBuilder[AmphoraClient, java.util.List[Metadata]]()
 
-  def getSecrets(filterCriteria: java.util.List[TagFilter]): CsActionBuilder[AmphoraClient, java.util.List[Metadata]] =
-    new CsActionBuilder[AmphoraClient, java.util.List[Metadata]](
-      new AmphoraClientBuilder(),
-      (client: AmphoraClient, _: Session) => { client.getSecrets(filterCriteria) }
-    )
+  def getSecrets(filterCriteria: java.util.List[TagFilter]): BaseActionBuilder[AmphoraClient, java.util.List[Metadata]] =
+    new BaseActionBuilder[AmphoraClient, java.util.List[Metadata]]()
 
-  def getSecrets(sort: Sort): CsActionBuilder[AmphoraClient, java.util.List[Metadata]] =
-    new CsActionBuilder[AmphoraClient, java.util.List[Metadata]](
-      new AmphoraClientBuilder(),
-      (client: AmphoraClient, _: Session) => {
-        client.getSecrets(sort)
-      }
-    )
+  def getSecrets(sort: Sort): BaseActionBuilder[AmphoraClient, java.util.List[Metadata]] =
+    new BaseActionBuilder[AmphoraClient, java.util.List[Metadata]]()*/
 }
