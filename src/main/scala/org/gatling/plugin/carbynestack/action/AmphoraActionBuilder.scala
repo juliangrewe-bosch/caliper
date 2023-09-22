@@ -8,15 +8,15 @@ import io.gatling.core.structure.ScenarioContext
 import org.gatling.plugin.carbynestack.protocol.CsProtocol
 import org.gatling.plugin.carbynestack.request.client.AmphoraClientBuilder
 
-class AmphoraActionBuilder(
+class AmphoraActionBuilder[R](
   clientBuilder: AmphoraClientBuilder,
-  requestFunction: (AmphoraClient, Session) => Unit
+  requestFunction: (AmphoraClient, Session) => R
 ) extends ActionBuilder {
   override def build(ctx: ScenarioContext, next: Action): Action = {
 
     val csComponents = ctx.protocolComponentsRegistry.components(CsProtocol.CsProtocolKey)
     val coreComponents = ctx.coreComponents
 
-    new AmphoraAction(clientBuilder.build(csComponents), requestFunction, coreComponents, next)
+    new AmphoraAction[R](clientBuilder.build(csComponents), requestFunction, coreComponents, next)
   }
 }

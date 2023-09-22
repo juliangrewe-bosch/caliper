@@ -4,8 +4,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-import io.carbynestack.amphora.client.{AmphoraClient, DefaultAmphoraClient, Secret}
-import io.carbynestack.amphora.common.{AmphoraServiceUri, Tag, TagValueType}
+import io.carbynestack.amphora.client.Secret
+import io.carbynestack.amphora.common.{Tag, TagValueType}
 import io.gatling.core.Predef._
 import org.gatling.plugin.carbynestack.PreDef._
 
@@ -60,23 +60,27 @@ class CarbynestackSimulation extends Simulation {
       )
       .asJava
 
-  val vectorAValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](100000)(new BigInteger("999"))
-  val vectorBValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](100000)(new BigInteger("888"))
+  val vectorAValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](25000)(new BigInteger("999"))
+  val vectorBValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](25000)(new BigInteger("888"))
 
   val vectorASecret: Secret = Secret.of(vectorATag, vectorAValues)
   val vectorBSecret: Secret = Secret.of(vectorBTag, vectorBValues)
 
+  val dataSize = vectorAValues.length + vectorBValues.length
+  val secretValues = vectorAValues.length
+
   val multiplicationProgram: String =
-    "port=regint(10000)\n" +
-      "listen(port)\n" +
-      "socket_id = regint()\n" +
-      "acceptclientconnection(socket_id, port)\n" +
-      "data = Array.create_from(sint.read_from_socket(socket_id, 200000))\n" +
-      "scalar_product = Array(1, sint)\n" +
-      "@for_range(100000)\n" +
-      "def f(i):\n" +
-      "   scalar_product[0] += data[i] * data[100000 +i]\n" +
-      "sint.write_to_socket(socket_id, scalar_product)"
+    s"""port=regint(10000)
+       |listen(port)
+       |socket_id = regint()
+       |acceptclientconnection(socket_id, port)
+       |data = Array.create_from(sint.read_from_socket(socket_id, $dataSize))
+       |scalar_product = Array(1, sint)
+       |@for_range($secretValues)
+       |def f(i):
+       |   scalar_product[0] += data[i] * data[$secretValues + i]
+       |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
+
 
   val emptyProgram: String =
     "port=regint(10000)\n" +
@@ -125,48 +129,18 @@ class CarbynestackSimulation extends Simulation {
     Map("secret" -> generateSecretsFunction())
   }
 
-  /*  val emptyProgramScenario = scenario("empty-program-execution-scenario")
-    .feed(feeder)
-    .exec(amphora.createSecret("#{secret}"))
-    .exec(ephemeral.execute(emptyProgram))*/
-
-  val createSecretScenario = scenario("create-secret-scenario")
+  val ephemealScenario = scenario("ephemeral-scenario")
     .feed(vectorAFeeder)
     .exec(amphora.createSecret("#{secret}"))
     .feed(vectorBFeeder)
     .exec(amphora.createSecret("#{secret}"))
-
-  val client: AmphoraClient = DefaultAmphoraClient
-    .builder()
-    .endpoints(csProtocol.protocol.amphoraEndpoints.map(uri => new AmphoraServiceUri(uri)).asJava)
-    .prime(new java.math.BigInteger(csProtocol.protocol.prime))
-    .r(new java.math.BigInteger(csProtocol.protocol.r))
-    .rInv(new java.math.BigInteger(csProtocol.protocol.invR))
-    .build()
-
-  val x = List(
-    java.util.UUID.fromString("ffbf304e-5dbd-4817-943e-50850ba23535"),
-    java.util.UUID.fromString("ebfef766-2071-4431-acfe-8fcc96c409d9")
-  ).asJava
-
-  val multiplicationProgramScenario = scenario("multiplication-program-execution-scenario")
-    .exec(
-      ephemeral.execute(
-        multiplicationProgram,
-        client.getSecrets.asScala.map(_.getSecretId).asJava
-      )
-    )
+    .exec(repeat(10) {
+      exec(ephemeral.execute(multiplicationProgram))
+    })
 
   setUp(
-    //createSecretScenario
-    // .inject(atOnceUsers(1))
-    // .protocols(csProtocol)
-    // .andThen(
-    multiplicationProgramScenario
+    ephemealScenario
       .inject(atOnceUsers(1))
       .protocols(csProtocol)
-    //  )
-    /*.andThen(createSecretSoakTest.inject(constantUsersPerSec(550).during(60 * 30)))
-    .protocols(csProtocol)*/
   )
 }

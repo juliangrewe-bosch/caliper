@@ -14,8 +14,8 @@ import org.gatling.plugin.carbynestack.request.client.AmphoraClientBuilder
 
 class Amphora() {
 
-  def createSecret(secret: Expression[Secret]): AmphoraActionBuilder =
-    new AmphoraActionBuilder(
+  def createSecret(secret: Expression[Secret]): AmphoraActionBuilder[java.util.UUID] =
+    new AmphoraActionBuilder[java.util.UUID](
       new AmphoraClientBuilder,
       (client, session) => {
         val secretValue = secret(session) match {
@@ -26,12 +26,24 @@ class Amphora() {
       }
     )
 
-  /* def getSecrets(): BaseActionBuilder[AmphoraClient, java.util.List[Metadata]] =
-    new BaseActionBuilder[AmphoraClient, java.util.List[Metadata]]()
+  /* def getSecrets(): AmphoraActionBuilder =
+    new AmphoraActionBuilder(
+      new AmphoraClientBuilder,
+      (client, session) => {
+        client.getSecrets
+      }
+    )
 
-  def getSecrets(filterCriteria: java.util.List[TagFilter]): BaseActionBuilder[AmphoraClient, java.util.List[Metadata]] =
-    new BaseActionBuilder[AmphoraClient, java.util.List[Metadata]]()
+  def deleteSecret(uuid: Expression[java.util.UUID]): AmphoraActionBuilder =
+    new AmphoraActionBuilder(
+      new AmphoraClientBuilder,
+      (client, session) => {
+        val uuidValue = uuid(session) match {
+          case Success(value)   => value
+          case Failure(message) => throw new IllegalArgumentException(message)
+        }
+        client.deleteSecret(uuidValue)
+      }
+    )*/
 
-  def getSecrets(sort: Sort): BaseActionBuilder[AmphoraClient, java.util.List[Metadata]] =
-    new BaseActionBuilder[AmphoraClient, java.util.List[Metadata]]()*/
 }

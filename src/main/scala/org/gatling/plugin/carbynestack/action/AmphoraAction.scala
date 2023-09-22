@@ -7,9 +7,9 @@ import io.gatling.core.action.Action
 import io.gatling.core.session.Session
 import io.gatling.core.util.NameGen
 
-class AmphoraAction(
+class AmphoraAction[R](
   client: AmphoraClient,
-  requestFunction: (AmphoraClient, Session) => Unit,
+  requestFunction: (AmphoraClient, Session) => R,
   coreComponents: CoreComponents,
   val next: Action
 ) extends Action
@@ -20,12 +20,17 @@ class AmphoraAction(
   override def execute(session: Session): Unit = {
 
     val start = coreComponents.clock.nowMillis
+    var modifiedSession = session
     try {
 
-      requestFunction(client, session)
+      val response: R = requestFunction(client, modifiedSession)
+
+      val resultList: List[R] = modifiedSession("response").asOption[List[R]].getOrElse(Nil)
+      val updatedResultList = response :: resultList
+      modifiedSession = modifiedSession.set("response", updatedResultList)
 
       coreComponents.statsEngine.logResponse(
-        session.scenario,
+        modifiedSession.scenario,
         List("Amphora"),
         name,
         start,
@@ -38,7 +43,7 @@ class AmphoraAction(
       case e: Throwable =>
         logger.error(e.getMessage, e)
         coreComponents.statsEngine.logResponse(
-          session.scenario,
+          modifiedSession.scenario,
           List("Amphora"),
           name,
           start,
@@ -48,6 +53,6 @@ class AmphoraAction(
           Some(e.getMessage),
         )
     }
-    next ! session
+    next ! modifiedSession
   }
 }

@@ -10,7 +10,7 @@ import io.vavr.concurrent.Future
 
 class EphemeralAction(
   client: EphemeralMultiClient,
-  requestFunction: EphemeralMultiClient => Future[
+  requestFunction: (EphemeralMultiClient, Session) => Future[
     io.vavr.control.Either[ActivationError, java.util.List[ActivationResult]]
   ],
   coreComponents: CoreComponents,
@@ -26,7 +26,7 @@ class EphemeralAction(
     try {
 
       val response: Future[io.vavr.control.Either[ActivationError, java.util.List[ActivationResult]]] =
-        requestFunction(client)
+        requestFunction(client, session)
 
       response.get().get()
 
