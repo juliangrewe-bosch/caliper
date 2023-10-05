@@ -7,6 +7,7 @@
 import io.carbynestack.amphora.client.Secret
 import io.carbynestack.amphora.common.{Tag, TagValueType}
 import io.gatling.core.Predef._
+import io.gatling.core.session.Expression
 import org.gatling.plugin.carbynestack.PreDef._
 
 import java.math.BigInteger
@@ -60,8 +61,8 @@ class CarbynestackSimulation extends Simulation {
       )
       .asJava
 
-  val vectorAValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](25000)(new BigInteger("999"))
-  val vectorBValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](25000)(new BigInteger("888"))
+  val vectorAValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](50000)(new BigInteger("999"))
+  val vectorBValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](50000)(new BigInteger("333"))
 
   val vectorASecret: Secret = Secret.of(vectorATag, vectorAValues)
   val vectorBSecret: Secret = Secret.of(vectorBTag, vectorBValues)
@@ -69,6 +70,11 @@ class CarbynestackSimulation extends Simulation {
   val dataSize = vectorAValues.length + vectorBValues.length
   val secretValues = vectorAValues.length
 
+  //TODO
+  // pruefen, dass multiplication-triple für multiplikation genutzt werden
+  // immer x Anfragen pro scenario
+  // pruefen ob Knative probleme hat bei 2 Anfragen hintereinander
+  // pruefen ab wann ephemeral abstürzt
   val multiplicationProgram: String =
     s"""port=regint(10000)
        |listen(port)
@@ -81,16 +87,29 @@ class CarbynestackSimulation extends Simulation {
        |   scalar_product[0] += data[i] * data[$secretValues + i]
        |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
 
+  val multiplicationProgramOpt: String =
+    s"""port=regint(10000)
+       |listen(port)
+       |socket_id = regint()
+       |acceptclientconnection(socket_id, port)
+       |data = Array.create_from(sint.read_from_socket(socket_id, $dataSize))
+       |scalar_product = Array(1, sint)
+       |@for_range_opt($secretValues)
+       |def f(i):
+       |   scalar_product[0] += data[i] * data[$secretValues + i]
+       |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
 
   val emptyProgram: String =
-    "port=regint(10000)\n" +
-      "listen(port)\n" +
-      "socket_id=regint()\n" +
-      "acceptclientconnection(socket_id, port)\n" +
-      "number = sint.read_from_socket(socket_id, 1)\n" +
-      "resp = Array(1, sint)\n" +
-      "resp[0] = number\n" +
-      "sint.write_to_socket(socket_id, resp)"
+    s"""port=regint(10000)
+       |listen(port)
+       |socket_id = regint()
+       |acceptclientconnection(socket_id, port)
+       |data = Array.create_from(sint.read_from_socket(socket_id, $dataSize))
+       |result = Array($dataSize, sint)
+       |@for_range($dataSize)
+       |def f(i):
+       |   result[i] = data[i]
+       |sint.write_to_socket(socket_id, result)""".stripMargin
 
   val vectorAFeeder: Array[Map[String, Secret]] = Array(
     Map("secret" -> vectorASecret)
@@ -129,18 +148,50 @@ class CarbynestackSimulation extends Simulation {
     Map("secret" -> generateSecretsFunction())
   }
 
+  val uuids: Expression[java.util.List[java.util.UUID]] = session =>
+    session("uuids")
+      .asOption[List[java.util.UUID]]
+      .getOrElse(throw new NoSuchElementException("No element of type java.util.List[java.util.UUID] found"))
+      .asJava
+
   val ephemealScenario = scenario("ephemeral-scenario")
     .feed(vectorAFeeder)
     .exec(amphora.createSecret("#{secret}"))
     .feed(vectorBFeeder)
     .exec(amphora.createSecret("#{secret}"))
     .exec(repeat(10) {
-      exec(ephemeral.execute(multiplicationProgram))
+      exec(ephemeral.execute(multiplicationProgramOpt, uuids))
     })
+    .pause(60 * 5)
+    .exec(repeat(10) {
+      exec(ephemeral.execute(multiplicationProgram, uuids))
+    })
+    .pause(60 * 5)
+    .exec(repeat(10) {
+      exec(ephemeral.execute(multiplicationProgramOpt, uuids))
+    })
+
+  val deleteAllSecretsScenario = scenario("delete-all-secrets-scenario")
+    .exec(amphora.getSecrets())
+    .foreach(
+      session => {
+        session("uuids")
+          .asOption[List[java.util.UUID]]
+          .getOrElse {
+            throw new NoSuchElementException(s"no UUID found in session ${session.userId}")
+          }
+      },
+      "uuid"
+    ) {
+      exec(amphora.deleteSecret("#{uuid}"))
+    }
 
   setUp(
     ephemealScenario
       .inject(atOnceUsers(1))
-      .protocols(csProtocol)
-  )
+      .andThen(
+        deleteAllSecretsScenario
+          .inject(atOnceUsers(1))
+      )
+  ).protocols(csProtocol)
 }

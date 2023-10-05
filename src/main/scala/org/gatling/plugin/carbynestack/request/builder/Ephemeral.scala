@@ -1,32 +1,23 @@
 package org.gatling.plugin.carbynestack.request.builder
 
+import io.gatling.commons.validation.{Failure, Success}
+import io.gatling.core.session.Expression
 import org.gatling.plugin.carbynestack.action.EphemeralActionBuilder
 import org.gatling.plugin.carbynestack.request.client.EphemeralClientBuilder
 
 import java.util.UUID
-import scala.jdk.CollectionConverters._
 
 class Ephemeral {
 
-  def execute(code: String, inputSecretIds: java.util.List[UUID]): EphemeralActionBuilder =
-    new EphemeralActionBuilder(
-      new EphemeralClientBuilder(),
-      (client, _) => { client.execute(code, inputSecretIds) }
-    )
-
-  def execute(code: String): EphemeralActionBuilder =
+  def execute(code: String, inputSecretIds: Expression[java.util.List[UUID]]): EphemeralActionBuilder =
     new EphemeralActionBuilder(
       new EphemeralClientBuilder(),
       (client, session) => {
-        val responseList = session("response").asOption[List[Any]].getOrElse(Nil)
-        val inputSecretIds = responseList.collect {
-          case uuid: UUID => uuid
-          case other =>
-            throw new RuntimeException(
-              s"EphemeralMultiClient.execute expected inputSecretIds of type UUID, got $other"
-            )
-        }.asJava
-        client.execute(code, inputSecretIds)
+        val inputSecretIdsValue = inputSecretIds(session) match {
+          case Success(value)   => value
+          case Failure(message) => throw new IllegalArgumentException(message)
+        }
+        client.execute(code, inputSecretIdsValue)
       }
     )
 }

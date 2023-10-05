@@ -7,6 +7,7 @@
 package org.gatling.plugin.carbynestack.request.builder
 
 import io.carbynestack.amphora.client.Secret
+import io.carbynestack.amphora.common.Metadata
 import io.gatling.commons.validation.{Failure, Success}
 import io.gatling.core.session.Expression
 import org.gatling.plugin.carbynestack.action.AmphoraActionBuilder
@@ -26,16 +27,14 @@ class Amphora() {
       }
     )
 
-  /* def getSecrets(): AmphoraActionBuilder =
-    new AmphoraActionBuilder(
+  def getSecrets(): AmphoraActionBuilder[java.util.List[Metadata]] =
+    new AmphoraActionBuilder[java.util.List[Metadata]](
       new AmphoraClientBuilder,
-      (client, session) => {
-        client.getSecrets
-      }
+      (client, _) => client.getSecrets
     )
 
-  def deleteSecret(uuid: Expression[java.util.UUID]): AmphoraActionBuilder =
-    new AmphoraActionBuilder(
+  def deleteSecret(uuid: Expression[java.util.UUID]): AmphoraActionBuilder[Unit] =
+    new AmphoraActionBuilder[Unit](
       new AmphoraClientBuilder,
       (client, session) => {
         val uuidValue = uuid(session) match {
@@ -44,6 +43,5 @@ class Amphora() {
         }
         client.deleteSecret(uuidValue)
       }
-    )*/
-
+    )
 }

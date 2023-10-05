@@ -41,6 +41,7 @@ class EphemeralAction(
         None,
         None
       )
+      next ! session
     } catch {
       case e: Throwable =>
         logger.error(e.getMessage, e)
@@ -54,7 +55,7 @@ class EphemeralAction(
           Some("500"),
           Some(e.getMessage),
         )
+        next ! session.markAsFailed
     }
-    next ! session
   }
 }
