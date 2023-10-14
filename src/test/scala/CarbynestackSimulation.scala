@@ -28,12 +28,32 @@ class CarbynestackSimulation extends Simulation {
     case None                                                                      => throw new IllegalStateException("Environment variable STARBUCK_FQDN not set")
   }
 
+  val prime: String = sys.env.get("PRIME") match {
+    case Some(prime) => prime
+    case None        => throw new IllegalStateException("Environment variable PRIME not set")
+  }
+
+  val r: String = sys.env.get("R") match {
+    case Some(r) => r
+    case None    => throw new IllegalStateException("Environment variable R not set")
+  }
+
+  val invR: String = sys.env.get("INVR") match {
+    case Some(invR) => invR
+    case None       => throw new IllegalStateException("Environment variable INVR not set")
+  }
+
+  val program: String = sys.env.get("PROGRAM") match {
+    case Some(program) => program
+    case None          => throw new IllegalStateException("Environment variable PROGRAM not set")
+  }
+
   val csProtocol = cs
     .endpoints(List(apolloFqdn, starbuckFqdn))
-    .prime("198766463529478683931867765928436695041")
-    .r("141515903391459779531506841503331516415")
-    .invR("133854242216446749056083838363708373830")
-    .program("ephemeral-generic.default")
+    .prime(prime)
+    .r(r)
+    .invR(invR)
+    .program(program)
 
   val vectorATag: java.util.List[Tag] =
     List(("vector", "a"))
@@ -61,20 +81,29 @@ class CarbynestackSimulation extends Simulation {
       )
       .asJava
 
-  val vectorAValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](50000)(new BigInteger("999"))
-  val vectorBValues: Array[java.math.BigInteger] = Array.fill[java.math.BigInteger](50000)(new BigInteger("333"))
+  val secretValues: Int = 10000
+  val dataSize: Int = secretValues * 2
 
-  val vectorASecret: Secret = Secret.of(vectorATag, vectorAValues)
-  val vectorBSecret: Secret = Secret.of(vectorBTag, vectorBValues)
+  val vectorAValues3: Array[java.math.BigInteger] =
+    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("999"))
+  val vectorBValues3: Array[java.math.BigInteger] =
+    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("333"))
+  val vectorAValues9: Array[java.math.BigInteger] =
+    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("999999999"))
+  val vectorBValues9: Array[java.math.BigInteger] =
+    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("333333333"))
+  val vectorAValues18: Array[java.math.BigInteger] =
+    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("999999999999999999"))
+  val vectorBValues18: Array[java.math.BigInteger] =
+    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("333333333333333333"))
 
-  val dataSize = vectorAValues.length + vectorBValues.length
-  val secretValues = vectorAValues.length
+  val vectorASecret3: Secret = Secret.of(vectorATag, vectorAValues3)
+  val vectorBSecret3: Secret = Secret.of(vectorBTag, vectorBValues3)
+  val vectorASecret9: Secret = Secret.of(vectorATag, vectorAValues9)
+  val vectorBSecret9: Secret = Secret.of(vectorBTag, vectorBValues9)
+  val vectorASecret18: Secret = Secret.of(vectorATag, vectorAValues18)
+  val vectorBSecret18: Secret = Secret.of(vectorBTag, vectorBValues18)
 
-  //TODO
-  // pruefen, dass multiplication-triple für multiplikation genutzt werden
-  // immer x Anfragen pro scenario
-  // pruefen ob Knative probleme hat bei 2 Anfragen hintereinander
-  // pruefen ab wann ephemeral abstürzt
   val multiplicationProgram: String =
     s"""port=regint(10000)
        |listen(port)
@@ -111,12 +140,23 @@ class CarbynestackSimulation extends Simulation {
        |   result[i] = data[i]
        |sint.write_to_socket(socket_id, result)""".stripMargin
 
-  val vectorAFeeder: Array[Map[String, Secret]] = Array(
-    Map("secret" -> vectorASecret)
+  val vectorAFeeder3: Array[Map[String, Secret]] = Array(
+    Map("secret" -> vectorASecret3)
   )
-
-  val vectorBFeeder: Array[Map[String, Secret]] = Array(
-    Map("secret" -> vectorBSecret)
+  val vectorBFeeder3: Array[Map[String, Secret]] = Array(
+    Map("secret" -> vectorBSecret3)
+  )
+  val vectorAFeeder9: Array[Map[String, Secret]] = Array(
+    Map("secret" -> vectorASecret9)
+  )
+  val vectorBFeeder9: Array[Map[String, Secret]] = Array(
+    Map("secret" -> vectorBSecret9)
+  )
+  val vectorAFeeder18: Array[Map[String, Secret]] = Array(
+    Map("secret" -> vectorASecret18)
+  )
+  val vectorBFeeder18: Array[Map[String, Secret]] = Array(
+    Map("secret" -> vectorBSecret18)
   )
 
   val tags: java.util.List[Tag] =
@@ -154,22 +194,39 @@ class CarbynestackSimulation extends Simulation {
       .getOrElse(throw new NoSuchElementException("No element of type java.util.List[java.util.UUID] found"))
       .asJava
 
-  val ephemealScenario = scenario("ephemeral-scenario")
-    .feed(vectorAFeeder)
+  val ephemealScenario3 = scenario("ephemeral_scenario_3_digits")
+    .feed(vectorAFeeder3)
     .exec(amphora.createSecret("#{secret}"))
-    .feed(vectorBFeeder)
+    .feed(vectorBFeeder3)
     .exec(amphora.createSecret("#{secret}"))
-    .exec(repeat(10) {
-      exec(ephemeral.execute(multiplicationProgramOpt, uuids))
-    })
-    .pause(60 * 5)
-    .exec(repeat(10) {
-      exec(ephemeral.execute(multiplicationProgram, uuids))
-    })
-    .pause(60 * 5)
-    .exec(repeat(10) {
-      exec(ephemeral.execute(multiplicationProgramOpt, uuids))
-    })
+    .group("empty_program_3_digits") {
+      repeat(10) {
+        exec(ephemeral.execute(emptyProgram, uuids))
+      }
+    }
+    .pause(60 * 3)
+    .group("multiplication_program_opt_3_digits") {
+      repeat(10) {
+        exec(ephemeral.execute(multiplicationProgramOpt, uuids))
+      }
+    }
+
+  val ephemealScenario18 = scenario("ephemeral_scenario_18_digits")
+    .feed(vectorAFeeder18)
+    .exec(amphora.createSecret("#{secret}"))
+    .feed(vectorBFeeder18)
+    .exec(amphora.createSecret("#{secret}"))
+    .group("empty_program_18_digits") {
+      repeat(10) {
+        exec(ephemeral.execute(emptyProgram, uuids))
+      }
+    }
+    .pause(60 * 3)
+    .group("multiplication_program_opt_3_digits") {
+      repeat(10) {
+        exec(ephemeral.execute(multiplicationProgramOpt, uuids))
+      }
+    }
 
   val deleteAllSecretsScenario = scenario("delete-all-secrets-scenario")
     .exec(amphora.getSecrets())
@@ -187,10 +244,10 @@ class CarbynestackSimulation extends Simulation {
     }
 
   setUp(
-    ephemealScenario
+    ephemealScenario3
       .inject(atOnceUsers(1))
       .andThen(
-        deleteAllSecretsScenario
+        ephemealScenario18
           .inject(atOnceUsers(1))
       )
   ).protocols(csProtocol)

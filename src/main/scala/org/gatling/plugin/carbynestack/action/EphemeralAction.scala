@@ -33,7 +33,7 @@ class EphemeralAction(
 
       coreComponents.statsEngine.logResponse(
         session.scenario,
-        List("Ephemeral"),
+        session.groups,
         name,
         start,
         coreComponents.clock.nowMillis,
@@ -47,7 +47,7 @@ class EphemeralAction(
         logger.error(e.getMessage, e)
         coreComponents.statsEngine.logResponse(
           session.scenario,
-          List("Ephemeral"),
+          session.groups,
           name,
           start,
           coreComponents.clock.nowMillis,

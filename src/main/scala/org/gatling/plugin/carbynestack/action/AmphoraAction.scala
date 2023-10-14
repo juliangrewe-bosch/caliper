@@ -49,7 +49,7 @@ class AmphoraAction[R](
 
       coreComponents.statsEngine.logResponse(
         modifiedSession.scenario,
-        List("Amphora"),
+        modifiedSession.groups,
         name,
         start,
         stop,
@@ -63,7 +63,7 @@ class AmphoraAction[R](
         logger.error(e.getMessage, e)
         coreComponents.statsEngine.logResponse(
           session.scenario,
-          List("Amphora"),
+          session.groups,
           name,
           start,
           stop,

@@ -73,17 +73,21 @@ cd /home/caliper/caliper || exit 1
 export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
 kubectl config use-context apollo-private
 export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
+export PRIME=198766463529478683931867765928436695041
+export R=141515903391459779531506841503331516415
+export INVR=133854242216446749056083838363708373830
+export PROGRAM="ephemeral-generic.default"
+
 # AzureVM max. 16 volumes
 kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p '{"spec":{"threshold":1000000, "concurrency": 10}}' --type=merge
-
 while true; do
-    tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
+  tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
 
-    if [[ $tuples_available -ge 1000000 ]]; then
-        break
-    else
-        sleep 300
-    fi
+  if [[ $tuples_available -ge 1000000 ]]; then
+    break
+  else
+    sleep 300
+  fi
 done
 
 chmod +x mvnw
@@ -97,9 +101,3 @@ export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addres
 
 pip3 install -r scripts/generate_report_requirements.txt
 python3 scripts/generate_report.py
-
-# git config user.name = ""
-# git config user.email = ""
-# git add docs/*
-# git commit -m "chore: update github-pages
-# git push https://TOKEN@github.com/repo
