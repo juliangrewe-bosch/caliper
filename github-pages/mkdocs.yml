@@ -1,0 +1,30 @@
+site_name: Caliper
+site_url: https://caliper.io/
+site_author: Carbyne Stack Community
+site_description: >-
+  Caliper Load-Tests Report
+  copyright: "Copyright © 2021-2023 The Carbyne Stack Authors"
+
+repo_url: https://github.com/juliangrewe-bosch/caliper
+repo_name: caliper
+#edit_uri: https://github.com/carbynestack/carbynestack.github.io/edit/master/docs  ?
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: en
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
+nav:
+  - Gatling:
+    - Amphora: reports/gatling/amphora/gatling.md
+    - Ephemeral: reports/gatling/ephemeral/gatling.md
+  - cAdvisor:
+    - memory_working_set_bytes: reports/cAdvisor/container_memory_working_set_bytes.md
+    - cpu_usage_seconds: reports/cAdvisor/container_cpu_usage_seconds.md
+    - fs_reads_bytes_total: reports/cAdvisor/container_fs_reads_bytes_total.md
+    - fs_writes_bytes_total: reports/cAdvisor/container_fs_writes_bytes_total.md
+    - network_receive_bytes_total: reports/cAdvisor/container_network_receive_bytes_total.md
+    - network_transmit_bytes_total: reports/cAdvisor/container_network_transmit_bytes_total.md
