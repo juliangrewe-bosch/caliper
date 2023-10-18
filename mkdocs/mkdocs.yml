@@ -18,6 +18,7 @@ theme:
     - navigation.tabs
     - navigation.tabs.sticky
 nav:
+  - Home: index.md
   - Gatling:
     - Amphora: reports/gatling/amphora/gatling.md
     - Ephemeral: reports/gatling/ephemeral/gatling.md
