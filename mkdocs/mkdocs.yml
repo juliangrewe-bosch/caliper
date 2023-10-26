@@ -19,13 +19,14 @@ theme:
     - navigation.tabs.sticky
 nav:
   - Home: index.md
-  - Gatling:
-    - Amphora: reports/gatling/amphora/gatling.md
-    - Ephemeral: reports/gatling/ephemeral/gatling.md
-  - cAdvisor:
-    - memory_working_set_bytes: reports/cAdvisor/container_memory_working_set_bytes.md
-    - cpu_usage_seconds: reports/cAdvisor/container_cpu_usage_seconds.md
-    - fs_reads_bytes_total: reports/cAdvisor/container_fs_reads_bytes_total.md
-    - fs_writes_bytes_total: reports/cAdvisor/container_fs_writes_bytes_total.md
-    - network_receive_bytes_total: reports/cAdvisor/container_network_receive_bytes_total.md
-    - network_transmit_bytes_total: reports/cAdvisor/container_network_transmit_bytes_total.md
+  - Amphora:
+      - ScenarioX:
+          - Gatling: reports/amphora/scenarioX/gatling.md
+          - cAdvisor: reports/amphora/scenarioX/cAdvisor.md
+  - Castor:
+      - ScenarioX:
+          - cAdvisor: reports/castor/scenarioX/cAdvisor.md
+  - Ephemeral:
+      - ScenarioX:
+          - Gatling: reports/ephemeral/scenarioX/gatling.md
+          - cAdvisor: reports/ephemeral/scenarioX/cAdvisor.md

@@ -88,10 +88,6 @@ class CarbynestackSimulation extends Simulation {
     Array.fill[java.math.BigInteger](secretValues)(new BigInteger("999"))
   val vectorBValues3: Array[java.math.BigInteger] =
     Array.fill[java.math.BigInteger](secretValues)(new BigInteger("333"))
-  val vectorAValues9: Array[java.math.BigInteger] =
-    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("999999999"))
-  val vectorBValues9: Array[java.math.BigInteger] =
-    Array.fill[java.math.BigInteger](secretValues)(new BigInteger("333333333"))
   val vectorAValues18: Array[java.math.BigInteger] =
     Array.fill[java.math.BigInteger](secretValues)(new BigInteger("999999999999999999"))
   val vectorBValues18: Array[java.math.BigInteger] =
@@ -99,8 +95,6 @@ class CarbynestackSimulation extends Simulation {
 
   val vectorASecret3: Secret = Secret.of(vectorATag, vectorAValues3)
   val vectorBSecret3: Secret = Secret.of(vectorBTag, vectorBValues3)
-  val vectorASecret9: Secret = Secret.of(vectorATag, vectorAValues9)
-  val vectorBSecret9: Secret = Secret.of(vectorBTag, vectorBValues9)
   val vectorASecret18: Secret = Secret.of(vectorATag, vectorAValues18)
   val vectorBSecret18: Secret = Secret.of(vectorBTag, vectorBValues18)
 
@@ -146,12 +140,6 @@ class CarbynestackSimulation extends Simulation {
   val vectorBFeeder3: Array[Map[String, Secret]] = Array(
     Map("secret" -> vectorBSecret3)
   )
-  val vectorAFeeder9: Array[Map[String, Secret]] = Array(
-    Map("secret" -> vectorASecret9)
-  )
-  val vectorBFeeder9: Array[Map[String, Secret]] = Array(
-    Map("secret" -> vectorBSecret9)
-  )
   val vectorAFeeder18: Array[Map[String, Secret]] = Array(
     Map("secret" -> vectorASecret18)
   )
@@ -196,9 +184,13 @@ class CarbynestackSimulation extends Simulation {
 
   val ephemealScenario3 = scenario("ephemeral_scenario_3_digits")
     .feed(vectorAFeeder3)
-    .exec(amphora.createSecret("#{secret}"))
+    .group("amphora") {
+      exec(amphora.createSecret("#{secret}"))
+    }
     .feed(vectorBFeeder3)
-    .exec(amphora.createSecret("#{secret}"))
+    .group("amphora") {
+      exec(amphora.createSecret("#{secret}"))
+    }
     .group("empty_program_3_digits") {
       repeat(10) {
         exec(ephemeral.execute(emptyProgram, uuids))
@@ -210,19 +202,24 @@ class CarbynestackSimulation extends Simulation {
         exec(ephemeral.execute(multiplicationProgramOpt, uuids))
       }
     }
+    .pause(60 * 3)
 
   val ephemealScenario18 = scenario("ephemeral_scenario_18_digits")
     .feed(vectorAFeeder18)
-    .exec(amphora.createSecret("#{secret}"))
+    .group("amphora") {
+      exec(amphora.createSecret("#{secret}"))
+    }
     .feed(vectorBFeeder18)
-    .exec(amphora.createSecret("#{secret}"))
+    .group("amphora") {
+      exec(amphora.createSecret("#{secret}"))
+    }
     .group("empty_program_18_digits") {
       repeat(10) {
         exec(ephemeral.execute(emptyProgram, uuids))
       }
     }
     .pause(60 * 3)
-    .group("multiplication_program_opt_3_digits") {
+    .group("multiplication_program_opt_18_digits") {
       repeat(10) {
         exec(ephemeral.execute(multiplicationProgramOpt, uuids))
       }
