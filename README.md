@@ -36,19 +36,26 @@ simulation.
 To execute the simulation we can use the `gatling-maven-plugin`
 
 ```xml
- <plugin>
-    <groupId>io.gatling</groupId>
-    <artifactId>gatling-maven-plugin</artifactId>
-    <version>${gatling-maven-plugin-version}</version>
+<plugin>
+   <groupId>io.gatling</groupId>
+   <artifactId>gatling-maven-plugin</artifactId>
+   <version>${maven-gatling-plugin.version}</version>
+   <configuration>
+      <runMultipleSimulations>true</runMultipleSimulations>
+      <includes>
+         <include>src.test.scala.*</include>
+      </includes>
+   </configuration>
 </plugin>
 ```
 
-By default, the results are stored in `${project.build.directory}/gatling`. In
-the context of the Caliper-Load-Tests, all results are sent to a graphite
-endpoint configured in the configuration file `test/resources/gatling.conf`. To
-run the simulation simply use the `test` goal `./mvnw gatling:test`. The
-following example shows a simulation class that provides the functionality of
-the millionaires problem example from the
+By default, the results are stored in `${project.build.directory}/gatling`.
+Caliper uses [prometheus](https://prometheus.io/) to visualize the results,
+therefore all results are sent to a graphite endpoint configured in the
+configuration file`test/resources/gatling.conf`. To run the simulation simply
+use the `test` goal `./mvnw gatling:test`. The following example shows a
+simulation class that provides the functionality of the millionaires problem
+example from the
 [Carbyne Stack Tutorial](https://carbynestack.io/getting-started/millionaires/).
 
 ```scala
@@ -114,40 +121,50 @@ class CarbynestackSimulation extends Simulation { //1
     Map("secret" -> elonsNetWorth)
   )
 
+  val uuids: Expression[java.util.List[java.util.UUID]] = session =>
+    session("uuids")
+      .asOption[List[java.util.UUID]]
+      .asJava
+
   val millionairesProblem = scenario("millionaires-problem-scenario") //3
     .feed(jeffFeeder) //4
     .exec(amphora.createSecret("#{secret}")) //5
     .feed(elonFeeder)
     .exec(amphora.createSecret("#{secret}"))
-    .exec(ephemeral.execute(code)) //6
+    .exec(ephemeral.execute(code, uuids)) //6
 
   setUp( //7
-    millionairesProblem.inject(atOnceUsers(10) //8
-    ).protocols(csProtocol)) //9
+    millionairesProblem
+      .inject(
+        atOnceUsers(10) //8
+      )
+      .protocols(csProtocol)
+  ) //9
 }
+
 ```
 
-1. The class declaration, it needs to extend `Simulation`
-1. The common configuration to all Carbynestack client requests, e.g. see
+1. The class declaration, it needs to extend `Simulation`.
+1. The common configuration to all Carbyne Stack clients, see
    [amphora-java-client](https://github.com/carbynestack/amphora/blob/master/amphora-java-client/README.md)
 1. The
    [Scenario](https://gatling.io/docs/gatling/reference/current/core/scenario/)
-   definition
+   definition.
 1. A
    [Feeder](https://gatling.io/docs/gatling/reference/current/core/session/feeder/)
-   is used to inject data into the virtual user
+   is used to inject data into the virtual user.
 1. An amphora-java-client-request calling the `createSecret` method of the
    `io.carbynestack.amphora.client.AmphoraClient`. Using the
    [Gatling Expression Language](https://gatling.io/docs/gatling/reference/current/core/session/el/)
    we can use dynamic parameters that will be replaced with the value stored in
-   the virtual user's session
+   the virtual user's session.
 1. An ephemeral-java-client-request executing the provided program, the secrets
-   used by the program must be created beforehand in the same scenario, so
-   ephemeral can retrieve them from the session
-1. Setting up the scenario(s) we want to use in this simulation
+   used by the program must be created beforehand and are used as input to the
+   function.
+1. Setting up the scenario(s) we want to use in this simulation.
 1. Declaring that 10 virtual user will be injected at once into the
-   `createSecret` scenario
-1. Attaching the `cs` configuration matching the backend service configuration
+   `createSecret` scenario.
+1. Attaching the `cs` configuration matching the backend service configuration.
 
 ## Namesake
 
