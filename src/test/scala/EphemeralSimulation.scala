@@ -117,11 +117,11 @@ class EphemeralSimulation extends Simulation {
       .getOrElse(throw new NoSuchElementException("No element of type java.util.List[java.util.UUID] found"))
       .asJava
 
+
   val ephemeralScenario = scenario("ephemeral_scenario")
     .group("execute") {
       exec(ephemeral.execute(multiplicationProgramOpt, uuids))
     }
-    //.pause(60 * 3)
 
   setUp(
     ephemeralScenario.inject(atOnceUsers(1)).protocols(csProtocol)

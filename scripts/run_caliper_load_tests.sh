@@ -99,5 +99,5 @@ export APOLLO_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresse
 kubectl config use-context starbuck-private
 export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
-pip3 install -r scripts/generate_report_requirements.txt
+pip3 install -r scripts/requirements.txt
 python3 scripts/generate_report.py

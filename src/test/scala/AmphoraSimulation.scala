@@ -76,7 +76,7 @@ class AmphoraSimulation extends Simulation {
       /* new java.math.BigInteger(
         (secretValueLowerBound + Random.nextLong(secretValueUpperBound - secretValueLowerBound)).toString
       )*/
-      new java.math.BigInteger("10L")
+      new java.math.BigInteger("10")
     )
     Secret.of(tags, secret)
   }
@@ -92,6 +92,7 @@ class AmphoraSimulation extends Simulation {
         exec(amphora.createSecret("#{secret}"))
       }
     }
+    .pause(60 * 1)
 
   setUp(
     createSecrets.inject(atOnceUsers(1)).protocols(csProtocol)
