@@ -117,8 +117,10 @@ class EphemeralSimulation extends Simulation {
       .getOrElse(throw new NoSuchElementException("No element of type java.util.List[java.util.UUID] found"))
       .asJava
 
-
   val ephemeralScenario = scenario("ephemeral_scenario")
+    .group("getSecrets") {
+      exec(amphora.getSecrets())
+    }
     .group("execute") {
       exec(ephemeral.execute(multiplicationProgramOpt, uuids))
     }

@@ -18,6 +18,7 @@ object CsProtocolBuilder {
 case class CsProtocolBuilder(protocol: CsProtocol) {
 
   def endpoints(endpointsValue: List[String]): CsProtocolBuilder = {
+    //TODO remove protocol and endpoint
     this
       .modify(_.protocol.amphoraEndpoints)
       .setTo(endpointsValue.map(endpoint => "http://" + endpoint + "/amphora"))

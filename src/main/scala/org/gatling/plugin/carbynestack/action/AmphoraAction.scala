@@ -33,12 +33,10 @@ class AmphoraAction[R](
       response match {
         case uuid: java.util.UUID => uuids = uuid :: uuids
         case uuidList: java.util.List[_] =>
-          uuids = uuids ::: uuidList.asScala
-            .collect {
-              case metaData: Metadata => metaData
-            }
-            .map(metadata => metadata.getSecretId())
-            .toList
+          uuids = uuids ::: uuidList.asScala.flatMap {
+            case metaData: Metadata => Some(metaData.getSecretId())
+            case _ => None
+          }.toList
         case _: Unit =>
         case other =>
           throw new IllegalArgumentException(

@@ -8,6 +8,7 @@ import scala.util.Random
 
 class AmphoraSimulation extends Simulation {
 
+  //TODO add protocol (http) and endpoint /amphora or /
   val apolloFqdn: String = sys.env.get("APOLLO_FQDN") match {
     case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}(?:\.sslip\.io)?$""") => fqdn
     case Some(fqdn) => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
@@ -86,9 +87,9 @@ class AmphoraSimulation extends Simulation {
   }
 
   val createSecrets = scenario("amphora_scenario")
+    .feed(feeder)
     .group("createSecret") {
-      repeat(2) {
-        feed(feeder)
+      repeat(1) {
         exec(amphora.createSecret("#{secret}"))
       }
     }

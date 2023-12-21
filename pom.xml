@@ -122,7 +122,7 @@
                 <configuration>
                     <runMultipleSimulations>true</runMultipleSimulations>
                     <includes>
-                        <include>src.test.scala.*</include>
+                        <include>*</include>
                     </includes>
                 </configuration>
             </plugin>
