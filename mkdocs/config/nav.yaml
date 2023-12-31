@@ -1,0 +1,13 @@
+nav:
+  - Home: index.md
+  - Amphora:
+      - multiplication:
+          - Gatling: reports/amphora/multiplication/amphora/gatling.md
+          - cAdvisor: reports/multiplication/amphora/cAdvisor.md
+  - Castor:
+      - multiplication:
+          - cAdvisor: reports/multiplication/castor/cAdvisor.md
+  - Ephemeral:
+      - multiplication:
+          - Gatling: reports/ephemeral/multiplication/ephemeral/gatling.md
+          - cAdvisor: reports/ephemeral/multiplication/ephemeral/cAdvisor.md

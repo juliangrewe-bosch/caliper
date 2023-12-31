@@ -1,5 +1,9 @@
 # cAdvisor
 
+## response_times
+
+![Graph](../../../../images/plots/gatling/amphora_latency.png)
+
 ## memory
 
 ![Graph](../../../../images/plots/cAdvisor/multiplication_program_opt_18_digits_container_memory_working_set_bytes_amphora.png)

@@ -1,6 +1,8 @@
+package simulation
+
+import io.carbynestack.amphora.client.Secret
 import io.carbynestack.amphora.common.{Tag, TagValueType}
 import io.gatling.core.Predef._
-import io.gatling.core.session.Expression
 import org.gatling.plugin.carbynestack.PreDef._
 
 import scala.jdk.CollectionConverters._
@@ -75,7 +77,18 @@ class EphemeralSimulation extends Simulation {
   val secretValues: Int = 10
   val dataSize: Int = secretValues * 2
 
-  val multiplicationProgram: String =
+  val feeder = Array(
+    Map(
+      "secret" ->
+        Secret.of(vectorATag, Array.fill[java.math.BigInteger](secretValues)(new java.math.BigInteger("10")))
+    ),
+    Map(
+      "secret" ->
+        Secret.of(vectorBTag, Array.fill[java.math.BigInteger](secretValues)(new java.math.BigInteger("10")))
+    )
+  )
+
+  val scalarValueProgram: String =
     s"""port=regint(10000)
        |listen(port)
        |socket_id = regint()
@@ -87,7 +100,7 @@ class EphemeralSimulation extends Simulation {
        |   scalar_product[0] += data[i] * data[$secretValues + i]
        |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
 
-  val multiplicationProgramOpt: String =
+  val scalarValueProgramOpt: String =
     s"""port=regint(10000)
        |listen(port)
        |socket_id = regint()
@@ -97,6 +110,18 @@ class EphemeralSimulation extends Simulation {
        |@for_range_opt($secretValues)
        |def f(i):
        |   scalar_product[0] += data[i] * data[$secretValues + i]
+       |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
+
+  val additionProgram: String =
+    s"""port=regint(10000)
+       |listen(port)
+       |socket_id = regint()
+       |acceptclientconnection(socket_id, port)
+       |data = Array.create_from(sint.read_from_socket(socket_id, $dataSize))
+       |result = Array(1, sint)
+       |@for_range_opt($secretValues)
+       |def f(i):
+       |   result[0] += data[i] + data[$secretValues + i]
        |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
 
   val emptyProgram: String =
@@ -111,21 +136,25 @@ class EphemeralSimulation extends Simulation {
        |   result[i] = data[i]
        |sint.write_to_socket(socket_id, result)""".stripMargin
 
-  val uuids: Expression[java.util.List[java.util.UUID]] = session =>
-    session("uuids")
-      .asOption[List[java.util.UUID]]
-      .getOrElse(throw new NoSuchElementException("No element of type java.util.List[java.util.UUID] found"))
-      .asJava
-
   val ephemeralScenario = scenario("ephemeral_scenario")
-    .group("getSecrets") {
-      exec(amphora.getSecrets())
+    .feed(feeder)
+    .exec(amphora.createSecret("#{secret}"))
+    .feed((feeder))
+    .exec(amphora.createSecret("#{secret}"))
+    .exec(amphora.getSecrets())
+    .group("emptyProgram"){
+      repeat(10){
+        exec(ephemeral.execute(emptyProgram, "#{uuids}"))
+      }
     }
-    .group("execute") {
-      exec(ephemeral.execute(multiplicationProgramOpt, uuids))
+    .pause(60)
+    .group("scalarValueProgram") {
+      repeat(10) {
+        exec(ephemeral.execute(scalarValueProgramOpt, "#{uuids}"))
+      }
     }
 
   setUp(
-    ephemeralScenario.inject(atOnceUsers(1)).protocols(csProtocol)
-  )
+    ephemeralScenario.inject(atOnceUsers(1))
+  ).protocols(csProtocol)
 }

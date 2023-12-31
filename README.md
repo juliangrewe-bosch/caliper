@@ -31,31 +31,39 @@ Virtual Cloud we create scenarios that make requests to a backend service. The
 actions are requests performed by a client that will be sent during a
 simulation.
 
+TODO Wie werden Clients hinzugefügt Java-Scala Kompatibilität Welche Klassen
+müssen geändert/erstellt werden um neue Clients einzufügen
+
 ## Usage
 
-To execute the simulation we can use the `gatling-maven-plugin`
+To execute a simulation we can use the `gatling-maven-plugin`. Currently two
+Carbyne Stack Clients are supported (Amphora and Ephemeral), so for each service
+we create a collection of tests in a simulation class located under
+`test/scala/`. You can control which simulations will be triggered with the
+`includes` filter.
 
 ```xml
+
 <plugin>
-   <groupId>io.gatling</groupId>
-   <artifactId>gatling-maven-plugin</artifactId>
-   <version>${maven-gatling-plugin.version}</version>
-   <configuration>
-      <runMultipleSimulations>true</runMultipleSimulations>
-      <includes>
-         <include>src.test.scala.*</include>
-      </includes>
-   </configuration>
+    <groupId>io.gatling</groupId>
+    <artifactId>gatling-maven-plugin</artifactId>
+    <version>${maven-gatling-plugin.version}</version>
+    <configuration>
+        <runMultipleSimulations>true</runMultipleSimulations>
+        <includes>
+            <include>*</include>
+        </includes>
+    </configuration>
 </plugin>
 ```
 
 By default, the results are stored in `${project.build.directory}/gatling`.
 Caliper uses [prometheus](https://prometheus.io/) to visualize the results,
 therefore all results are sent to a graphite endpoint configured in the
-configuration file`test/resources/gatling.conf`. To run the simulation simply
-use the `test` goal `./mvnw gatling:test`. The following example shows a
-simulation class that provides the functionality of the millionaires problem
-example from the
+configuration file`test/resources/gatling.conf`. To run Gatling tests simply use
+the `test` goal `./mvnw gatling:test`. The following example shows a simulation
+class that provides the functionality of the millionaires problem example from
+the
 [Carbyne Stack Tutorial](https://carbynestack.io/getting-started/millionaires/).
 
 ```scala
@@ -136,10 +144,10 @@ class CarbynestackSimulation extends Simulation { //1
   setUp( //7
     millionairesProblem
       .inject(
-        atOnceUsers(10) //8
+        atOnceUsers(1) //8
       )
-      .protocols(csProtocol)
-  ) //9
+      .protocols(csProtocol) //9
+  )
 }
 
 ```
@@ -162,9 +170,34 @@ class CarbynestackSimulation extends Simulation { //1
    used by the program must be created beforehand and are used as input to the
    function.
 1. Setting up the scenario(s) we want to use in this simulation.
-1. Declaring that 10 virtual user will be injected at once into the
-   `createSecret` scenario.
+1. Declaring that 1 virtual user will be injected into the `millionairesProblem`
+   scenario.
 1. Attaching the `cs` configuration matching the backend service configuration.
+
+## Report
+
+### Testing Environment
+
+IaC repository welche resourcen werden erstellt (Azure Ressourcen, Prometheus,
+Caliper VC) was wird dafür benötigt Service principal azure wofür wird dieser
+benötigt managed identity wofür wird diese benötigt
+
+### Metrics
+
+Prometheus Metriken Welche Metriken werden gesammelt Wie kommen die Gatling
+Metriken zu Prometheus Wie wird der Report erstellt Was macht das Script, was
+benötigt es Wie kann man Metriken hinzufügen/entfernen
+
+### Where is the report
+
+Github Actions Workflow erklären Wann wird er getriggert Was passiert Was ist
+MkDocs Welche Github Secrets werden wofür benötigt was ist der graphite-exporter
+
+### How to modify the report
+
+Was sind die Schritte um Tests zu entfernen/ hinzuzufügen Simulation
+erstellen/bearbeiten Scenario(s) definieren Python-Skript anpassen um Metriken
+zu sammeln Mkdocs Beschreibung der Scenarios anpassen
 
 ## Namesake
 

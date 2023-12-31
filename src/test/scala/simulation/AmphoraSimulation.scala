@@ -1,3 +1,5 @@
+package simulation
+
 import io.carbynestack.amphora.client.Secret
 import io.carbynestack.amphora.common.{Tag, TagValueType}
 import io.gatling.core.Predef._
@@ -71,31 +73,79 @@ class AmphoraSimulation extends Simulation {
       )
       .asJava
 
-  val generateSecretsFunction: () => Secret = () => {
+  val generateSecret: Int => Secret = (numberOfSecretValuesPerSecret: Int) => {
 
-    val secret = Array.fill[java.math.BigInteger](numberOfSecretValuesPerSecret)(
-      /* new java.math.BigInteger(
+    val secretValues = Array.fill[java.math.BigInteger](numberOfSecretValuesPerSecret)(
+      new java.math.BigInteger(
         (secretValueLowerBound + Random.nextLong(secretValueUpperBound - secretValueLowerBound)).toString
-      )*/
-      new java.math.BigInteger("10")
+      )
     )
-    Secret.of(tags, secret)
+    Secret.of(tags, secretValues)
   }
 
-  val feeder: Iterator[Map[String, Secret]] = Iterator.continually {
-    Map("secret" -> generateSecretsFunction())
+  val generateFeeder: Int => Iterator[Map[String, Secret]] = (numberOfSecrets: Int) => {
+    Iterator.continually {
+      Map("secret" -> generateSecret(numberOfSecrets))
+    }
   }
 
-  val createSecrets = scenario("amphora_scenario")
-    .feed(feeder)
-    .group("createSecret") {
-      repeat(1) {
-        exec(amphora.createSecret("#{secret}"))
+  def performCreateSecretsRequest(feeder: Iterator[Map[String, Secret]], numberOfSecrets: String) = {
+    group(s"createSecret_${numberOfSecrets}_secret_values") {
+      repeat(10) {
+        feed(feeder)
+          .exec(amphora.createSecret(("#{secret}")))
       }
     }
-    .pause(60 * 1)
+  }
+
+  def performGetSecretsRequest(feeder: Iterator[Map[String, Secret]], numberOfSecrets: String) = {
+    feed(feeder)
+      .exec(amphora.createSecret("#{secret}"))
+      .group(s"getSecret_${numberOfSecrets}_secret_values") {
+        repeat(10) {
+          exec(amphora.getSecrets())
+        }
+      }
+      .exec(amphora.getSecrets())
+      .foreach("#{uuids}", "uuid") {
+        exec(amphora.deleteSecret("#{uuid"))
+      }
+  }
+
+  val createSecretsScenario = scenario("amphora_createSecret_scenario")
+    .exec(performCreateSecretsRequest(generateFeeder(10000), "10000"))
+    .pause(30)
+    .exec(performCreateSecretsRequest(generateFeeder(25000), "25000"))
+    .pause(30)
+    .exec(performCreateSecretsRequest(generateFeeder(50000), "50000"))
+    .pause(30)
+    .exec(performCreateSecretsRequest(generateFeeder(75000), "75000"))
+    .pause(30)
+    .exec(performCreateSecretsRequest(generateFeeder(100000), "100000"))
+    .exec(amphora.getSecrets())
+    .foreach("#{uuids}", "uuid"){
+      exec(amphora.deleteSecret("#{uuid}"))
+    }
+    .pause(60)
+
+  val getSecretsScenario = scenario("amphora_getSecrets_scenario")
+    .exec(performGetSecretsRequest(generateFeeder(10000), "10000"))
+    .exec(performGetSecretsRequest(generateFeeder(25000), "25000"))
+    .exec(performGetSecretsRequest(generateFeeder(50000), "50000"))
+    .pause(60)
+
+  val deleteSecretScenario = scenario("amphora_deleteSecret_scenario")
+
+  /*
+  TODO
+    - create high number of secrets, how does this effect subsequent actions (test for create, get ...?)
+    - Implement Sort, Filter by Tags, (Pagination?)
+   */
 
   setUp(
-    createSecrets.inject(atOnceUsers(1)).protocols(csProtocol)
-  )
+    createSecretsScenario
+      .inject(atOnceUsers(1))
+      .andThen(getSecretsScenario.inject(atOnceUsers(1)))
+      .andThen(deleteSecretScenario.inject(atOnceUsers(1)))
+  ).protocols(csProtocol)
 }
