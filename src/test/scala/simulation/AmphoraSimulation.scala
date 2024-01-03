@@ -89,8 +89,8 @@ class AmphoraSimulation extends Simulation {
     }
   }
 
-  def performCreateSecretsRequest(feeder: Iterator[Map[String, Secret]], numberOfSecrets: String) = {
-    group(s"createSecret_${numberOfSecrets}_secret_values") {
+  def performCreateSecretRequest(feeder: Iterator[Map[String, Secret]], groupLabel: String) = {
+    group(groupLabel) {
       repeat(10) {
         feed(feeder)
           .exec(amphora.createSecret(("#{secret}")))
@@ -98,10 +98,10 @@ class AmphoraSimulation extends Simulation {
     }
   }
 
-  def performGetSecretsRequest(feeder: Iterator[Map[String, Secret]], numberOfSecrets: String) = {
+  def performGetSecretsRequest(feeder: Iterator[Map[String, Secret]], groupLabel: String) = {
     feed(feeder)
       .exec(amphora.createSecret("#{secret}"))
-      .group(s"getSecret_${numberOfSecrets}_secret_values") {
+      .group(groupLabel) {
         repeat(10) {
           exec(amphora.getSecrets())
         }
@@ -112,29 +112,29 @@ class AmphoraSimulation extends Simulation {
       }
   }
 
-  val createSecretsScenario = scenario("amphora_createSecret_scenario")
-    .exec(performCreateSecretsRequest(generateFeeder(10000), "10000"))
+  val createSecretScenario = scenario("createSecret")
+    .exec(performCreateSecretRequest(generateFeeder(10000), "secret_values_10000"))
     .pause(30)
-    .exec(performCreateSecretsRequest(generateFeeder(25000), "25000"))
+    .exec(performCreateSecretRequest(generateFeeder(25000), "secret_values_25000"))
     .pause(30)
-    .exec(performCreateSecretsRequest(generateFeeder(50000), "50000"))
+    .exec(performCreateSecretRequest(generateFeeder(50000), "secret_values_50000"))
     .pause(30)
-    .exec(performCreateSecretsRequest(generateFeeder(75000), "75000"))
+    .exec(performCreateSecretRequest(generateFeeder(75000), "secret_values_75000"))
     .pause(30)
-    .exec(performCreateSecretsRequest(generateFeeder(100000), "100000"))
+    .exec(performCreateSecretRequest(generateFeeder(100000), "secret_values_100000"))
     .exec(amphora.getSecrets())
-    .foreach("#{uuids}", "uuid"){
+    .foreach("#{uuids}", "uuid") {
       exec(amphora.deleteSecret("#{uuid}"))
     }
     .pause(60)
 
-  val getSecretsScenario = scenario("amphora_getSecrets_scenario")
-    .exec(performGetSecretsRequest(generateFeeder(10000), "10000"))
-    .exec(performGetSecretsRequest(generateFeeder(25000), "25000"))
-    .exec(performGetSecretsRequest(generateFeeder(50000), "50000"))
+  val getSecretsScenario = scenario("getSecrets")
+    .exec(performGetSecretsRequest(generateFeeder(10000), "secret_values_10000"))
+    .exec(performGetSecretsRequest(generateFeeder(25000), "secret_values_25000"))
+    .exec(performGetSecretsRequest(generateFeeder(50000), "secret_values_50000"))
     .pause(60)
 
-  val deleteSecretScenario = scenario("amphora_deleteSecret_scenario")
+  val deleteSecretScenario = scenario("deleteSecret")
 
   /*
   TODO
@@ -143,7 +143,7 @@ class AmphoraSimulation extends Simulation {
    */
 
   setUp(
-    createSecretsScenario
+    createSecretScenario
       .inject(atOnceUsers(1))
       .andThen(getSecretsScenario.inject(atOnceUsers(1)))
       .andThen(deleteSecretScenario.inject(atOnceUsers(1)))

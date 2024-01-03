@@ -136,25 +136,34 @@ class EphemeralSimulation extends Simulation {
        |   result[i] = data[i]
        |sint.write_to_socket(socket_id, result)""".stripMargin
 
-  val ephemeralScenario = scenario("ephemeral_scenario")
+  val emptyProgramScenario = scenario("emptyProgram")
     .feed(feeder)
     .exec(amphora.createSecret("#{secret}"))
     .feed((feeder))
     .exec(amphora.createSecret("#{secret}"))
     .exec(amphora.getSecrets())
-    .group("emptyProgram"){
-      repeat(10){
+    .group("secret_values_10000") {
+      repeat(10) {
         exec(ephemeral.execute(emptyProgram, "#{uuids}"))
       }
     }
     .pause(60)
-    .group("scalarValueProgram") {
+
+  val scalarValueOptProgramScenario = scenario("scalarValueOptProgrma")
+    .feed(feeder)
+    .exec(amphora.createSecret("#{secret}"))
+    .feed((feeder))
+    .exec(amphora.createSecret("#{secret}"))
+    .group("secret_values_10000") {
       repeat(10) {
         exec(ephemeral.execute(scalarValueProgramOpt, "#{uuids}"))
       }
     }
+    .pause(60)
 
   setUp(
-    ephemeralScenario.inject(atOnceUsers(1))
+    emptyProgramScenario
+      .inject(atOnceUsers(1))
+      .andThen(scalarValueOptProgramScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }
