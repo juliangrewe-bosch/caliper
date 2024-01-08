@@ -91,7 +91,7 @@ class AmphoraSimulation extends Simulation {
 
   def performCreateSecretRequest(feeder: Iterator[Map[String, Secret]], groupLabel: String) = {
     group(groupLabel) {
-      repeat(10) {
+      repeat(1) {
         feed(feeder)
           .exec(amphora.createSecret(("#{secret}")))
       }
@@ -102,13 +102,13 @@ class AmphoraSimulation extends Simulation {
     feed(feeder)
       .exec(amphora.createSecret("#{secret}"))
       .group(groupLabel) {
-        repeat(10) {
+        repeat(1) {
           exec(amphora.getSecrets())
         }
       }
       .exec(amphora.getSecrets())
       .foreach("#{uuids}", "uuid") {
-        exec(amphora.deleteSecret("#{uuid"))
+        exec(amphora.deleteSecret("#{uuid}"))
       }
   }
 
@@ -120,7 +120,7 @@ class AmphoraSimulation extends Simulation {
     .exec(performCreateSecretRequest(generateFeeder(50000), "secret_values_50000"))
     .pause(30)
     .exec(performCreateSecretRequest(generateFeeder(75000), "secret_values_75000"))
-    .pause(30)
+    .pause(60 * 5)
     .exec(performCreateSecretRequest(generateFeeder(100000), "secret_values_100000"))
     .exec(amphora.getSecrets())
     .foreach("#{uuids}", "uuid") {

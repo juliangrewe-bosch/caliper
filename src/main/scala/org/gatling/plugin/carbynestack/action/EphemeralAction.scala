@@ -28,7 +28,7 @@ class EphemeralAction(
       val response: Future[io.vavr.control.Either[ActivationError, java.util.List[ActivationResult]]] =
         requestFunction(client, session)
 
-      response.await(5, java.util.concurrent.TimeUnit.MINUTES)
+      response.await()
       response.get().get()
 
       coreComponents.statsEngine.logResponse(

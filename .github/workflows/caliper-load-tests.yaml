@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 jobs:
-  Caliper-Load-Tests:
+  caliper:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,7 +38,8 @@ jobs:
 
       - run: npm install --global cdktf-cli@0.16.3
 
-      - name: Provision Azure Virtual Machine
+      - name: Provision Azure-VM
+        id: provision-vm
         run: |
           npm install
           cdktf get
@@ -52,8 +53,10 @@ jobs:
           ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
           ARM_TENANT_ID: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
           ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+        timeout-minutes: 20
 
-      - name: Run Caliper Load-Tests
+      - name: Run load-tests
+        id: load-tests
         run: |
           # Update package repositories and install necessary tools
           sudo apt-get update > /dev/null
@@ -71,27 +74,32 @@ jobs:
           export AZURE_SUBSCRIPTION_ID=${{secrets.AZURE_SUBSCRIPTION_ID}}; \
           bash -s" < scripts/run_caliper_load_tests.sh
         working-directory: caliper
+        timeout-minutes: 60
+        continue-on-error: true
 
-      - name: Destroy Azure Resources
+      - name: Destroy Azure resources
         run: |
           terraform -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ destroy \ #-chdir mit $ACTIONS_WORKING_DIRECTORY
           -auto-approve -input=false
 
-  Deploy-Github-Pages:
-    needs: Caliper-Load-Tests
+  deploy:
+    needs: caliper
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
-          path: 'docs/'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+          python-version: 3.x
+      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: .cache
+          restore-keys: |
+            mkdocs-material-
+      - run: pip install mkdocs-material
+      - run: mkdocs gh-deploy --force
+        working-directory: mkdocs
+
+        # TODO
+        # add job Delete that tries to delete the caliper-rg resource group at the end

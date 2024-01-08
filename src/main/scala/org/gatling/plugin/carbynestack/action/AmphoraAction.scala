@@ -30,7 +30,12 @@ class AmphoraAction[R](
       val response: R = requestFunction(client, session)
       stop = coreComponents.clock.nowMillis
 
-      response match { //TODO
+      /*
+      * TODO
+      *  add case for each return type (uuid, metadata) and filter attributes later
+       */
+      response match {
+        case uuid: java.util.UUID => uuids = uuid :: uuids
         case metaData: java.util.List[Metadata] =>
           uuids = uuids ::: metaData.asScala.flatMap {
             case metaData: Metadata => Some(metaData.getSecretId())

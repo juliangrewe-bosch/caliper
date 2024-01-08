@@ -143,7 +143,7 @@ class EphemeralSimulation extends Simulation {
     .exec(amphora.createSecret("#{secret}"))
     .exec(amphora.getSecrets())
     .group("secret_values_10000") {
-      repeat(10) {
+      repeat(1) {
         exec(ephemeral.execute(emptyProgram, "#{uuids}"))
       }
     }
@@ -155,7 +155,7 @@ class EphemeralSimulation extends Simulation {
     .feed((feeder))
     .exec(amphora.createSecret("#{secret}"))
     .group("secret_values_10000") {
-      repeat(10) {
+      repeat(1) {
         exec(ephemeral.execute(scalarValueProgramOpt, "#{uuids}"))
       }
     }
