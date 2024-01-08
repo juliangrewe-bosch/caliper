@@ -77,16 +77,12 @@ class EphemeralSimulation extends Simulation {
   val secretValues: Int = 10
   val dataSize: Int = secretValues * 2
 
-  val feeder = Array(
+  val feeder = Iterator.continually {
     Map(
-      "secret" ->
-        Secret.of(vectorATag, Array.fill[java.math.BigInteger](secretValues)(new java.math.BigInteger("10")))
-    ),
-    Map(
-      "secret" ->
-        Secret.of(vectorBTag, Array.fill[java.math.BigInteger](secretValues)(new java.math.BigInteger("10")))
+      "secret" -> Secret
+        .of(vectorBTag, Array.fill[java.math.BigInteger](secretValues)(new java.math.BigInteger("10")))
     )
-  )
+  }
 
   val scalarValueProgram: String =
     s"""port=regint(10000)

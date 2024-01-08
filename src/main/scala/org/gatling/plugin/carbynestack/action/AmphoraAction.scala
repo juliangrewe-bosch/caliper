@@ -30,10 +30,6 @@ class AmphoraAction[R](
       val response: R = requestFunction(client, session)
       stop = coreComponents.clock.nowMillis
 
-      /*
-      * TODO
-      *  add case for each return type (uuid, metadata) and filter attributes later
-       */
       response match {
         case uuid: java.util.UUID => uuids = uuid :: uuids
         case metaData: java.util.List[Metadata] =>
@@ -44,7 +40,7 @@ class AmphoraAction[R](
         case _: Unit =>
         case other =>
           throw new IllegalArgumentException(
-            s"expected argument of type List[io.carbynestack.amphora.common.Metadata], got $other"
+            s"expected argument of type java.util.UUID or List[io.carbynestack.amphora.common.Metadata],  got $other"
           )
       }
       val modifiedSession = session.set("uuids", uuids)

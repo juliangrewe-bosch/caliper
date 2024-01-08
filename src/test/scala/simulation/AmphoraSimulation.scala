@@ -134,7 +134,6 @@ class AmphoraSimulation extends Simulation {
     .exec(performGetSecretsRequest(generateFeeder(50000), "secret_values_50000"))
     .pause(60)
 
-  val deleteSecretScenario = scenario("deleteSecret")
 
   /*
   TODO
@@ -146,6 +145,5 @@ class AmphoraSimulation extends Simulation {
     createSecretScenario
       .inject(atOnceUsers(1))
       .andThen(getSecretsScenario.inject(atOnceUsers(1)))
-      .andThen(deleteSecretScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }
