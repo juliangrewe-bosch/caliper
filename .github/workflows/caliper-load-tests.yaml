@@ -76,7 +76,7 @@ jobs:
         working-directory: caliper
         timeout-minutes: 60
         continue-on-error: true
-
+        # herdstat git commit action to push updated mkdocs
       - name: Destroy Azure resources
         run: |
           terraform -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ destroy \ #-chdir mit $ACTIONS_WORKING_DIRECTORY
@@ -102,4 +102,4 @@ jobs:
         working-directory: mkdocs
 
         # TODO
-        # add job Delete that tries to delete the caliper-rg resource group at the end
+        # add job Delete that tries to delete the caliper-rg resource group (azure-cli?)
