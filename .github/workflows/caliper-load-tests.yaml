@@ -53,7 +53,6 @@ jobs:
           ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
           ARM_TENANT_ID: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
           ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
-        timeout-minutes: 20
 
       - name: Run load-tests
         id: load-tests
@@ -74,13 +73,7 @@ jobs:
           export AZURE_SUBSCRIPTION_ID=${{secrets.AZURE_SUBSCRIPTION_ID}}; \
           bash -s" < scripts/run_caliper_load_tests.sh
         working-directory: caliper
-        timeout-minutes: 60
-        continue-on-error: true # TODO what does this
         # herdstat git commit action to push updated mkdocs
-      - name: Destroy Azure resources
-        run: |
-          terraform -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ destroy \ #-chdir mit $ACTIONS_WORKING_DIRECTORY
-          -auto-approve -input=false
 
   deploy:
     needs: caliper
@@ -101,5 +94,10 @@ jobs:
       - run: mkdocs gh-deploy --force
         working-directory: mkdocs
 
-        # TODO
-        # add job Delete that tries to delete the caliper-rg resource group (azure-cli?)
+  destroy:
+    needs: caliper # TODO needs to run even if caliper job fails
+    runs-on: ubuntu-latest
+    steps:
+      - name: Destroy caliper resources
+        id: destroy-resources
+        run: echo "hello world"
