@@ -58,7 +58,7 @@ jobs:
         id: get-ip
         run: |
           AZURE_VM_IP=$(terraform -chdir=cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip)
-          echo "DYNAMIC_IP=$DYNAMIC_IP" >> $GITHUB_ENV
+          echo "AZURE_VM_IP=$AZURE_VM_IP" >> $GITHUB_ENV
         working-directory: carbynestack/deployments
 
       - name: Run load-tests
@@ -76,7 +76,7 @@ jobs:
             export AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
             export AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}
             bash -s < $(pwd)/scripts/run_caliper_load_tests.sh
-          working-directory: caliper
+        working-directory: caliper
 
       - name: Commit Caliper Report
         id: commit-report
