@@ -103,7 +103,8 @@ jobs:
         working-directory: mkdocs
 
   destroy:
-    needs: caliper # TODO needs to run even if caliper job fails
+    needs: caliper
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Azure Login
