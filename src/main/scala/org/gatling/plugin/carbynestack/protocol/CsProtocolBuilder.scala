@@ -18,12 +18,11 @@ object CsProtocolBuilder {
 case class CsProtocolBuilder(protocol: CsProtocol) {
 
   def endpoints(endpointsValue: List[String]): CsProtocolBuilder = {
-    //TODO remove protocol and endpoint
     this
       .modify(_.protocol.amphoraEndpoints)
-      .setTo(endpointsValue.map(endpoint => "http://" + endpoint + "/amphora"))
+      .setTo(endpointsValue.map(endpoint => endpoint + "/amphora"))
       .modify(_.protocol.ephemeralEndpoints)
-      .setTo(endpointsValue.map(endpoint => "http://" + endpoint + "/"))
+      .setTo(endpointsValue.map(endpoint => endpoint + "/"))
   }
 
   def prime(primeValue: String): CsProtocolBuilder = this.modify(_.protocol.prime).setTo(primeValue)
