@@ -20,7 +20,7 @@ class Amphora() {
       new AmphoraClientBuilder,
       (client, session) => {
         val secretValue = secret(session) match {
-          case Success(value)   => value
+          case Success(value) => value
           case Failure(message) => throw new IllegalArgumentException(message)
         }
         client.createSecret(secretValue)
@@ -30,7 +30,7 @@ class Amphora() {
   def getSecrets(): AmphoraActionBuilder[java.util.List[Metadata]] =
     new AmphoraActionBuilder[java.util.List[Metadata]](
       new AmphoraClientBuilder,
-      (client, _) => client.getSecrets
+      (client, _) => client.getSecrets()
     )
 
   def deleteSecret(uuid: Expression[java.util.UUID]): AmphoraActionBuilder[Unit] =
@@ -38,7 +38,7 @@ class Amphora() {
       new AmphoraClientBuilder,
       (client, session) => {
         val uuidValue = uuid(session) match {
-          case Success(value)   => value
+          case Success(value) => value
           case Failure(message) => throw new IllegalArgumentException(message)
         }
         client.deleteSecret(uuidValue)

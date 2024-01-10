@@ -84,6 +84,13 @@ class EphemeralSimulation extends Simulation {
     )
   }
 
+  def performDeleteSecretRequest() = {
+    exec(amphora.getSecrets())
+      .foreach("#{uuids}", "uuid") {
+        exec(amphora.deleteSecret("#{uuid}"))
+      }
+  }
+
   val scalarValueProgram: String =
     s"""port=regint(10000)
        |listen(port)
@@ -139,27 +146,36 @@ class EphemeralSimulation extends Simulation {
     .exec(amphora.createSecret("#{secret}"))
     .exec(amphora.getSecrets())
     .group("secret_values_10000") {
-      repeat(1) {
+      repeat(10) {
         exec(ephemeral.execute(emptyProgram, "#{uuids}"))
       }
     }
-    .pause(60)
+    .pause(60 * 3)
 
   val scalarValueOptProgramScenario = scenario("scalarValueOptProgrma")
     .feed(feeder)
     .exec(amphora.createSecret("#{secret}"))
     .feed((feeder))
     .exec(amphora.createSecret("#{secret}"))
+    .exec(amphora.getSecrets())
     .group("secret_values_10000") {
-      repeat(1) {
+      repeat(10) {
         exec(ephemeral.execute(scalarValueProgramOpt, "#{uuids}"))
       }
     }
-    .pause(60)
+    .pause(60 * 3)
+
+  val deleteAllSecretsAfterEmptyProgramScenario = scenario("deleteAllSecretsAfterEmptyProgram")
+    .exec(performDeleteSecretRequest())
+
+  val deleteAllSecretsAfterScalarValueOptProgramScenario = scenario("deleteAllSecretsAfterScalarValueOptProgram")
+    .exec(performDeleteSecretRequest())
 
   setUp(
     emptyProgramScenario
       .inject(atOnceUsers(1))
+      .andThen(deleteAllSecretsAfterEmptyProgramScenario.inject(atOnceUsers(1)))
       .andThen(scalarValueOptProgramScenario.inject(atOnceUsers(1)))
+      .andThen(deleteAllSecretsAfterScalarValueOptProgramScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }

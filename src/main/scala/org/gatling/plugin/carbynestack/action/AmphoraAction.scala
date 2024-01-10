@@ -24,24 +24,19 @@ class AmphoraAction[R](
 
     val start = coreComponents.clock.nowMillis
     var stop = start
-    var uuids: List[java.util.UUID] = Nil
+    val uuids: java.util.List[java.util.UUID] = new java.util.ArrayList[java.util.UUID]()
     try {
 
       val response: R = requestFunction(client, session)
       stop = coreComponents.clock.nowMillis
 
       response match {
-        case uuid: java.util.UUID => uuids = uuid :: uuids
-        case metaData: java.util.List[Metadata] =>
-          uuids = uuids ::: metaData.asScala.flatMap {
-            case metaData: Metadata => Some(metaData.getSecretId())
-            case _ => None
-          }.toList
+        case uuid: java.util.UUID => uuids.add(uuid)
+        case list: java.util.List[_] =>
+          list.asScala.foreach {
+            case metadata: Metadata => uuids.add(metadata.getSecretId)
+          }
         case _: Unit =>
-        case other =>
-          throw new IllegalArgumentException(
-            s"expected argument of type java.util.UUID or List[io.carbynestack.amphora.common.Metadata],  got $other"
-          )
       }
       val modifiedSession = session.set("uuids", uuids)
 

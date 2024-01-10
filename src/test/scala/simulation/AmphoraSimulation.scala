@@ -112,6 +112,13 @@ class AmphoraSimulation extends Simulation {
       }
   }
 
+  def performDeleteSecretRequest() = {
+    exec(amphora.getSecrets())
+      .foreach("#{uuids}", "uuid") {
+        exec(amphora.deleteSecret("#{uuid}"))
+      }
+  }
+
   val createSecretScenario = scenario("createSecret")
     .exec(performCreateSecretRequest(generateFeeder(10000), "secret_values_10000"))
     .pause(30)
@@ -122,10 +129,6 @@ class AmphoraSimulation extends Simulation {
     .exec(performCreateSecretRequest(generateFeeder(75000), "secret_values_75000"))
     .pause(60 * 5)
     .exec(performCreateSecretRequest(generateFeeder(100000), "secret_values_100000"))
-    .exec(amphora.getSecrets())
-    .foreach("#{uuids}", "uuid") {
-      exec(amphora.deleteSecret("#{uuid}"))
-    }
     .pause(60)
 
   val getSecretsScenario = scenario("getSecrets")
@@ -134,7 +137,8 @@ class AmphoraSimulation extends Simulation {
     .exec(performGetSecretsRequest(generateFeeder(50000), "secret_values_50000"))
     .pause(60)
 
-
+  val deleteAllSecretsScenario = scenario("deleteSecret")
+    .exec(performDeleteSecretRequest())
   /*
   TODO
     - create high number of secrets, how does this effect subsequent actions (test for create, get ...?)
@@ -144,6 +148,7 @@ class AmphoraSimulation extends Simulation {
   setUp(
     createSecretScenario
       .inject(atOnceUsers(1))
+      .andThen(deleteAllSecretsScenario.inject(atOnceUsers(1)))
       .andThen(getSecretsScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }

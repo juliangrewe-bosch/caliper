@@ -73,7 +73,7 @@ cd /home/caliper/caliper || exit 1
 export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
 kubectl config use-context apollo-private
 export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
-export PRIME=198766463529478683931867765928436695041
+export PRIME=198766463529478683931867765928436695041 # TODO make env variables
 export R=141515903391459779531506841503331516415
 export INVR=133854242216446749056083838363708373830
 export PROGRAM="ephemeral-generic.default"
@@ -93,8 +93,8 @@ done
 chmod +x mvnw
 ./mvnw -q gatling:test
 
-# Generate report and export to Github Pages
-export PROMETHEUS_METRICS_PORT=32767
+# Generate report
+export PROMETHEUS_METRICS_PORT=32767 # TODO rename to PROMETHEUS_SERVER?
 export APOLLO_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 kubectl config use-context starbuck-private
 export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')

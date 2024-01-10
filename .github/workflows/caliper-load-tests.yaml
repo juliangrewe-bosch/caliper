@@ -40,7 +40,7 @@ jobs:
 
       - name: Provision Azure-VM
         id: provision-vm
-        run: |
+        run: | # TODO do not show IP address of vm
           npm install
           cdktf get
           cdktf synth
@@ -75,7 +75,7 @@ jobs:
           bash -s" < scripts/run_caliper_load_tests.sh
         working-directory: caliper
         timeout-minutes: 60
-        continue-on-error: true
+        continue-on-error: true # TODO what does this
         # herdstat git commit action to push updated mkdocs
       - name: Destroy Azure resources
         run: |

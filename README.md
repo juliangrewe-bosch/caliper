@@ -139,7 +139,7 @@ class CarbynestackSimulation extends Simulation { //1
     .exec(amphora.createSecret("#{secret}")) //5
     .feed(elonFeeder)
     .exec(amphora.createSecret("#{secret}"))
-    .exec(ephemeral.execute(code, uuids)) //6
+    .exec(ephemeral.execute(code, uuids)) //6 TODO UPDATE uuids is Expression now
 
   setUp( //7
     millionairesProblem
@@ -174,30 +174,65 @@ class CarbynestackSimulation extends Simulation { //1
    scenario.
 1. Attaching the `cs` configuration matching the backend service configuration.
 
-## Report
+## Test Infrastructure
 
-### Testing Environment
-
-IaC repository welche resourcen werden erstellt (Azure Ressourcen, Prometheus,
+To run the load-tests a two-party VC deployment must be available. Therefore
+Microsoft Azure is used to deploy all nessecariy resources. The deployment is
+configured in the IaC repository and following resources are deployed: IaC
+repository welche resourcen werden erstellt (Azure Ressourcen, Prometheus,
 Caliper VC) was wird dafür benötigt Service principal azure wofür wird dieser
 benötigt managed identity wofür wird diese benötigt
 
+Azure K8s-Cluster (Specs) caliper-managed-identity-rg (expiration?)
+carbynestack-testing-infrastructure-sp (expiration 2/27/2024)
+
+## Report
+
+The report provides information about resource consumption of the deployed
+services (ephemeral, amphora, castor) and response times for the outside-facing
+services.
+
 ### Metrics
+
+The collected metrics can be divided into two groups:
+
+#### cAdvisor
 
 Prometheus Metriken Welche Metriken werden gesammelt Wie kommen die Gatling
 Metriken zu Prometheus Wie wird der Report erstellt Was macht das Script, was
 benötigt es Wie kann man Metriken hinzufügen/entfernen
 
-### Where is the report
+#### Gatling
 
-Github Actions Workflow erklären Wann wird er getriggert Was passiert Was ist
-MkDocs Welche Github Secrets werden wofür benötigt was ist der graphite-exporter
+- gatling.((groups.)\*.request|allRequests).(ok|ko|all).(count|min|max|mean|stdDev|percentilesXX)
 
-### How to modify the report
+- prometheus Query example
 
-Was sind die Schritte um Tests zu entfernen/ hinzuzufügen Simulation
-erstellen/bearbeiten Scenario(s) definieren Python-Skript anpassen um Metriken
-zu sammeln Mkdocs Beschreibung der Scenarios anpassen
+[gatling-realtime](https://gatling.io/docs/gatling/guides/realtime_monitoring)
+[prometheus graphite exporter](https://github.com/prometheus/graphite_exporter)
+
+### Publishing the Report
+
+To make the report available a Github Actions workflow is triggered which runs
+the following jobs: Github Actions Workflow Wann wird er getriggert -> release
+Was passiert Caliper -> deploy -> destroy Was ist MkDocs, Ordner-Struktur,
+Namenskonventionen Welche Github Secrets werden wofür benötigt
+
+### Add/ Remove Test-cases
+
+To add or remove test-cases the following steps must be peformed:
+
+Was sind die Schritte um Tests hinzuzufügen/ zu entfernen: Simulation:
+
+- scenario(s) definieren
+  - was sind scenarios (deckt mehrere Testfälle ab)
+- groups innerhalb eines scenarios erstellen
+  - Was sind groups (deckt mindestesns einen Testfall ab)
+- simulation hinzufügen und virtuelle Nutzer konfigurieren Python-Skript:
+- PromQL hinzufügen (PromQL und Namenskonvention Datein) Mkdocs:
+- Graphen sind unter /img/simulationX/scenarioY/groupZ/ gespeichert
+  - Datei(en) erstellen und Grafiken einbinden
+  - Datei(en) nav.yaml hinzufügen
 
 ## Namesake
 
