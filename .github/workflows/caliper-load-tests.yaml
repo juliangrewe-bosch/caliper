@@ -61,11 +61,14 @@ jobs:
           echo "AZURE_VM_IP=$AZURE_VM_IP" >> $GITHUB_ENV
         working-directory: carbynestack/deployments
 
+      - name: Test
+        run: echo "Azure VM IP Address  $AZURE_VM_IP"
+
       - name: Run load-tests
         id: load-tests
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ env.AZURE_VM_IP }}
+          host: $AZURE_VM_IP
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
           script: |
