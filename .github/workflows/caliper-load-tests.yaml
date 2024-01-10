@@ -48,31 +48,41 @@ jobs:
           terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
         working-directory: carbynestack/deployments
         env:
-          TF_VAR_adminPassword: ${{secrets.ADMIN_PASSWORD}}
+          TF_VAR_adminPassword: ${{secrets.AZURE_VM_PASSWORD}} # TODO add azure_vm_username
           ARM_CLIENT_ID: ${{secrets.AZURE_SUBSCRIPTION_USERNAME}}
           ARM_CLIENT_SECRET: ${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}
           ARM_TENANT_ID: ${{secrets.AZURE_SUBSCRIPTION_TENANT}}
           ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
 
+      - name: Get Azure VM IP Address
+        id: get-ip
+        run: |
+          DYNAMIC_IP=$(terraform -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ \
+          output -raw caliper-vm-public-ip)
+          echo "DYNAMIC_IP=$DYNAMIC_IP" >> $GITHUB_ENV
+        working-directory: caliper
+
       - name: Run load-tests
         id: load-tests
-        run: |
-          # Update package repositories and install necessary tools
-          sudo apt-get update > /dev/null
-          sudo apt-get install sshpass unzip -y
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.DYNAMIC_IP }}
+          username: ${{ secrets.AZURE_VM_USERNAME }}
+          password: ${{ secrets.AZURE_VM_PASSWORD }}
+          script: |
+            export CALIPER_PAT=${{ secrets.CALIPER_PAT }}
+            export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}
+            export AZURE_SP_USERNAME=${{ secrets.AZURE_SUBSCRIPTION_USERNAME }}
+            export AZURE_SP_PASSWORD=${{ secrets.AZURE_SUBSCRIPTION_PASSWORD }}
+            export AZURE_SP_TENANT=${{ secrets.AZURE_SUBSCRIPTION_TENANT }}
+            export AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            bash -s < $(pwd)/scripts/run_caliper_load_tests.sh
+          working-directory: caliper
 
-          # SSH into the remote server using sshpass and execute script
-          sshpass -p ${{secrets.ADMIN_PASSWORD}} ssh -o "StrictHostKeyChecking no" \
-          caliper@$(terraform \
-          -chdir=../carbynestack/deployments/cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip) \
-          "export CALIPER_PAT=${{secrets.CALIPER_PAT}}; \
-          export CALIPER_PRIVATE_REPOS_PAT=${{secrets.CALIPER_PRIVATE_REPOS_PAT}}; \
-          export AZURE_SP_USERNAME=${{secrets.AZURE_SUBSCRIPTION_USERNAME}}; \
-          export AZURE_SP_PASSWORD=${{secrets.AZURE_SUBSCRIPTION_PASSWORD}}; \
-          export AZURE_SP_TENANT=${{secrets.AZURE_SUBSCRIPTION_TENANT}}; \
-          export AZURE_SUBSCRIPTION_ID=${{secrets.AZURE_SUBSCRIPTION_ID}}; \
-          bash -s" < scripts/run_caliper_load_tests.sh
-        working-directory: caliper
+      - name: Commit Caliper Report
+        id: commit-report
+        run: echo "i want to commit the report"
+
         # herdstat git commit action to push updated mkdocs
 
   deploy:
@@ -100,4 +110,4 @@ jobs:
     steps:
       - name: Destroy caliper resources
         id: destroy-resources
-        run: echo "hello world"
+        run: echo "i want to destroy azure resources"
