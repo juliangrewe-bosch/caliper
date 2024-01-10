@@ -176,15 +176,25 @@ class CarbynestackSimulation extends Simulation { //1
 
 ## Test Infrastructure
 
-To run the load-tests a two-party VC deployment must be available. Therefore
-Microsoft Azure is used to deploy all nessecariy resources. The deployment is
-configured in the IaC repository and following resources are deployed: IaC
-repository welche resourcen werden erstellt (Azure Ressourcen, Prometheus,
-Caliper VC) was wird dafür benötigt Service principal azure wofür wird dieser
-benötigt managed identity wofür wird diese benötigt
+To run the load-tests a `Carbyne Stack VC` needs to be deployed. The current
+setup utilizes the \[LINK\] IaC repository and deploys a `two-party VC` hosted
+on Microsoft Azure. The following resources are created by running the IaC
+deployment:
 
-Azure K8s-Cluster (Specs) caliper-managed-identity-rg (expiration?)
-carbynestack-testing-infrastructure-sp (expiration 2/27/2024)
+- GraphiteExporter
+- Prometheus
+- PrivateAksStack
+- PrivateAksVirtualCloudStack
+
+The following resources are used to authenticate against Azure:
+
+| Resource          | Name                             | Role                                                  | Expiration |
+| ----------------- | -------------------------------- | ----------------------------------------------------- | ---------- |
+| Managed Identity  | `caliper-aks-managed-identity`   | `Private DNS Zone Contributor`, `Network Contributor` |            |
+| Service Principal | `caliper-test-infrastructure-sp` | `Contributer-Role`                                    | 2/27/2024  |
+
+TODO add
+[OpenID Connect to Service Principal](https://github.com/Azure/login?tab=readme-ov-file#login-with-openid-connect-oidc-recommended)
 
 ## Report
 
@@ -217,6 +227,22 @@ To make the report available a Github Actions workflow is triggered which runs
 the following jobs: Github Actions Workflow Wann wird er getriggert -> release
 Was passiert Caliper -> deploy -> destroy Was ist MkDocs, Ordner-Struktur,
 Namenskonventionen Welche Github Secrets werden wofür benötigt
+
+- Create azure resources via CDKTF:
+  - Azure Service Principal
+  - Azure managed Identity
+- Destroy azure resources:
+  - Azure Service Principal
+
+| Secret                        | Description                                                              |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| `AZURE_CREDENTIALS`           | Azure CLI Github Action                                                  |
+| `AZURE_SUBSCRIPTION_ID`       | Authenticate Terraform against Azure                                     |
+| `AZURE_SUBSCRIPTION_PASSWORD` | Authenticate Terraform against Azure                                     |
+| `AZURE_SUBSCRIPTION_TENANT`   | Authenticate Terraform against Azure                                     |
+| `AZURE_SUBSCRIPTION_USERNAME` | Authenticate Terraform against Azure                                     |
+| `CALIPER_PAT`                 | Caliper maven project uses this to download Clients from Github Packages |
+| `ADMIN_PASSWORD`              | Password for the AzureVM that is peered with the AKS                     |
 
 ### Add/ Remove Test-cases
 
