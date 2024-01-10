@@ -68,7 +68,7 @@ jobs:
         id: load-tests
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: $AZURE_VM_IP
+          host: ${{ env.AZURE_VM_IP }}
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
           script: |
