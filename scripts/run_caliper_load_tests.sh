@@ -1,5 +1,6 @@
 #!/bin/bash
 
+env
 # Set up access to Carbynestacks Github Packages
 mkdir -p ~/.m2
 echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \

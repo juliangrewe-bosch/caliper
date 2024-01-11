@@ -38,7 +38,7 @@ jobs:
 
       - run: npm install --global cdktf-cli@0.16.3
 
-      - name: Provision AzureVM # TODO do not show IP address of vm
+      - name: Provision AzureVM
         id: provision-vm
         run: |
           npm install
@@ -82,30 +82,6 @@ jobs:
           export AZURE_SUBSCRIPTION_ID=${{secrets.AZURE_SUBSCRIPTION_ID}}; \
           bash -s" < scripts/run_caliper_load_tests.sh
         working-directory: caliper
-
-      - name: Commit Caliper Report
-        id: commit-report
-        run: echo "i want to commit the report"
-        # herdstat git commit action to push updated mkdocs
-
-  deploy:
-    needs: caliper
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
-      - uses: actions/cache@v3
-        with:
-          key: mkdocs-material-${{ env.cache_id }}
-          path: .cache
-          restore-keys: |
-            mkdocs-material-
-      - run: pip install mkdocs-material
-      - run: mkdocs gh-deploy --force
-        working-directory: mkdocs
 
   destroy:
     needs: caliper
