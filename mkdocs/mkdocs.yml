@@ -4,7 +4,7 @@ site_name: Caliper
 site_author: Carbyne Stack Community
 site_description: >-
   Caliper Load-Tests Report
-copyright: "Copyright © 2021-2023 The Carbyne Stack Authors"
+copyright: "Copyright © 2021-2024 The Carbyne Stack Authors"
 
 repo_url: https://github.com/juliangrewe-bosch/caliper #TODO
 repo_name: caliper

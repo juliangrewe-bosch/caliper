@@ -1,8 +1,5 @@
 #!/bin/bash
 
-echo env
-printenv
-echo "$AZURE_TENANT_ID"
 # TODO github account needed (with relevant privleges) to download carbyne stack clients
 # Set up access to Carbynestacks Github Packages
 mkdir -p ~/.m2
