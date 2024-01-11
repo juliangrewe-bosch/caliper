@@ -17,8 +17,8 @@ Technology 2.0 and use premium storage.
 ### Resource reservations
 
 Allocatable resources are less than total resources since AKS uses node
-resources to maintain node performance and functionality
-[resource reservations](https://learn.microsoft.com/en-us/azure/aks/concepts-clusters-workloads).
+resources to maintain node performance and functionality (see
+[resource reservations](https://learn.microsoft.com/en-us/azure/aks/concepts-clusters-workloads)).
 
 ## Amphora
 
