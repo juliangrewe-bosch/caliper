@@ -81,6 +81,7 @@ jobs:
           export AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}; \
           export AZURE_SUBSCRIPTION_ID=${{secrets.AZURE_SUBSCRIPTION_ID}}; \
           bash -s" < scripts/run_caliper_load_tests.sh
+        working-directory: caliper
 
       - name: Commit Caliper Report
         id: commit-report
