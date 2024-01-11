@@ -51,7 +51,7 @@ we create a collection of tests in a simulation class located under
     <configuration>
         <runMultipleSimulations>true</runMultipleSimulations>
         <includes>
-            <include>*</include>
+            <include>simulation.*</include>
         </includes>
     </configuration>
 </plugin>
@@ -186,33 +186,22 @@ deployment:
 - PrivateAksStack
 - PrivateAksVirtualCloudStack
 
-The following resources are used to authenticate against Azure:
-
-| Resource          | Name                             | Role                                                  | Expiration |
-| ----------------- | -------------------------------- | ----------------------------------------------------- | ---------- |
-| Managed Identity  | `caliper-aks-managed-identity`   | `Private DNS Zone Contributor`, `Network Contributor` |            |
-| Service Principal | `caliper-test-infrastructure-sp` | `Contributer-Role`                                    | 2/27/2024  |
+| Resource          | Name                             | Role                                                  | Usage                           | Expiration |
+| ----------------- | -------------------------------- | ----------------------------------------------------- | ------------------------------- | ---------- |
+| Managed Identity  | `caliper-aks-managed-identity`   | `Private DNS Zone Contributor`, `Network Contributor` | Peer networks ?                 |            |
+| Service Principal | `caliper-test-infrastructure-sp` | `Contributer-Role`                                    | Authenticate Terraform to Azure | 2/27/2024  |
 
 TODO add
 [OpenID Connect to Service Principal](https://github.com/Azure/login?tab=readme-ov-file#login-with-openid-connect-oidc-recommended)
 
 ## Report
 
-The report provides information about resource consumption of the deployed
-services (ephemeral, amphora, castor) and response times for the outside-facing
-services.
+The report provides metrics about resource consumption and response time of the
+deployed `VC` services:
 
-### Metrics
+### cAdvisor
 
-The collected metrics can be divided into two groups:
-
-#### cAdvisor
-
-Prometheus Metriken Welche Metriken werden gesammelt Wie kommen die Gatling
-Metriken zu Prometheus Wie wird der Report erstellt Was macht das Script, was
-benötigt es Wie kann man Metriken hinzufügen/entfernen
-
-#### Gatling
+### Gatling
 
 - gatling.((groups.)\*.request|allRequests).(ok|ko|all).(count|min|max|mean|stdDev|percentilesXX)
 
@@ -221,42 +210,54 @@ benötigt es Wie kann man Metriken hinzufügen/entfernen
 [gatling-realtime](https://gatling.io/docs/gatling/guides/realtime_monitoring)
 [prometheus graphite exporter](https://github.com/prometheus/graphite_exporter)
 
-### Publishing the Report
+### GitHub Actions Workflow
 
-To make the report available a Github Actions workflow is triggered which runs
-the following jobs: Github Actions Workflow Wann wird er getriggert -> release
-Was passiert Caliper -> deploy -> destroy Was ist MkDocs, Ordner-Struktur,
-Namenskonventionen Welche Github Secrets werden wofür benötigt
+The GitHub Actions Workflow can be split into two parts:
 
-- Create azure resources via CDKTF:
-  - Azure Service Principal
-  - Azure managed Identity
-- Destroy azure resources:
-  - Azure Service Principal
+`Deploy an AzureVM` this step deploys an AzureVM. The VM is later peered with
+the AKS-Clusters that form the `Carbyne Stack VC`.
 
-| Secret                        | Description                                                              |
-| ----------------------------- | ------------------------------------------------------------------------ |
-| `AZURE_CREDENTIALS`           | Azure CLI Github Action                                                  |
-| `AZURE_SUBSCRIPTION_ID`       | Authenticate Terraform against Azure                                     |
-| `AZURE_SUBSCRIPTION_PASSWORD` | Authenticate Terraform against Azure                                     |
-| `AZURE_SUBSCRIPTION_TENANT`   | Authenticate Terraform against Azure                                     |
-| `AZURE_SUBSCRIPTION_USERNAME` | Authenticate Terraform against Azure                                     |
-| `CALIPER_PAT`                 | Caliper maven project uses this to download Clients from Github Packages |
-| `ADMIN_PASSWORD`              | Password for the AzureVM that is peered with the AKS                     |
+- The Caliper-load-tests are executed from the VM.
+
+`Run load-tests` this step connects to the AzureVM via SSH and executes
+`scripts/run_caliper_load_tests.sh`. The VM then deploys the aks cluster and all
+resouces for a working `VC`. After deploying all relevant resources, the
+Caliper-Load-Tests are executed using the Gatling Simulation classes
+`src/test/scala/simulation/`. The final step is to collect all metrics for the
+load-test report and create the actual report using
+`scripts/generate_report.py`.
+
+The following secrets are mandatory to run the GitHub Actions Workflow:
+
+| Secret                  | Description                                                              |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `AZURE_CREDENTIALS`     | Azure CLI Github Action                                                  |
+| `AZURE_SUBSCRIPTION_ID` | Authenticate Terraform to Azure                                          |
+| `AZURE_CLIENT_SECRET`   | Authenticate Terraform to Azure                                          |
+| `AZURE_TENANT_ID`       | Authenticate Terraform to Azure                                          |
+| `AZURE_CLIENT_ID`       | Authenticate Terraform to Azure                                          |
+| `CALIPER_PAT`           | Caliper maven project uses this to download Clients from Github Packages |
+| `ADMIN_PASSWORD`        | Password for the AzureVM that is peered with the AKS                     |
 
 ### Add/ Remove Test-cases
 
 To add or remove test-cases the following steps must be peformed:
 
-Was sind die Schritte um Tests hinzuzufügen/ zu entfernen: Simulation:
+A Simulation class contains multiple scenario(s)
 
 - scenario(s) definieren
+
   - was sind scenarios (deckt mehrere Testfälle ab)
+
 - groups innerhalb eines scenarios erstellen
+
   - Was sind groups (deckt mindestesns einen Testfall ab)
-- simulation hinzufügen und virtuelle Nutzer konfigurieren Python-Skript:
-- PromQL hinzufügen (PromQL und Namenskonvention Datein) Mkdocs:
+
+- PromQL queries collecting metrics for the tests needs to be added to
+  `scripts/generate_report.py`
+
 - Graphen sind unter /img/simulationX/scenarioY/groupZ/ gespeichert
+
   - Datei(en) erstellen und Grafiken einbinden
   - Datei(en) nav.yaml hinzufügen
 
