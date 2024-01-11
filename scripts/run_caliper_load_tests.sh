@@ -81,7 +81,6 @@ export R=141515903391459779531506841503331516415
 export INVR=133854242216446749056083838363708373830
 export PROGRAM="ephemeral-generic.default"
 
-# AzureVM max. 16 volumes
 kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p '{"spec":{"threshold":1000000, "concurrency": 10}}' --type=merge
 while true; do
   tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')

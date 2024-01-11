@@ -78,7 +78,7 @@ jobs:
           export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}; \
           export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}; \
           export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}; \
-          export AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}; \
+          export AZURE_TENANT_ID=${{ secrets.AZURE_CLIENT_ID }}; \
           export AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}; \
           bash -s" < scripts/run_caliper_load_tests.sh
         working-directory: caliper
