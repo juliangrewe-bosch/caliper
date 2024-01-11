@@ -1,6 +1,8 @@
 #!/bin/bash
 
-env
+echo env
+printenv
+echo "$AZURE_TENANT_ID"
 # Set up access to Carbynestacks Github Packages
 mkdir -p ~/.m2
 echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
@@ -102,3 +104,16 @@ export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addres
 
 pip3 install -r scripts/requirements.txt
 python3 scripts/generate_report.py
+
+# call webhook to commit, push and deploy the report
+
+# create PAT with repo scope?
+#TOKEN="your_github_token_here"
+#REPO="juliangrewe-bosch/caliper"
+#EVENT_TYPE="update_report"
+
+# Call the GitHub API
+#curl -X POST -H "Accept: application/vnd.github.everest-preview+json" \
+#    -H "Authorization: token $TOKEN" \
+#    --data "{\"event_type\": \"$EVENT_TYPE\"}" \
+#    https://api.github.com/repos/$REPO/dispatches
