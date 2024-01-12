@@ -22,6 +22,11 @@ jobs:
       - run: |
           pip install mkdocs-material
           pip install mike
+
+      - name: Configure Git user
+        run: |
+          git config --local user.email "julian.grewe@de.bosch.com"
+          git config --local user.name "juliangrewe-bosch"
       - run: |
           mike deploy ${GITHUB_REF#refs/tags/} latest -p
         working-directory: mkdocs
