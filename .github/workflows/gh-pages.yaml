@@ -29,5 +29,5 @@ jobs:
           git config --local user.name "juliangrewe-bosch"
       - run: |
           git pull --force
-          mike deploy --push test
+          mike deploy --push test2
         working-directory: mkdocs
