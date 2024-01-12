@@ -10,7 +10,7 @@ echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
   "  <servers>\n" \
   "    <server>\n" \
   "      <id>github</id>\n" \
-  "      <username>juliangrewe-bosch</username>\n" \
+  "      <username>$GIT_USERNAME</username>\n" \
   "      <password>$CALIPER_PAT</password>\n" \
   "    </server>\n" \
   "  </servers>\n" \
@@ -38,6 +38,8 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash >/dev/null
 sudo npm install --global cdktf-cli@0.16.3 >/dev/null
 
 # Clone repositories
+# git clone https://github.com/carbynestack/caliper.git
+# git clone https://github.com/carbynestack/carbynestack.git
 git clone https://github.com/juliangrewe-bosch/caliper.git
 git clone https://$CALIPER_PRIVATE_REPOS_PAT@github.com/juliangrewe-bosch/carbynestack.git
 # temporär
@@ -48,7 +50,7 @@ git checkout -b caliper-workflow origin/caliper-workflow
 cd /home/caliper
 
 # Authenticate Terraform to Azure
-az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" --tenant "$TENANT" --output none
+az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" --tenant "$AZURE_T_ID" --output none
 
 # Download Prometheus Operator bundle
 LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
@@ -74,16 +76,16 @@ cd /home/caliper/caliper || exit 1
 export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
 kubectl config use-context apollo-private
 export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
-export PRIME=198766463529478683931867765928436695041 # TODO make env variables
-export R=141515903391459779531506841503331516415
-export INVR=133854242216446749056083838363708373830
-export PROGRAM="ephemeral-generic.default"
+export PRIME="$PRIME"
+export R="$R"
+export INVR="$INVR"
+export PROGRAM="$PROGRAM"
 
-kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p '{"spec":{"threshold":1000000, "concurrency": 10}}' --type=merge
+kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p "{\"spec\":{\"threshold\":$TUPLE_THRESHOLD, \"concurrency\": 10}}" --type=merge
 while true; do
   tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
 
-  if [[ $tuples_available -ge 1000000 ]]; then
+  if [[ $tuples_available -ge $TUPLE_THRESHOLD ]]; then
     break
   else
     sleep 300
@@ -94,13 +96,23 @@ chmod +x mvnw
 ./mvnw -q gatling:test
 
 # Generate report
-export PROMETHEUS_METRICS_PORT=32767 # TODO rename to PROMETHEUS_SERVER?
+export PROMETHEUS_SERVER_PORT=32767
 export APOLLO_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 kubectl config use-context starbuck-private
 export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
 pip3 install -r scripts/requirements.txt
-python3 scripts/generate_report.py
+#python3 scripts/generate_report.py
+
+git config --local user.email "julian.grewe@de.bosch.com"
+git config --local user.name "juliangrewe-bosch"
+
+#git add mkdocs/docs/*
+#git commit -m "update mkdocs"
+#git push origin caliper-workflow
+
+git tag v-caliper
+git push origin v-caliper
 
 # call webhook to commit, push and deploy the report
 

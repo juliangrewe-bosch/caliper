@@ -31,9 +31,6 @@ Virtual Cloud we create scenarios that make requests to a backend service. The
 actions are requests performed by a client that will be sent during a
 simulation.
 
-TODO Wie werden Clients hinzugefügt Java-Scala Kompatibilität Welche Klassen
-müssen geändert/erstellt werden um neue Clients einzufügen
-
 ## Usage
 
 To execute a simulation we can use the `gatling-maven-plugin`. Currently two
@@ -176,39 +173,73 @@ class CarbynestackSimulation extends Simulation { //1
 
 ## Test Infrastructure
 
-To run the load-tests a `Carbyne Stack VC` needs to be deployed. The current
-setup utilizes the \[LINK\] IaC repository and deploys a `two-party VC` hosted
-on Microsoft Azure. The following resources are created by running the IaC
-deployment:
+To run the load-tests a `Carbyne Stack Virtual Cloud` has to be deployed. The
+\[LINK\] IaC repository is used to deploy a `two-party VC` hosted on Microsoft
+Azure. The following resources are created by running the IaC deployment:
 
-- GraphiteExporter
-- Prometheus
-- PrivateAksStack
-- PrivateAksVirtualCloudStack
+- *PrivateAksStack*
+  - Deploys an AzureVM that is later peered with the Carbyne Stack VC
+- *PrivateAksVirtualCloudStack*
+  - Deploys two private AKS cluster and a two-party Carbyne Stack VC
+- *GraphiteExporter*
+  - Deploys an app to transform and expose metrics for Prometheus
+- *Prometheus*
+  - Deploys a Prometheus server and config resources
+
+The following resources have to be created beforehand:
 
 | Resource          | Name                             | Role                                                  | Usage                           | Expiration |
 | ----------------- | -------------------------------- | ----------------------------------------------------- | ------------------------------- | ---------- |
 | Managed Identity  | `caliper-aks-managed-identity`   | `Private DNS Zone Contributor`, `Network Contributor` | Peer networks ?                 |            |
 | Service Principal | `caliper-test-infrastructure-sp` | `Contributer-Role`                                    | Authenticate Terraform to Azure | 2/27/2024  |
 
-TODO add
-[OpenID Connect to Service Principal](https://github.com/Azure/login?tab=readme-ov-file#login-with-openid-connect-oidc-recommended)
-
 ## Report
 
-The report provides metrics about resource consumption and response time of the
-deployed `VC` services:
+The report provides metrics about resource consumption and response times of the
+deployed services:
 
 ### cAdvisor
 
+[cAdvisor](https://github.com/google/cadvisor) is a running daemon that
+collects, aggregates, processes, and exports information about running
+containers. The following metrics are currently added to the report:
+
+| Metric Name                              | Type    | Description                           | Unit    | Option parameter |
+| ---------------------------------------- | ------- | ------------------------------------- | ------- | ---------------- |
+| `container_memory_working_set_bytes`     | Gauge   | Current working set                   | bytes   | memory           |
+| `container_cpu_usage_seconds_total`      | Counter | Cumulative cpu time consumed          | seconds | cpu              |
+| `container_fs_writes_bytes_total`        | Counter | Cumulative count of bytes written     | bytes   | diskIO           |
+| `container_fs_reads_bytes_total`         | Counter | Cumulative count of bytes read        | bytes   | diskIO           |
+| `container_network_receive_bytes_total`  | Counter | Cumulative count of bytes received    | bytes   | network          |
+| `container_network_transmit_bytes_total` | Counter | Cumulative count of bytes transmitted | bytes   | network          |
+
 ### Gatling
 
-- gatling.((groups.)\*.request|allRequests).(ok|ko|all).(count|min|max|mean|stdDev|percentilesXX)
+Gatling can export
+[metrics](https://gatling.io/docs/gatling/guides/realtime_monitoring) over the
+`Graphite plaintext` protocol. For this, `graphite` must be added to the data
+writers and a target host, which in this context is the
+[GraphiteExporter](https://github.com/prometheus/graphite_exporter), has to be
+specified:
 
-- prometheus Query example
+```text
+ graphite {
+      #light = false
+      host = "10.1.1.5"           # AKS node IP
+      port = 32766                # GraphiteExporter
+      protocol = "tcp"
+      rootPathPrefix = "gatling"
+      bufferSize = 8192
+      writePeriod = 60
+    }
+```
 
-[gatling-realtime](https://gatling.io/docs/gatling/guides/realtime_monitoring)
-[prometheus graphite exporter](https://github.com/prometheus/graphite_exporter)
+The following metrics are then send to prometheus:
+
+`caliper{simulation, group, metric, scope}`
+
+caliper{simulation="amphorasimulation", group="secret_values_10000",
+metric="percentiles99", scope="ok"}
 
 ### GitHub Actions Workflow
 
