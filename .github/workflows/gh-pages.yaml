@@ -28,7 +28,5 @@ jobs:
           git config --local user.email "julian.grewe@de.bosch.com"
           git config --local user.name "juliangrewe-bosch"
       - run: |
-          ls
-          ls -al
-          cd mkdocs
           mike deploy --push ${GITHUB_REF#refs/tags/}
+        working-directory: mkdocs
