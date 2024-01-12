@@ -71,16 +71,28 @@ jobs:
           sudo apt-get update > /dev/null
           sudo apt-get install sshpass unzip -y
 
-          # SSH into the remote server using sshpass and execute script
-          sshpass -p ${{ secrets.ADMIN_PASSWORD }} ssh -o "StrictHostKeyChecking no" \
-          caliper@${{ env.AZURE_VM_IP }} \
-          "export CALIPER_PAT=${{ secrets.CALIPER_PAT }}; \
-          export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}; \
-          export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}; \
-          export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}; \
-          export TENANT=${{ secrets.TENANT }}; \
-          export AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}; \
-          bash -s" < scripts/run_caliper_load_tests.sh
+          max_attempts=$(( 20 ))  # 10 minutes / 30 seconds = 20 attempts
+          for attempt in $(seq 1 $max_attempts); do
+
+            # SSH into the remote server using sshpass and execute script
+            sshpass -p ${{ secrets.ADMIN_PASSWORD }} ssh -o "StrictHostKeyChecking no" \
+            caliper@${{ env.AZURE_VM_IP }} \
+            "export CALIPER_PAT=${{ secrets.CALIPER_PAT }}; \
+            export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}; \
+            export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}; \
+            export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}; \
+            export TENANT=${{ secrets.TENANT }}; \
+            export AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}; \
+            bash -s" < scripts/run_caliper_load_tests.sh
+
+            if [ $? -eq 0 ]; then
+              echo "SSH command executed successfully."
+              break
+            else
+              echo "SSH command failed. Retrying in 30 seconds..."
+              sleep 30
+            fi
+          done
         working-directory: caliper
 
   destroy:
