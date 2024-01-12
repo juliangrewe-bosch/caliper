@@ -47,10 +47,9 @@ cd /home/caliper/caliper
 git checkout -b caliper-workflow origin/caliper-workflow
 cd /home/caliper
 
-echo "$A_T_ID"
-echo "$TEST"
+echo "$TENANT_ID"
 # Authenticate Terraform to Azure
-az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" --tenant "$TEST" --output none
+az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" --tenant "$TENANT_ID" --output none
 
 # Download Prometheus Operator bundle
 LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
