@@ -1,5 +1,3 @@
-INHERIT: config/nav.yaml
-
 site_name: Caliper
 site_author: Carbyne Stack Community
 site_description: >-
