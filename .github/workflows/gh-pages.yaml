@@ -1,8 +1,8 @@
 name: Deploy to Github Pages
 on:
   push:
-    tags:
-      - 'v*'
+#    tags:
+#      - 'v*'
 
 jobs:
   deploy:
