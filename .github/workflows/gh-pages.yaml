@@ -28,6 +28,5 @@ jobs:
           git config --local user.email "julian.grewe@de.bosch.com"
           git config --local user.name "juliangrewe-bosch"
       - run: |
-          mike
           mike deploy --push test
         working-directory: mkdocs
