@@ -71,7 +71,7 @@ jobs:
           sudo apt-get update > /dev/null
           sudo apt-get install sshpass unzip -y
 
-          max_attempts=$(( 20 ))  # 10 minutes / 30 seconds = 20 attempts
+          max_attempts=$(( 10 ))  # 5 minutes / 30 seconds = 10 attempts
           for attempt in $(seq 1 $max_attempts); do
 
             # SSH into the remote server using sshpass and execute script
@@ -81,7 +81,7 @@ jobs:
             export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}; \
             export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}; \
             export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}; \
-            export TENANT=${{ secrets.TENANT }}; \
+            export TENANT=${{ secrets.AZURE_TENANT_ID }}; \
             export AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}; \
             bash -s" < scripts/run_caliper_load_tests.sh
 
