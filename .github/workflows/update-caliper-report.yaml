@@ -8,7 +8,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      # run commit and push action
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: message
+          file_pattern: mkdocs/*
+          tagging_message: 'v2024-01-12'
 
   deploy:
     needs: update-report
@@ -25,6 +29,9 @@ jobs:
           path: .cache
           restore-keys: |
             mkdocs-material-
-      - run: pip install mkdocs-material
-      - run: mkdocs gh-deploy --force
+      - run: |
+          pip install mkdocs-material
+          pip install mike
+      - run: |
+          mike deploy ${GITHUB_REF#refs/tags/} latest -p
         working-directory: mkdocs

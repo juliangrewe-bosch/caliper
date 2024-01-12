@@ -33,3 +33,7 @@ theme:
     - scheme: default
       primary: indigo
       accent: red
+
+extra:
+  version:
+    provider: mike
