@@ -37,3 +37,46 @@ theme:
 extra:
   version:
     provider: mike
+
+nav:
+  - Home: index.md
+  - Amphora:
+      - createSecret:
+          - Gatling: reports/amphora/createSecret_scenario/gatling.md
+          - secret_values_10000_group: reports/amphora/createSecret_scenario/secret_values_10000_group.md
+          - secret_values_25000_group: reports/amphora/createSecret_scenario/secret_values_50000_group.md
+          - secret_values_50000_group: reports/amphora/createSecret_scenario/secret_values_25000_group.md
+      - getSecrets:
+          - Gatling: reports/amphora/getSecrets_scenario/gatling.md
+          - secret_values_10000_group: reports/amphora/getSecrets_scenario/secret_values_10000_group.md
+          - secret_values_25000_group: reports/amphora/getSecrets_scenario/secret_values_25000_group.md
+          - secret_values_50000_group: reports/amphora/getSecrets_scenario/secret_values_50000_group.md
+      - deleteSecret:
+          - Gatling: reports/amphora/deleteSecret_scenario/gatling.md
+          - secret_values_10000_group: reports/amphora/deleteSecret_scenario/secret_values_10000_group.md
+          - secret_values_25000_group: reports/amphora/deleteSecret_scenario/secret_values_25000_group.md
+          - secret_values_50000_group: reports/amphora/deleteSecret_scenario/secret_values_50000_group.md
+  - Castor:
+      - createSecret:
+          - secret_values_10000_group: reports/castor/createSecret_scenario/secret_values_10000_group.md
+          - secret_values_25000_group: reports/castor/createSecret_scenario/secret_values_25000_group.md
+          - secret_values_50000_group: reports/castor/createSecret_scenario/secret_values_50000_group.md
+      - getSecrets:
+          - secret_values_10000_group: reports/castor/getSecrets_scenario/secret_values_10000_group.md
+          - secret_values_25000_group: reports/castor/getSecrets_scenario/secret_values_25000_group.md
+          - secret_values_50000_group: reports/castor/getSecrets_scenario/secret_values_50000_group.md
+      - deleteSecret:
+          - secret_values_10000_group: reports/castor/deleteSecret_scenario/secret_values_10000_group.md
+          - secret_values_25000_group: reports/castor/deleteSecret_scenario/secret_values_25000_group.md
+          - secret_values_50000_group: reports/castor/deleteSecret_scenario/secret_values_50000_group.md
+  - Ephemeral:
+      - emptyProgram:
+          - Gatling: reports/ephemeral/emptyProgram_scenario/gatling.md
+          - secret_values_10000_group: reports/ephemeral/emptyProgram_scenario/secret_values_10000_group.md
+          - secret_values_25000_group: reports/ephemeral/emptyProgram_scenario/secret_values_25000_group.md
+          - secret_values_50000_group: reports/ephemeral/emptyProgram_scenario/secret_values_50000_group.md
+      - scalarValueOptProgram:
+          - Gatling: reports/ephemeral/scalarValueOptProgram_scenario/gatling.md
+          - secret_values_10000_group: reports/ephemeral/scalarValueOptProgram_scenario/secret_values_10000_group.md
+          - secret_values_25000_group: reports/ephemeral/scalarValueOptProgram_scenario/secret_values_25000_group.md
+          - secret_values_50000_group: reports/ephemeral/scalarValueOptProgram_scenario/secret_values_50000_group.md
