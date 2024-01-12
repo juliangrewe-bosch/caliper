@@ -21,7 +21,7 @@ jobs:
             mkdocs-material-
       - run: |
           pip install mkdocs-material
-          pip install mike
+          pip install mkdocs==1.1.2
 
       - name: Configure Git user
         run: |
@@ -29,5 +29,4 @@ jobs:
           git config --local user.name "juliangrewe-bosch"
       - run: |
           cd mkdocs
-          mike deploy ${GITHUB_REF#refs/tags/} latest -p
-        working-directory: mkdocs
+          mike deploy --push ${GITHUB_REF#refs/tags/}
