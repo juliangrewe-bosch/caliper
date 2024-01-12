@@ -28,6 +28,5 @@ jobs:
           git config --local user.email "julian.grewe@de.bosch.com"
           git config --local user.name "juliangrewe-bosch"
       - run: |
-          git pull gh-pages --force
           mike deploy ${GITHUB_REF#refs/tags/} latest -p
         working-directory: mkdocs
