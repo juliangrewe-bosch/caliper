@@ -1,8 +1,8 @@
 name: Deploy to Github Pages
 on:
   push:
-    tags:
-      - 'v*'
+#    tags:
+#      - 'v*'
 
 jobs:
   deploy:
@@ -28,8 +28,5 @@ jobs:
           git config --local user.email "julian.grewe@de.bosch.com"
           git config --local user.name "juliangrewe-bosch"
       - run: |
-          git branch
-          git branch -v
-          git pull origin gh-pages --force
-          mike deploy ${GITHUB_REF#refs/tags/} latest
+          mike deploy ${GITHUB_REF} latest
         working-directory: mkdocs
