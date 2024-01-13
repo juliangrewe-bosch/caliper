@@ -83,6 +83,7 @@ jobs:
             # git clone https://github.com/carbynestack/caliper.git
             # git clone https://github.com/carbynestack/carbynestack.git
             git clone https://github.com/juliangrewe-bosch/caliper.git
+            cd caliper
             git checkout -b caliper-workflow origin/caliper-workflow
             chmod +x scripts/run_caliper_load_tests.sh
             ./caliper/scripts/run_caliper_load_tests.sh
