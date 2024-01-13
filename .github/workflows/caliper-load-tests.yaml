@@ -57,6 +57,17 @@ jobs:
           sleep 300 # sleep 5 min until AzureVM provision is done
         working-directory: carbynestack/deployments
 
+      - name: Copy single file to remote
+        id: copy-repository
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: scripts/run_caliper_load_tests.sh
+          remote: home/caliper
+          host: ${{ env.AZURE_VM_IP }}
+          username: caliper
+          password: ${{ secrets.ADMIN_PASSWORD }}
+        working-directory: caliper
+
       - name: Run load-tests
         id: load-tests
         uses: appleboy/ssh-action@v1.0.3
@@ -82,15 +93,10 @@ jobs:
           script: |
             # git clone https://github.com/carbynestack/caliper.git
             # git clone https://github.com/carbynestack/carbynestack.git
+            env
+            printenv
             ls
-            git clone https://github.com/juliangrewe-bosch/caliper.git
-            ls
-            cd caliper
-            ls
-            git checkout -b caliper-workflow origin/caliper-workflow
-            ls
-            chmod +x scripts/run_caliper_load_tests.sh
-            scripts/run_caliper_load_tests.sh
+            ls -l
 
       - name: Copy single file to remote
         id: copy-repository
