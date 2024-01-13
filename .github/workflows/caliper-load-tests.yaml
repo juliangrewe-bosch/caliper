@@ -1,7 +1,7 @@
 name: 'Caliper-Load-Tests'
 
 on:
-  #push:
+  push:
   workflow_dispatch:
 
 concurrency:
@@ -61,27 +61,45 @@ jobs:
           echo "AZURE_VM_IP=$AZURE_VM_IP" >> $GITHUB_ENV
         working-directory: carbynestack/deployments
 
-      - name: Test # TODO remove
-        run: echo "Azure VM IP Address  $AZURE_VM_IP"
-
-      - name: Modify SSH Configuration
-        run: |
-          sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/ssh_config
-          sudo systemctl restart ssh
-
       - name: Run load-tests
         id: load-tests
-        run: ./scripts/ssh-connect.sh
-        working-directory: caliper
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          CALIPER_PRIVATE_REPOS_PAT: ${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_T_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          CALIPER_PAT: ${{ secrets.CALIPER_PAT }}
+          GITHUB_USERNAME: juliangrewe-bosch
+          PRIME: 198766463529478683931867765928436695041
+          R: 141515903391459779531506841503331516415
+          INVR: 133854242216446749056083838363708373830
+          PROGRAM: ephemeral-generic-default
+          TUPLE_THRESHOLD: 1000000
+        with:
+          host: ${{ env.AZURE_VM_IP }}
+          username: caliper
+          password: ${{ secrets.ADMIN_PASSWORD }}
+          command_timeout: 5h
+          allenvs: true
+          script: |
+            # git clone https://github.com/carbynestack/caliper.git
+            # git clone https://github.com/carbynestack/carbynestack.git
+            git clone https://github.com/juliangrewe-bosch/caliper.git
+            git checkout -b caliper-workflow origin/caliper-workflow
+            chmod +x scripts/run_caliper_load_tests.sh
+            ./caliper/scripts/run_caliper_load_tests.sh
 
-
-      - name: Copy Caliper repository
+      - name: Copy single file to remote
         id: copy-repository
-        run: |
-          ls
-          ls -l
-          sshpass -p ${{ secrets.ADMIN_PASSWORD }} scp -r \
-          caliper@${{ env.AZURE_VM_IP }}:/caliper/caliper .
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: .
+          remote: caliper/caliper
+          host: ${{ env.AZURE_VM_IP }}
+          username: caliper
+          password: ${{ secrets.ADMIN_PASSWORD }}
 
       - name: Test
         run: |
@@ -91,7 +109,7 @@ jobs:
 
   destroy:
     needs: caliper
-    #if: always()
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Azure Login
