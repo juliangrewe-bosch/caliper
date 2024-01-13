@@ -61,12 +61,11 @@ jobs:
         id: copy-repository
         uses: garygrossgarten/github-action-scp@release
         with:
-          local: scripts/run_caliper_load_tests.sh
+          local: caliper/scripts/run_caliper_load_tests.sh
           remote: home/caliper
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
-        working-directory: caliper
 
       - name: Run load-tests
         id: load-tests
