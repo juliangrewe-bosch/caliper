@@ -14,6 +14,7 @@ jobs:
           password: ${{ secrets.ADMIN_PASSWORD }}
           script: |
             git clone https://github.com/juliangrewe-bosch/caliper.git
+            chmod +x /caliper/scripts/run_caliper_load_tests.sh
             export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}
             export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
             export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
