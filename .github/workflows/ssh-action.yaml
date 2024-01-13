@@ -30,7 +30,8 @@ jobs:
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
           command_timeout: 5h
-          allenvs: true
+          envs: CALIPER_PRIVATE_REPOS_PAT,AZURE_CLIENT_ID,AZURE_CLIENT_SECRET,AZURE_T_ID,AZURE_SUBSCRIPTION_ID,
+            CALIPER_PAT,GITHUB_USERNAME,PRIME,R,INVR,PROGRAM,TUPLE_THRESHOLD
           script: |
             git clone https://github.com/juliangrewe-bosch/caliper.git "$HOME/caliper"
             git clone https://${{ env.CALIPER_PRIVATE_REPOS_PAT }}@github.com/juliangrewe-bosch/carbynestack.git "$HOME/carbynestack"
