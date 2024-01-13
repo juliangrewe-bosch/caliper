@@ -78,7 +78,7 @@ jobs:
 
           # SSH into the remote server using sshpass and execute script
           sshpass -p ${{ secrets.ADMIN_PASSWORD }} ssh -o StrictHostKeyChecking=no caliper@${{ env.AZURE_VM_IP }} \
-          export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}; \
+          "export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}; \
           export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}; \
           export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}; \
           export AZURE_T_ID=${{ secrets.AZURE_TENANT_ID }}; \

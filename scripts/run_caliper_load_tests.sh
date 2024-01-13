@@ -82,14 +82,19 @@ export INVR="$INVR"
 export PROGRAM="$PROGRAM"
 
 kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p "{\"spec\":{\"threshold\":$TUPLE_THRESHOLD, \"concurrency\": 10}}" --type=merge
+timeout=7200 # 2 hours
 while true; do
   tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
 
   if [[ $tuples_available -ge $TUPLE_THRESHOLD ]]; then
     break
-  else
-    sleep 300
   fi
+
+  if [[ $SECONDS -ge $timeout ]]; then
+    break
+  fi
+
+  sleep 300
 done
 
 chmod +x mvnw
