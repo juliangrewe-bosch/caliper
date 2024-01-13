@@ -58,12 +58,20 @@ jobs:
         working-directory: carbynestack/deployments
 
 
+      - name: test
+        run: |
+          ls -l
+          pwd
+          cd caliper
+          ls -l
+          pwd
+
       - name: Copy Setup Script
         id: copy-setup-script
         uses: garygrossgarten/github-action-scp@release
         with:
           local: caliper/scripts/run_caliper_load_tests.sh
-          remote: .
+          remote: home/caliper/
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
@@ -96,8 +104,8 @@ jobs:
         id: copy-repository
         uses: garygrossgarten/github-action-scp@release
         with:
-          local: caliper/mkdocs/config/docs
-          remote: /home/caliper/caliper/mkdocs/docs/images
+          local: ./caliper/mkdocs/config/docs
+          remote: ./caliper/mkdocs/docs/images
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
           concurrency: 10
