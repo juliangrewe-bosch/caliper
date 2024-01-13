@@ -82,11 +82,15 @@ jobs:
           script: |
             # git clone https://github.com/carbynestack/caliper.git
             # git clone https://github.com/carbynestack/carbynestack.git
+            ls
             git clone https://github.com/juliangrewe-bosch/caliper.git
+            ls
             cd caliper
+            ls
             git checkout -b caliper-workflow origin/caliper-workflow
+            ls
             chmod +x scripts/run_caliper_load_tests.sh
-            ./caliper/scripts/run_caliper_load_tests.sh
+            scripts/run_caliper_load_tests.sh
 
       - name: Copy single file to remote
         id: copy-repository
