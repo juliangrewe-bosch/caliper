@@ -9,7 +9,9 @@ jobs:
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 20.238.44.124
+          host: $TEST
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
           script: whoami
+        env:
+          TEST=20.238.44.124
