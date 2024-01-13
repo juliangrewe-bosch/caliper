@@ -57,7 +57,7 @@ jobs:
           sleep 300 # sleep 5 min until AzureVM provision is done
         working-directory: carbynestack/deployments
 
-      - name: Copy single file to remote
+      - name: Copy setup script
         id: copy-repository
         uses: garygrossgarten/github-action-scp@release
         with:
