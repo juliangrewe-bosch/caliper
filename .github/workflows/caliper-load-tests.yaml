@@ -93,9 +93,23 @@ jobs:
           bash -s" < scripts/run_caliper_load_tests.sh
         working-directory: caliper
 
+      - name: Copy Caliper repository
+        id: copy-repository
+        run: |
+          ls
+          ls -l
+          sshpass -p ${{ secrets.ADMIN_PASSWORD }} scp -r \
+          caliper@${{ env.AZURE_VM_IP }}:/caliper/caliper .
+
+      - name: Test
+        run: |
+          ls
+          git status
+        working-directory: caliper
+
   destroy:
     needs: caliper
-    if: always()
+    #if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Azure Login
