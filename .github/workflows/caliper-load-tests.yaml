@@ -63,12 +63,12 @@ jobs:
         uses: garygrossgarten/github-action-scp@release
         with:
           local: caliper/scripts/run_caliper_load_tests.sh
-          remote: /home/caliper
+          remote: .
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
 
-      - name: Run load-tests
+      - name: Run Load-Tests
         id: load-tests
         uses: appleboy/ssh-action@v1.0.3
         env:
