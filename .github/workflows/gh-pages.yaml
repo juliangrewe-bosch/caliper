@@ -29,7 +29,7 @@ jobs:
           git config --local user.name "juliangrewe-bosch"
 
       - name: Deploy mkdocs
-      - run: |
+        run: |
           git fetch origin
           git branch gh-pages origin/gh-pages
           mike deploy ${GITHUB_REF#refs/tags/} latest --push --update-aliases
