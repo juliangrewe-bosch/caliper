@@ -14,4 +14,4 @@ jobs:
           password: ${{ secrets.ADMIN_PASSWORD }}
           script: whoami
         env:
-          TEST=20.238.44.124
+          TEST: 20.238.44.124
