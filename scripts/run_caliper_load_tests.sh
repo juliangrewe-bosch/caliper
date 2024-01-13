@@ -1,6 +1,7 @@
 #!/bin/bash
+printenv
+export DEBIAN_FRONTEND=noninteractive
 
-cd "$HOME" || exit 1
 # TODO github account needed (with relevant privleges) to download carbyne stack clients
 # Set up access to Carbynestacks Github Packages
 mkdir -p "$HOME"/.m2
@@ -18,11 +19,11 @@ echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
   "</settings>" >"$HOME"/.m2/settings.xml
 
 # Configure HashiCorp GPG key and repository
-wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --no-tty --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list >/dev/null
 
 # Configure Kubectl GPG key and repository
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg >/dev/null
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --no-tty --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg >/dev/null
 echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list >/dev/null
 
 # Install NodeSource PPA
