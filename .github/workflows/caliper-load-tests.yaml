@@ -73,8 +73,6 @@ jobs:
         id: load-tests
         run: ./scripts/ssh-connect.sh
         working-directory: caliper
-        env:
-
 
 
       - name: Copy Caliper repository
