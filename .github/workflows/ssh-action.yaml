@@ -20,11 +20,10 @@ jobs:
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
           port: ${{ secrets.PORT }}
-          source: scripts/run_caliper_load_tests.sh
+          source: caliper/scripts/run_caliper_load_tests.sh
           target: /home/caliper/
         env:
           AZURE_VM_IP: 4.210.86.45
-        working-directory: caliper
 
 
 #      - name: executing remote ssh commands using password

@@ -1,7 +1,7 @@
 name: 'Caliper-Load-Tests'
 
 on:
-  push:
+ # push:
   workflow_dispatch:
 
 concurrency:
