@@ -20,16 +20,16 @@ Virtual Cloud using the dedicated java-clients.
 ### Protocol
 
 The `cs` object is used to provide a common configuration that is shared between
-all virtual users. A list of Service endpoint URIs and the SPDZ parameters
+all virtual users. A list of service endpoint URIs and the SPDZ parameters
 matching the backend service configuration are used to initialize the clients.
 
 ### Action
 
 To test the performance of one or multiple backend services of a
 `Carbyne Stack Virtual Cloud` we create scenarios that make requests to a
-backend service. The `exec` method is used to execute an Action, in the context
-of this plugin, actions are requests performed by a client that will be sent
-during a simulation.
+backend service. The `exec` method is used to execute an
+`io.gatling.core.action`, in the context of this plugin, actions are requests
+performed by a client that will be sent during a simulation.
 
 ## Usage
 
@@ -56,7 +56,7 @@ with the `includes` filter.
 
 By default, the results are stored in `${project.build.directory}/gatling`.
 Caliper uses [Prometheus](https://prometheus.io/) to visualize the results,
-therefore all results are sent to a graphite endpoint configured in the
+therefore all metrics are sent to a graphite endpoint configured in the
 configuration file`test/resources/gatling.conf`. To run one or multiple
 simulation classes simply use the `test` goal `./mvnw gatling:test`. The
 following example shows a simulation class that provides the functionality of
@@ -140,12 +140,11 @@ class CarbynestackSimulation extends Simulation { // 1
     millionairesProblem.inject(atOnceUsers(1)) // 10
   ).protocols(csProtocol) // 11
 }
-
 ```
 
 1. The class declaration, it needs to extend `Simulation`.
 1. The common configuration to all Carbyne Stack clients, see
-   [amphora-java-client](https://github.com/carbynestack/amphora/blob/master/amphora-java-client/README.md)
+   [amphora-java-client](https://github.com/carbynestack/amphora/blob/master/amphora-java-client/README.md).
 1. The
    [Scenario](https://gatling.io/docs/gatling/reference/current/core/scenario/)
    definition.
@@ -177,20 +176,20 @@ To run the load-tests a *Carbyne Stack Virtual Cloud* has to be deployed. The
 Azure*. The following resources are created by running the IaC deployment:
 
 - *PrivateAksStack*: Deploys an AzureVM that is later peered with the Carbyne
-  Stack VC
+  Stack VC.
 - *PrivateAksVirtualCloudStack*: Deploys two private AKS cluster and a two-party
-  Carbyne Stack VC
+  Carbyne Stack VC.
 - *GraphiteExporter*: Deploys an app to transform and expose metrics for
-  Prometheus
-- *Prometheus*: Deploys a Prometheus server and config resources
+  Prometheus.
+- *Prometheus*: Deploys a Prometheus server and config resources.
 
-> **Important** :The following resources have to be created before running the
+> **Important**: The following resources have to be created before running the
 > deployment.
 
-| Resource          | Name                             | Role                                                  | Usage                           | Expiration |
-| ----------------- | -------------------------------- | ----------------------------------------------------- | ------------------------------- | ---------- |
-| Managed Identity  | `caliper-aks-managed-identity`   | `Private DNS Zone Contributor`, `Network Contributor` | Peer networks ?                 |            |
-| Service Principal | `caliper-test-infrastructure-sp` | `Contributer-Role`                                    | Authenticate Terraform to Azure | 2/27/2024  |
+| Resource          | Name                             | Role                                                  | Usage                                                                                                          | Expiration |
+| ----------------- | -------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------- |
+| Managed Identity  | `caliper-aks-managed-identity`   | `Private DNS Zone Contributor`, `Network Contributor` | [Configure a private DNS zone](https://learn.microsoft.com/en-us/azure/aks/private-clusters?tabs=azure-portal) | -          |
+| Service Principal | `caliper-test-infrastructure-sp` | `Contributer-Role`                                    | Authenticate Terraform to Azure                                                                                | 2/27/2024  |
 
 ## Report
 
@@ -244,32 +243,40 @@ metric="percentiles99", scope="ok"}
 
 ### GitHub Actions Workflow
 
-The GitHub Actions Workflow can be split into two parts:
+A GitHub Actions Workflow `.github/workflows/caliper-load-tests.yaml` is used to
+automatically *deploy a two party VC*, run the specified *test-cases* and
+finally deploy a new version of the *report*.
 
-`Deploy an AzureVM` this step deploys an AzureVM. The VM is later peered with
-the AKS-Clusters that form the `Carbyne Stack VC`.
+- *Provision AzureVM*: Deploys an AzureVM.
+- *Run Load-Tests*: Connects to the deployed AzureVM via SSH and runs a
+  *setup-script* located under 'scripts/run_caliper_load_tests.sh'.
+- *Destroy*: Deletes the Azure resource group 'caliper-rg' to ensure that in
+  case steps fails, all deployed resources are destroyed.
 
-- The Caliper-load-tests are executed from the VM.
+> **Important**: The following secrets must be avaiable to run the GitHub
+> Actions Workflow:
 
-`Run load-tests` this step connects to the AzureVM via SSH and executes
-`scripts/run_caliper_load_tests.sh`. The VM then deploys the aks cluster and all
-resouces for a working `VC`. After deploying all relevant resources, the
-Caliper-Load-Tests are executed using the Gatling Simulation classes
-`src/test/scala/simulation/`. The final step is to collect all metrics for the
-load-test report and create the actual report using
-`scripts/generate_report.py`.
+| Secret                  | Description                                                              | Expiration |
+| ----------------------- | ------------------------------------------------------------------------ | ---------- |
+| `AZURE_SUBSCRIPTION_ID` | Authenticate Terraform to Azure                                          | -          |
+| `AZURE_CLIENT_SECRET`   | Authenticate Terraform to Azure                                          | 2/27/2024  |
+| `AZURE_TENANT_ID`       | Authenticate Terraform to Azure                                          | -          |
+| `AZURE_CLIENT_ID`       | Authenticate Terraform to Azure                                          | -          |
+| `CALIPER_PAT`           | Caliper maven project uses this to download Clients from Github Packages | DATE       |
+| `ADMIN_PASSWORD`        | Password for the AzureVM that is peered with the AKS                     | -          |
 
-The following secrets are mandatory to run the GitHub Actions Workflow:
+#### Mkdocs Material
 
-| Secret                  | Description                                                              |
-| ----------------------- | ------------------------------------------------------------------------ |
-| `AZURE_CREDENTIALS`     | Azure CLI Github Action                                                  |
-| `AZURE_SUBSCRIPTION_ID` | Authenticate Terraform to Azure                                          |
-| `AZURE_CLIENT_SECRET`   | Authenticate Terraform to Azure                                          |
-| `AZURE_TENANT_ID`       | Authenticate Terraform to Azure                                          |
-| `AZURE_CLIENT_ID`       | Authenticate Terraform to Azure                                          |
-| `CALIPER_PAT`           | Caliper maven project uses this to download Clients from Github Packages |
-| `ADMIN_PASSWORD`        | Password for the AzureVM that is peered with the AKS                     |
+The report is deployed using *Mkdocs Material* The file structure is:
+
+The Site is hosted via *GitHub Pages*.
+
+##### Versioning
+
+To host the latest caliper report as well as previous versions, [Mike](lll) is
+added to the website.
+
+- Versioning (Date)
 
 ### Add/ Remove Test-cases
 

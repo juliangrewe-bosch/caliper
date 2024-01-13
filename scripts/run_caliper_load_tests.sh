@@ -1,8 +1,7 @@
 #!/bin/bash
-printenv
+
 export DEBIAN_FRONTEND=noninteractive
 
-# TODO github account needed (with relevant privleges) to download carbyne stack clients
 # Set up access to Carbynestacks Github Packages
 mkdir -p "$HOME"/.m2
 echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
@@ -39,16 +38,6 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash >/dev/null
 # Install cdktf
 sudo npm install --global cdktf-cli@0.16.3 >/dev/null
 
-# Clone repositories
-# git clone https://github.com/carbynestack/caliper.git
-# git clone https://github.com/carbynestack/carbynestack.git
-# temporär
-#cd carbynestack
-#git checkout -b cdktf-caliper origin/cdktf-caliper
-#cd /home/caliper/caliper
-#git checkout -b caliper-workflow origin/caliper-workflow
-#cd /home/caliper
-
 # Authenticate Terraform to Azure
 az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" --tenant "$AZURE_T_ID" --output none
 
@@ -73,6 +62,7 @@ az aks get-credentials --name starbuck-private --resource-group caliper-rg
 
 # Run load-tests
 cd "$HOME"/caliper || exit 1
+
 export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
 kubectl config use-context apollo-private
 export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
@@ -109,28 +99,9 @@ export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addres
 pip3 install -r scripts/requirements.txt
 #python3 scripts/generate_report.py
 
-#cd mkdocs/docs
-#touch test.txt
+#cd "$HOME/caliper/mkdocs"
 
 #git config --local user.email "julian.grewe@de.bosch.com"
 #git config --local user.name "juliangrewe-bosch"
 
-#git add mkdocs/docs/*
-#git commit -m "update mkdocs"
-#git push origin caliper-workflow
-
-#git tag v-caliper
-#git push origin v-caliper
-
-# call webhook to commit, push and deploy the report
-
-# create PAT with repo scope?
-#TOKEN="your_github_token_here"
-#REPO="juliangrewe-bosch/caliper"
-#EVENT_TYPE="update_report"
-
-# Call the GitHub API
-#curl -X POST -H "Accept: application/vnd.github.everest-preview+json" \
-#    -H "Authorization: token $TOKEN" \
-#    --data "{\"event_type\": \"$EVENT_TYPE\"}" \
-#    https://api.github.com/repos/$REPO/dispatches
+# run mike to deploy mkdocs to gh-pages with updated version
