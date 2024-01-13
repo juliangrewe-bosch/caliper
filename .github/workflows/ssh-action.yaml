@@ -12,7 +12,8 @@ jobs:
           host: ${{ env.TEST }}
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
-          script: ./test.sh
+          script: |
+            export USER=Julian
+            ./test.sh
         env:
           TEST: 20.238.44.124
-          USER: Julian
