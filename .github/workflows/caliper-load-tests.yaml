@@ -109,7 +109,7 @@ jobs:
 
   destroy:
     needs: caliper
-    #if: always()
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Azure Login
