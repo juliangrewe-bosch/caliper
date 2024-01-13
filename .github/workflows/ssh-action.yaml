@@ -1,33 +1,49 @@
 name: remote ssh command
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: executing remote ssh commands using password
-        uses: appleboy/ssh-action@v1.0.3
+      - uses: actions/checkout@v3
         with:
-          host: ${{ env.TEST }}
+          path: caliper
+
+      - name: Copy Setup Script
+        id: copy-setup-script
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: caliper/scripts/run_caliper_load_tests.sh
+          remote: home/caliper/
+          host: ${{ env.AZURE_VM_IP }}
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
-          script: |
-            git clone https://github.com/juliangrewe-bosch/caliper.git
-            chmod +x caliper/scripts/run_caliper_load_tests.sh
-            export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}
-            export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
-            export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
-            export AZURE_T_ID=${{ secrets.AZURE_TENANT_ID }}
-            export AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}
-            export CALIPER_PAT=${{ secrets.CALIPER_PAT }}
-            export GITHUB_USERNAME=juliangrewe-bosch
-            export PRIME=198766463529478683931867765928436695041
-            export R=141515903391459779531506841503331516415
-            export INVR=133854242216446749056083838363708373830
-            export PROGRAM=ephemeral-generic.default
-            export TUPLE_THRESHOLD=1000000
-            ./caliper/scripts/run_caliper_load_tests.sh
         env:
-          TEST: 20.238.44.124
+          AZURE_VM_IP: 1.1.1.1
+#      - name: executing remote ssh commands using password
+#        uses: appleboy/ssh-action@v1.0.3
+#        with:
+#          host: ${{ env.TEST }}
+#          username: caliper
+#          password: ${{ secrets.ADMIN_PASSWORD }}
+#          script: |
+#            git clone https://github.com/juliangrewe-bosch/caliper.git
+#            chmod +x caliper/scripts/run_caliper_load_tests.sh
+#            export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}
+#            export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
+#            export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
+#            export AZURE_T_ID=${{ secrets.AZURE_TENANT_ID }}
+#            export AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+#            export CALIPER_PAT=${{ secrets.CALIPER_PAT }}
+#            export GITHUB_USERNAME=juliangrewe-bosch
+#            export PRIME=198766463529478683931867765928436695041
+#            export R=141515903391459779531506841503331516415
+#            export INVR=133854242216446749056083838363708373830
+#            export PROGRAM=ephemeral-generic.default
+#            export TUPLE_THRESHOLD=1000000
+#            ./caliper/scripts/run_caliper_load_tests.sh
+#        env:
+#          TEST: 20.238.44.124
