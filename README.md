@@ -21,23 +21,23 @@ Virtual Cloud using the dedicated java-clients.
 
 The `cs` object is used to provide a common configuration that is shared between
 all virtual users. A list of Service endpoint URIs and the SPDZ parameters
-matching the backend service configuration are used to initialize a client.
+matching the backend service configuration are used to initialize the clients.
 
 ### Action
 
-To test the performance of one or multiple backend services of a Carbyne Stack
-Virtual Cloud we create scenarios that make requests to a backend service. The
-`exec` method is used to execute an Action, in the context of this plugin,
-actions are requests performed by a client that will be sent during a
-simulation.
+To test the performance of one or multiple backend services of a
+`Carbyne Stack Virtual Cloud` we create scenarios that make requests to a
+backend service. The `exec` method is used to execute an Action, in the context
+of this plugin, actions are requests performed by a client that will be sent
+during a simulation.
 
 ## Usage
 
 To execute a simulation we can use the `gatling-maven-plugin`. Currently two
-Carbyne Stack Clients are supported (Amphora and Ephemeral), so for each service
-we create a collection of tests in a simulation class located under
-`test/scala/`. You can control which simulations will be triggered with the
-`includes` filter.
+Carbyne Stack Clients (Amphora and Ephemeral) are supported, for each service we
+create a collection of tests in a simulation class located under
+`test/scala/simulation`. You can control which simulations will be triggered
+with the `includes` filter.
 
 ```xml
 
@@ -55,18 +55,18 @@ we create a collection of tests in a simulation class located under
 ```
 
 By default, the results are stored in `${project.build.directory}/gatling`.
-Caliper uses [prometheus](https://prometheus.io/) to visualize the results,
+Caliper uses [Prometheus](https://prometheus.io/) to visualize the results,
 therefore all results are sent to a graphite endpoint configured in the
-configuration file`test/resources/gatling.conf`. To run Gatling tests simply use
-the `test` goal `./mvnw gatling:test`. The following example shows a simulation
-class that provides the functionality of the millionaires problem example from
-the
+configuration file`test/resources/gatling.conf`. To run one or multiple
+simulation classes simply use the `test` goal `./mvnw gatling:test`. The
+following example shows a simulation class that provides the functionality of
+the millionaires problem example from
 [Carbyne Stack Tutorial](https://carbynestack.io/getting-started/millionaires/).
 
 ```scala
-class CarbynestackSimulation extends Simulation { //1
+class CarbynestackSimulation extends Simulation { // 1
 
-  val csProtocol = cs //2
+  val csProtocol = cs // 2
     .endpoints(List(apolloFqdn, starbuckFqdn))
     .prime("198766463529478683931867765928436695041")
     .r("141515903391459779531506841503331516415")
@@ -126,25 +126,19 @@ class CarbynestackSimulation extends Simulation { //1
     Map("secret" -> elonsNetWorth)
   )
 
-  val uuids: Expression[java.util.List[java.util.UUID]] = session =>
-    session("uuids")
-      .asOption[List[java.util.UUID]]
-      .asJava
-
-  val millionairesProblem = scenario("millionaires-problem-scenario") //3
-    .feed(jeffFeeder) //4
-    .exec(amphora.createSecret("#{secret}")) //5
+  val millionairesProblem = scenario("millionaires-problem-scenario") // 3
+    .feed(jeffFeeder) // 4
+    .exec(amphora.createSecret("#{secret}")) // 5
     .feed(elonFeeder)
     .exec(amphora.createSecret("#{secret}"))
-    .exec(ephemeral.execute(code, uuids)) //6 TODO UPDATE uuids is Expression now
+    .exec(amphora.getSecrets()) // 6
+    .group("millionaires_problem_group") { // 7
+      exec(ephemeral.execute(code, "#{uuids}")) // 8
+    }
 
-  setUp( //7
-    millionairesProblem
-      .inject(
-        atOnceUsers(1) //8
-      )
-      .protocols(csProtocol) //9
-  )
+  setUp( // 9
+    millionairesProblem.inject(atOnceUsers(1)) // 10
+  ).protocols(csProtocol) // 11
 }
 
 ```
@@ -157,15 +151,20 @@ class CarbynestackSimulation extends Simulation { //1
    definition.
 1. A
    [Feeder](https://gatling.io/docs/gatling/reference/current/core/session/feeder/)
-   is used to inject data into the virtual user.
+   is used to inject data into the virtual user. Essentially this is a hashmap
+   with `"secret" -> io.carbynestack.amphora.client.Secret`.
 1. An amphora-java-client-request calling the `createSecret` method of the
    `io.carbynestack.amphora.client.AmphoraClient`. Using the
    [Gatling Expression Language](https://gatling.io/docs/gatling/reference/current/core/session/el/)
    we can use dynamic parameters that will be replaced with the value stored in
    the virtual user's session.
+1. An amphora-java-client-request that downloads all available secrets from the
+   `VC` and stores them in the virtual user's session.
+1. Gatling `groups` are used to divide a `scenario` into different test-cases,
+   e.g. grouping requests with similar request-parameters.
 1. An ephemeral-java-client-request executing the provided program, the secrets
-   used by the program must be created beforehand and are used as input to the
-   function.
+   used by the program must be available in the virtual user's session under
+   `"uuids" -> List[UUID]` and are used as input to the function.
 1. Setting up the scenario(s) we want to use in this simulation.
 1. Declaring that 1 virtual user will be injected into the `millionairesProblem`
    scenario.
@@ -173,20 +172,20 @@ class CarbynestackSimulation extends Simulation { //1
 
 ## Test Infrastructure
 
-To run the load-tests a `Carbyne Stack Virtual Cloud` has to be deployed. The
-\[LINK\] IaC repository is used to deploy a `two-party VC` hosted on Microsoft
-Azure. The following resources are created by running the IaC deployment:
+To run the load-tests a *Carbyne Stack Virtual Cloud* has to be deployed. The
+\[LINK\] IaC repository is used to deploy a two-party VC hosted on *Microsoft
+Azure*. The following resources are created by running the IaC deployment:
 
-- *PrivateAksStack*
-  - Deploys an AzureVM that is later peered with the Carbyne Stack VC
-- *PrivateAksVirtualCloudStack*
-  - Deploys two private AKS cluster and a two-party Carbyne Stack VC
-- *GraphiteExporter*
-  - Deploys an app to transform and expose metrics for Prometheus
-- *Prometheus*
-  - Deploys a Prometheus server and config resources
+- *PrivateAksStack*: Deploys an AzureVM that is later peered with the Carbyne
+  Stack VC
+- *PrivateAksVirtualCloudStack*: Deploys two private AKS cluster and a two-party
+  Carbyne Stack VC
+- *GraphiteExporter*: Deploys an app to transform and expose metrics for
+  Prometheus
+- *Prometheus*: Deploys a Prometheus server and config resources
 
-The following resources have to be created beforehand:
+> **Important** :The following resources have to be created before running the
+> deployment.
 
 | Resource          | Name                             | Role                                                  | Usage                           | Expiration |
 | ----------------- | -------------------------------- | ----------------------------------------------------- | ------------------------------- | ---------- |
@@ -195,8 +194,10 @@ The following resources have to be created beforehand:
 
 ## Report
 
-The report provides metrics about resource consumption and response times of the
-deployed services:
+*Caliper* creates a report that provides charts about resource consumption and
+response times of the deployed services. To visualize the data, the *Matplotlib*
+library is used in a python script located under `/scripts/generate_report.py`.
+The following data sources are used to create the report:
 
 ### cAdvisor
 
@@ -215,7 +216,7 @@ containers. The following metrics are currently added to the report:
 
 ### Gatling
 
-Gatling can export
+*Gatling* can export
 [metrics](https://gatling.io/docs/gatling/guides/realtime_monitoring) over the
 `Graphite plaintext` protocol. For this, `graphite` must be added to the data
 writers and a target host, which in this context is the

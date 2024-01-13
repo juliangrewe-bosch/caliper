@@ -58,17 +58,6 @@ curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL h
 
 # Install dependencies and synthesize infrastructure using cdktf
 cd carbynestack/deployments || exit 1
-#export CASTOR_CHART="0.1-SNAPSHOT-2375669729-20-79c4e23"
-#export CASTOR_IMAGE="0.1-SNAPSHOT-2375669729-20-79c4e23"
-#export AMPHORA_CHART="0.1-SNAPSHOT-1576737535-6-7798b9e"
-#export AMPHORA_IMAGE="0.1-SNAPSHOT-1576737535-6-7798b9e"
-#export EPHEMERAL_CHART="0.1-SNAPSHOT-4243288527-23-5bd2cf6"
-#export EPHEMERAL_DISCOVERY="0.1-SNAPSHOT-2804677120-20-efc7f8d"
-#export EPHEMERAL_IMAGE="0.1-SNAPSHOT-2804677120-20-efc7f8d"
-#export EPHEMERAL_NET_CONTROLLER_IMAGE="0.1-SNAPSHOT-2804677120-20-efc7f8d"
-#export KLYSHKO_CHART="0.2.0"
-#export KLYSHKO_CONTROLLER_IMAGE="0.2.0"
-#export KLYSHKO_PROVISIONER_IMAGE="0.1.0"
 npm install >/dev/null
 cdktf get >/dev/null
 cdktf synth >/dev/null
