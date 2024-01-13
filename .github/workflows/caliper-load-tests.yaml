@@ -35,13 +35,13 @@ jobs:
 
       - name: Provision AzureVM
         id: provision-vm
+        working-directory: carbynestack/deployments
         run: |
           npm install
           cdktf get
           cdktf synth
           terraform -chdir=cdktf.out/stacks/private-aks/ init -input=false
           terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
-        working-directory: carbynestack/deployments
         env:
           TF_VAR_adminPassword: ${{ secrets.ADMIN_PASSWORD }}
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -51,14 +51,15 @@ jobs:
 
       - name: Get AzureVM IP Address
         id: get-ip
+        working-directory: carbynestack/deployments
         run: |
           AZURE_VM_IP=$(terraform -chdir=cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip)
           echo "AZURE_VM_IP=$AZURE_VM_IP" >> $GITHUB_ENV
           sleep 300 # sleep 5 min until AzureVM provision is done
-        working-directory: carbynestack/deployments
 
       - name: Copy Setup Script
         id: copy-setup-script
+        working-directory: caliper
         uses: garygrossgarten/github-action-scp@release
         with:
           local: scripts/run_caliper_load_tests.sh
@@ -66,7 +67,6 @@ jobs:
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
-        working-directory: caliper
 
       - name: Run load-tests
         id: load-tests
@@ -94,6 +94,7 @@ jobs:
 
       - name: Copy Caliper Repository
         id: copy-repository
+        working-directory: caliper
         uses: garygrossgarten/github-action-scp@release
         with:
           local: mkdocs/config/docs
@@ -102,11 +103,10 @@ jobs:
           username: caliper
           concurrency: 10
           password: ${{ secrets.ADMIN_PASSWORD }}
-        working-directory: caliper
 
       - name: Test
-        run: git status
         working-directory: caliper
+        run: git status
 
   destroy:
     needs: caliper
