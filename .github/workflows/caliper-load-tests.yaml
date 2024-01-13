@@ -12,7 +12,7 @@ jobs:
   caliper:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3 # todo notwendig
         with:
           path: caliper
 
@@ -57,25 +57,6 @@ jobs:
           sleep 300 # sleep 5 min until AzureVM provision is done
         working-directory: carbynestack/deployments
 
-
-      - name: test
-        run: |
-          ls -l
-          pwd
-          cd caliper
-          ls -l
-          pwd
-
-      - name: Copy Setup Script
-        id: copy-setup-script
-        uses: garygrossgarten/github-action-scp@release
-        with:
-          local: caliper/scripts/run_caliper_load_tests.sh
-          remote: home/caliper/
-          host: ${{ env.AZURE_VM_IP }}
-          username: caliper
-          password: ${{ secrets.ADMIN_PASSWORD }}
-
       - name: Run Load-Tests
         id: load-tests
         uses: appleboy/ssh-action@v1.0.3
@@ -98,22 +79,16 @@ jobs:
           password: ${{ secrets.ADMIN_PASSWORD }}
           command_timeout: 5h
           allenvs: true
-          script: ./run_caliper_load_tests.py
+          script: |
+            printenv
+            git clone https://github.com/juliangrewe-bosch/caliper.git "$HOME/caliper"
+            git clone https://${{ env.CALIPER_PRIVATE_REPOS_PAT }}@github.com/juliangrewe-bosch/carbynestack.git "$HOME/carbynestack"
 
-      - name: Copy Caliper Repository
-        id: copy-repository
-        uses: garygrossgarten/github-action-scp@release
-        with:
-          local: ./caliper/mkdocs/config/docs
-          remote: ./caliper/mkdocs/docs/images
-          host: ${{ env.AZURE_VM_IP }}
-          username: caliper
-          concurrency: 10
-          password: ${{ secrets.ADMIN_PASSWORD }}
+            git -C "$HOME/caliper" checkout -b caliper-workflow origin/caliper-workflow
+            git -C "$HOME/carbynestack" checkout -b cdktf-caliper origin/cdktf-caliper
 
-      - name: Test
-        run: git status
-        working-directory: caliper
+            chmod +x "$HOME/caliper/scripts/run_caliper_load_tests.sh"
+            "$HOME"/caliper/scripts/run_caliper_load_tests.sh
 
 #  destroy:
 #    needs: caliper
