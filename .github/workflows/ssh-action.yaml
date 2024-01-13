@@ -13,6 +13,7 @@ jobs:
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
           script: |
+            git clone https://github.com/juliangrewe-bosch/caliper.git
             export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}
             export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
             export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}

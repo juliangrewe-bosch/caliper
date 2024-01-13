@@ -40,7 +40,6 @@ sudo npm install --global cdktf-cli@0.16.3 >/dev/null
 # Clone repositories
 # git clone https://github.com/carbynestack/caliper.git
 # git clone https://github.com/carbynestack/carbynestack.git
-git clone https://github.com/juliangrewe-bosch/caliper.git
 git clone https://$CALIPER_PRIVATE_REPOS_PAT@github.com/juliangrewe-bosch/carbynestack.git
 # temporär
 cd carbynestack
