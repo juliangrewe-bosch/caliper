@@ -54,6 +54,7 @@ jobs:
         run: |
           AZURE_VM_IP=$(terraform -chdir=cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip)
           echo "AZURE_VM_IP=$AZURE_VM_IP" >> $GITHUB_ENV
+          sleep 60 * 5
         working-directory: carbynestack/deployments
 
       - name: Run load-tests
