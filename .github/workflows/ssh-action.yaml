@@ -12,6 +12,6 @@ jobs:
           host: ${{ env.TEST }}
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
-          script: whoami
+          script: ./test.sh
         env:
           TEST: 20.238.44.124
