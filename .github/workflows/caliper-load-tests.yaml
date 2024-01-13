@@ -58,7 +58,7 @@ jobs:
         working-directory: carbynestack/deployments
 
       - name: Copy setup script
-        id: copy-repository
+        id: copy-setup-script
         uses: garygrossgarten/github-action-scp@release
         with:
           local: caliper/scripts/run_caliper_load_tests.sh
