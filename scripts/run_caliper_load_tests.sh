@@ -1,8 +1,9 @@
 #!/bin/bash
 
+cd "$HOME" || exit 1
 # TODO github account needed (with relevant privleges) to download carbyne stack clients
 # Set up access to Carbynestacks Github Packages
-mkdir -p ~/.m2
+mkdir -p "$HOME"/.m2
 echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
   "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.2.0\"\n" \
   "          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" \
@@ -14,7 +15,7 @@ echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
   "      <password>$CALIPER_PAT</password>\n" \
   "    </server>\n" \
   "  </servers>\n" \
-  "</settings>" >.m2/settings.xml
+  "</settings>" >"$HOME"/.m2/settings.xml
 
 # Configure HashiCorp GPG key and repository
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
@@ -40,14 +41,12 @@ sudo npm install --global cdktf-cli@0.16.3 >/dev/null
 # Clone repositories
 # git clone https://github.com/carbynestack/caliper.git
 # git clone https://github.com/carbynestack/carbynestack.git
-git clone https://github.com/juliangrewe-bosch/caliper.git
-git clone https://$CALIPER_PRIVATE_REPOS_PAT@github.com/juliangrewe-bosch/carbynestack.git
 # temporär
-cd carbynestack
-git checkout -b cdktf-caliper origin/cdktf-caliper
-cd /home/caliper/caliper
-git checkout -b caliper-workflow origin/caliper-workflow
-cd /home/caliper
+#cd carbynestack
+#git checkout -b cdktf-caliper origin/cdktf-caliper
+#cd /home/caliper/caliper
+#git checkout -b caliper-workflow origin/caliper-workflow
+#cd /home/caliper
 
 # Authenticate Terraform to Azure
 az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" --tenant "$AZURE_T_ID" --output none
@@ -57,7 +56,7 @@ LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-ope
 curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/"${LATEST}"/bundle.yaml
 
 # Install dependencies and synthesize infrastructure using cdktf
-cd carbynestack/deployments || exit 1
+cd "$HOME"/carbynestack/deployments || exit 1
 npm install >/dev/null
 cdktf get >/dev/null
 cdktf synth >/dev/null
@@ -72,7 +71,7 @@ az aks get-credentials --name apollo-private --resource-group caliper-rg
 az aks get-credentials --name starbuck-private --resource-group caliper-rg
 
 # Run load-tests
-cd /home/caliper/caliper || exit 1
+cd "$HOME"/caliper || exit 1
 export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
 kubectl config use-context apollo-private
 export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
@@ -109,18 +108,18 @@ export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addres
 pip3 install -r scripts/requirements.txt
 #python3 scripts/generate_report.py
 
-cd mkdocs/docs
-touch test.txt
+#cd mkdocs/docs
+#touch test.txt
 
-git config --local user.email "julian.grewe@de.bosch.com"
-git config --local user.name "juliangrewe-bosch"
+#git config --local user.email "julian.grewe@de.bosch.com"
+#git config --local user.name "juliangrewe-bosch"
 
 #git add mkdocs/docs/*
 #git commit -m "update mkdocs"
 #git push origin caliper-workflow
 
-git tag v-caliper
-git push origin v-caliper
+#git tag v-caliper
+#git push origin v-caliper
 
 # call webhook to commit, push and deploy the report
 
