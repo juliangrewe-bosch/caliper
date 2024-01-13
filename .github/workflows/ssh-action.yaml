@@ -22,7 +22,7 @@ jobs:
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
         env:
-          AZURE_VM_IP: 1.1.1.1
+          AZURE_VM_IP: 4.210.86.45
 #      - name: executing remote ssh commands using password
 #        uses: appleboy/ssh-action@v1.0.3
 #        with:
