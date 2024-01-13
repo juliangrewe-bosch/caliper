@@ -10,7 +10,7 @@ echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
   "  <servers>\n" \
   "    <server>\n" \
   "      <id>github</id>\n" \
-  "      <username>$GIT_USERNAME</username>\n" \
+  "      <username>$GITHUB_USERNAME</username>\n" \
   "      <password>$CALIPER_PAT</password>\n" \
   "    </server>\n" \
   "  </servers>\n" \
