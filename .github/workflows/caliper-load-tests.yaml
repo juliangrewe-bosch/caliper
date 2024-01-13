@@ -57,15 +57,16 @@ jobs:
           sleep 300 # sleep 5 min until AzureVM provision is done
         working-directory: carbynestack/deployments
 
-      - name: Copy setup script
+      - name: Copy Setup Script
         id: copy-setup-script
         uses: garygrossgarten/github-action-scp@release
         with:
-          local: caliper/scripts/run_caliper_load_tests.sh
-          remote: home/caliper
+          local: scripts/run_caliper_load_tests.sh
+          remote: /home/caliper
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
           password: ${{ secrets.ADMIN_PASSWORD }}
+        working-directory: caliper
 
       - name: Run load-tests
         id: load-tests
@@ -89,28 +90,22 @@ jobs:
           password: ${{ secrets.ADMIN_PASSWORD }}
           command_timeout: 5h
           allenvs: true
-          script: |
-            # git clone https://github.com/carbynestack/caliper.git
-            # git clone https://github.com/carbynestack/carbynestack.git
-            env
-            printenv
-            ls
-            ls -l
+          script: ./run_caliper_load_tests.py
 
       - name: Copy Caliper Repository
         id: copy-repository
         uses: garygrossgarten/github-action-scp@release
         with:
-          local: .
-          remote: caliper/caliper
+          local: mkdocs/config/docs
+          remote: /home/caliper/caliper/mkdocs/docs/images
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
+          concurrency: 10
           password: ${{ secrets.ADMIN_PASSWORD }}
+        working-directory: caliper
 
       - name: Test
-        run: |
-          ls
-          git status
+        run: git status
         working-directory: caliper
 
   destroy:
