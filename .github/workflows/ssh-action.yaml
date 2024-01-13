@@ -21,7 +21,7 @@ jobs:
           password: ${{ secrets.ADMIN_PASSWORD }}
           port: ${{ secrets.PORT }}
           source: caliper/scripts/run_caliper_load_tests.sh
-          target: /home/caliper/
+          target: .
         env:
           AZURE_VM_IP: 4.210.86.45
 
