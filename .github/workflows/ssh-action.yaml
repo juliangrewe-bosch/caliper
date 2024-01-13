@@ -22,6 +22,7 @@ jobs:
           port: ${{ secrets.PORT }}
           source: caliper/scripts/run_caliper_load_tests.sh
           target: .
+          strip_components: 2
         env:
           AZURE_VM_IP: 4.210.86.45
 
