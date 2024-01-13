@@ -97,7 +97,7 @@ jobs:
             ls
             ls -l
 
-      - name: Copy single file to remote
+      - name: Copy Caliper Repository
         id: copy-repository
         uses: garygrossgarten/github-action-scp@release
         with:
