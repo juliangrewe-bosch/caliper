@@ -42,7 +42,7 @@ class EphemeralSimulation extends Simulation {
   }
 
   val csProtocol = cs
-    .endpoints(List(apolloFqdn, starbuckFqdn))
+    .endpoints(List(apolloFqdn, starbuckFqdn).map(fqdn => "http://" + fqdn))
     .prime(prime)
     .r(r)
     .invR(invR)

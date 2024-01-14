@@ -37,17 +37,11 @@ class AmphoraSimulation extends Simulation {
     case None => throw new IllegalStateException("Environment variable INVR not set")
   }
 
-  val program: String = sys.env.get("PROGRAM") match {
-    case Some(program) => program
-    case None => throw new IllegalStateException("Environment variable PROGRAM not set")
-  }
-
   val csProtocol = cs
     .endpoints(List(apolloFqdn, starbuckFqdn).map(fqdn => "http://" + fqdn))
     .prime(prime)
     .r(r)
     .invR(invR)
-    .program(program)
 
   val numberOfTags = 100
   val lengthOfTag = 100
