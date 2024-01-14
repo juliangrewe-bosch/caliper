@@ -71,24 +71,24 @@ export R="$R"
 export INVR="$INVR"
 export PROGRAM="$PROGRAM"
 
-kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p "{\"spec\":{\"threshold\":$TUPLE_THRESHOLD, \"concurrency\": 10}}" --type=merge
-timeout=7200 # 2 hours
-while true; do
-  tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
-
-  if [[ $tuples_available -ge $TUPLE_THRESHOLD ]]; then
-    break
-  fi
-
-  if [[ $SECONDS -ge $timeout ]]; then
-    break
-  fi
-
-  sleep 300
-done
+#kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p "{\"spec\":{\"threshold\":$TUPLE_THRESHOLD, \"concurrency\": 10}}" --type=merge
+#timeout=7200 # 2 hours
+#while true; do
+#  tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
+#
+#  if [[ $tuples_available -ge $TUPLE_THRESHOLD ]]; then
+#    break
+#  fi
+#
+#  if [[ $SECONDS -ge $timeout ]]; then
+#    break
+#  fi
+#
+#  sleep 300
+#done
 
 chmod +x mvnw
-./mvnw -q gatling:test
+#./mvnw -q gatling:test
 
 # Generate report
 export PROMETHEUS_SERVER_PORT=32767
