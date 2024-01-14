@@ -31,6 +31,8 @@ jobs:
       - name: Provision AzureVM
         id: provision-vm
         run: |
+          pwd
+          ls
           npm install
           cdktf get
           cdktf synth
