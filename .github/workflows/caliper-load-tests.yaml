@@ -91,20 +91,20 @@ jobs:
             chmod +x "$HOME/caliper/scripts/run_caliper_load_tests.sh"
             mv "$HOME/caliper/scripts/run_caliper_load_tests.sh" "$HOME"
             "$HOME/run_caliper_load_tests.sh"
-#
-#  destroy:
-#    needs: caliper
-#    if: always()
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Azure Login
-#        uses: azure/login@v1
-#        with:
-#          creds: ${{ secrets.AZURE_CREDENTIALS }}
-#
-#      - name: Azure CLI script
-#        uses: azure/CLI@v1
-#        with:
-#          azcliversion: 2.30.0
-#          inlineScript: |
-#            az group delete --name caliper-rg --yes
+
+  destroy:
+    needs: caliper
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Azure CLI script
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
+            az group delete --name caliper-rg --yes
