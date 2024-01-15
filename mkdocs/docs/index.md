@@ -24,22 +24,23 @@ resources to maintain node performance and functionality (see
 
 ## Amphora
 
-| Name                | Objective             | Users           | Description                                                                                      | Test data                        |
-| ------------------- | --------------------- | --------------- | ------------------------------------------------------------------------------------------------ | -------------------------------- |
-| create_x            | secret size           | 1 Virtual User  | Upload secret, repeat 10 times                                                                   | variable secret size, fixed tags |
-| create_x_loaded     | System is under load  | 1 Virtual User  | Upload secret, repeat 10 times                                                                   | variable secret size, fixed tags |
-| create_get_parallel | Concurrent operations | 10 Virtual User | Secrets are uploaded by 5 users concurrently, and parallel 5 users download secrets concurrently | fixed secret size, fixed tags    |
+| Name                             | Objective                                                             | Users           | Description                                                                                      | Test data                        |
+| -------------------------------- | --------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------ | -------------------------------- |
+| create_values_10000              | Evaluate performance when uploading secrets with small secret size    | 1 Virtual User  | Upload the secret                                                                                | fixed secret size, fixed tags    |
+| create_values_50000              | Evaluate performance when uploading secrets with larger secret size   | 1 Virtual User  | Upload the secret                                                                                | fixed secret size, fixed tags    |
+| create_values_50000_under_load   | Evaluate performance when uploading secrets when system is under load | 1 Virtual User  | Upload the secret after 2.000.000 secrets were uploaded                                          | fixed secret size, fixed tags    |
+| createSecret_getSecrets_parallel | Evaluate performance during concurrent operations                     | 10 Virtual User | Secrets are uploaded by 5 users concurrently, and parallel 5 users download secrets concurrently | variable secret size, fixed tags |
 
 ## Castor
 
-_Castor_ no _Client Interface_, therefore cAdvisor metrics for _Castor_ are
-collected during the execution of _Amphora_ and _Ephemeral_ scenario(s) and
-exported under the specific group.
+_Castor_ offers no _Client Interface_, therefore cAdvisor metrics for _Castor_
+are collected during the execution of _Amphora_ and _Ephemeral_ scenario(s). For
+each group a the corresponding charts are created.
 
 ## Ephemeral
 
-| Name                           | Objective                              | Users           | Description                                                   | Test data                        |
-| ------------------------------ | -------------------------------------- | --------------- | ------------------------------------------------------------- | -------------------------------- |
-| scalarValueOptProgram          | Multiplication operation on input data | 1 Virtual User  | Upload secret, repeat 10 times                                | variable secret size, fixed tags |
-| scalarValueOptProgram_loaded   | System is under load                   | 1 Virtual User  | Execute program while system is loaded with 5.000.000 secrets | fixed secrets, fixed tags        |
-| scalarValueOptProgram_parallel | Concurrent execution                   | 10 Virtual User | Execute program with 10 users concurrently                    | fixed secrets, fixed tags        |
+| Name                           | Objective                                                   | Users           | Description                                                    | Test data                        |
+| ------------------------------ | ----------------------------------------------------------- | --------------- | -------------------------------------------------------------- | -------------------------------- |
+| emptyProgram                   | Evaluate performance without expansive operation            | 1 Virtual User  | Upload the secrets, perform no operation on the input data     | fixed secret size, fixed tags    |
+| scalarValueOptProgram          | Evaluate performance with expansive operation on input data | 1 Virtual User  | Upload the secrets, execute the program                        | variable secret size, fixed tags |
+| scalarValueOptProgram_parallel | Evaluate performance with concurrent program execution      | 10 Virtual User | Upload the secrets, execute program with 10 users concurrently | fixed secret size, fixed tags    |

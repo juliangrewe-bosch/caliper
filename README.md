@@ -234,12 +234,22 @@ specified:
     }
 ```
 
-The following metrics are then send to prometheus:
+### generate_report Script
 
-`caliper{simulation, group, metric, scope}`
+Prometheus offers metrics in the format
+`<metric name>{<label name>=<label value>, ...}`, the *GraphiteExporter* sends
+the following metrics to the Prometheus Server:
+`caliper{simulation=value, group=value, metric=value, scope=value}`.
 
-caliper{simulation="amphorasimulation", group="secret_values_10000",
-metric="percentiles99", scope="ok"}
+An example PromQL might look like this: caliper{simulation="amphorasimulation",
+group="secret_values_10000", metric="percentiles99", scope="ok"}.
+
+The *generate_report.py* script extracts the time range for each group and
+visualizes the time ranges per group in the cAdvisor charts.
+
+Each chart is saved in the format
+`[Gatling group name]_[cAdvisor metric name].png` under
+`mkdocs/docs/images/[Simulation class]/[Chart name]`.
 
 ### GitHub Actions Workflow
 
@@ -265,40 +275,25 @@ finally deploy a new version of the *report*.
 | `CALIPER_PAT`           | Caliper maven project uses this to download Clients from Github Packages | DATE       |
 | `ADMIN_PASSWORD`        | Password for the AzureVM that is peered with the AKS                     | -          |
 
-#### Mkdocs Material
-
-The report is deployed using *Mkdocs Material* The file structure is:
-
-The Site is hosted via *GitHub Pages*.
-
-##### Versioning
-
-To host the latest caliper report as well as previous versions, [Mike](lll) is
-added to the website.
-
-- Versioning (Date)
+Caliper uses *MkDocs* to host the report via GitHub pages. To provide
+versioning, the [mike](http:/google.com) plugin is implemented. Each time the
+*generate_report.py* script creates new charts, *Mike* uploads the updated
+report to the `gh-pages` branch in a new directory labeled with the current
+date.
 
 ### Add/ Remove Test-cases
 
 To add or remove test-cases the following steps must be peformed:
 
-A Simulation class contains multiple scenario(s)
+A Simulation class contains multiple scenario(s),
 
-- scenario(s) definieren
-
-  - was sind scenarios (deckt mehrere Testfälle ab)
-
-- groups innerhalb eines scenarios erstellen
-
-  - Was sind groups (deckt mindestesns einen Testfall ab)
-
-- PromQL queries collecting metrics for the tests needs to be added to
-  `scripts/generate_report.py`
-
-- Graphen sind unter /img/simulationX/scenarioY/groupZ/ gespeichert
-
-  - Datei(en) erstellen und Grafiken einbinden
-  - Datei(en) nav.yaml hinzufügen
+- Define scenario(s) which contain(s) group(s): The scenario name is not
+  relevant and only used for logical separation. A group divides one or multiple
+  requests for which the *response times* and *cAdvisor charts* are created.
+- The *generate_report.py* script automatically creates for each *group* the
+  corresponding charts.
+- If *groups* are created or deleted, the mkdocs report needs to be updated
+  manually.
 
 ## Namesake
 
