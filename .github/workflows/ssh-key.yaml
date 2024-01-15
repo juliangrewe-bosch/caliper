@@ -1,0 +1,17 @@
+name: 'ssh-key-test'
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  ssh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 20.223.134.31
+          username: caliper
+          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
+          script: whoami
