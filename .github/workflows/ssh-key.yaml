@@ -8,10 +8,43 @@ jobs:
   ssh:
     runs-on: ubuntu-latest
     steps:
-      - name: executing remote ssh commands using ssh key
-        uses: appleboy/ssh-action@v1.0.3
+      - uses: actions/checkout@v3
         with:
-          host: 20.223.134.31
-          username: caliper
-          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
-          script: whoami
+          repository: juliangrewe-bosch/carbynestack #TODO replace with carbynestack/carbynestack
+          token: ${{secrets.CALIPER_PRIVATE_REPOS_PAT}}
+          ref: cdktf-caliper #TODO main
+          path: carbynestack
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - run: npm install --global cdktf-cli@0.16.3
+
+      - name: Provision AzureVM
+        id: provision-vm
+        run: |
+          npm install
+          cdktf get
+          cdktf synth
+          terraform -chdir=cdktf.out/stacks/private-aks-key/ init -input=false
+          terraform -chdir=cdktf.out/stacks/private-aks-key/ apply -auto-approve -input=false
+        working-directory: carbynestack/deployments
+        env:
+          TF_VAR_publicKey: ${{ secrets.CALIPER_PUBLIC_KEY }}
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+#      - name: executing remote ssh commands using ssh key
+#        uses: appleboy/ssh-action@v1.0.3
+#        with:
+#          host: 20.223.134.31
+#          username: caliper
+#          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
+#          script: whoami
