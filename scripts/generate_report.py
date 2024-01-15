@@ -1,13 +1,13 @@
+import itertools
 from datetime import datetime, timedelta, timezone
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import os
 from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 
 # Path to the MkDocs folder
-#home_dir = os.environ['HOME']
+# home_dir = os.environ['HOME']
 # AMPHORA_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'amphorasimulation')
 # AMPHORA_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'ephemeralsimulation')
 
@@ -15,10 +15,11 @@ APOLLO_PROMETHEUS_CLIENT = PrometheusConnect(url="http://20.54.34.230:9090", dis
 STARBUCK_PROMETHEUS_CLIENT = PrometheusConnect(url="http://20.54.34.230:9090", disable_ssl=True)
 
 END_TIME = datetime.now(timezone.utc)  # Prometheus uses UTC
-START_TIME = END_TIME - timedelta(hours=6)
+START_TIME = END_TIME - timedelta(hours=5)
 
-AMPHORA_SIMULATION_PROMQL = 'caliper{simulation="amphorasimulation", metric="percentiles99", scope="ok"}'
-EPHEMERAL_SIMULATION_PROMQL = 'caliper{simulation="ephemeralsimulation", metric="percentiles99", scope="ok"}'
+# TODO groups="*"
+AMPHORA_SIMULATION_GROUPS = 'caliper{simulation="amphorasimulation", metric="percentiles99", scope="ok"}'
+EPHEMERAL_SIMULATION_GROUPS = 'caliper{simulation="ephemeralsimulation", metric="percentiles99", scope="ok"}'
 
 AMPHORA_SERVICES = [("amphora", "cs-amphora"), ("castor", "cs-castor")]
 EPHEMERAL_SERVICES = [("ephemeral-ephemeral", "ephemeral"), ("castor", "cs-castor")]
@@ -61,32 +62,43 @@ def generate_cadvisor_metrics(services):
 AMPHORA_CADVISOR_METRICS = generate_cadvisor_metrics(AMPHORA_SERVICES)
 EPHEMERAL_CADVISOR_METRICS = generate_cadvisor_metrics(EPHEMERAL_SERVICES)
 
-apollo_response_times_dict = APOLLO_PROMETHEUS_CLIENT.custom_query_range(query=AMPHORA_SIMULATION_PROMQL,
-                                                                         start_time=START_TIME,
-                                                                         end_time=END_TIME, step='15s')
+amphora_simulation_groups_dict = APOLLO_PROMETHEUS_CLIENT.custom_query_range(query=AMPHORA_SIMULATION_GROUPS,
+                                                                             start_time=START_TIME,
+                                                                             end_time=END_TIME, step='15s')
+
+ephemeral_simulation_groups_dict = APOLLO_PROMETHEUS_CLIENT.custom_query_range(query=EPHEMERAL_SIMULATION_GROUPS,
+                                                                               start_time=START_TIME,
+                                                                               end_time=END_TIME, step='15s')
 # Time ranges per group
-response_times_df = MetricRangeDataFrame(apollo_response_times_dict)
-response_times_df["timestamp"] = response_times_df.index
+amphora_simulation_groups_df = MetricRangeDataFrame(amphora_simulation_groups_dict)
+amphora_simulation_groups_df["timestamp"] = amphora_simulation_groups_df.index
 
-gatling_groups_start_time = response_times_df.groupby("group")['timestamp'].min()
-gatling_groups_end_time = response_times_df.groupby("group")['timestamp'].max()
+ephemeral_simulation_groups_df = MetricRangeDataFrame(ephemeral_simulation_groups_dict)
+ephemeral_simulation_groups_df["timestamp"] = amphora_simulation_groups_df.index
 
-for group in response_times_df['group'].drop_duplicates():
+amphora_simulation_groups_start_time = amphora_simulation_groups_df.groupby("group")['timestamp'].min()
+amphora_simulation_groups_end_time = amphora_simulation_groups_df.groupby("group")['timestamp'].max()
+
+ephemeral_simulation_groups_start_time = ephemeral_simulation_groups_df.groupby("group")['timestamp'].min()
+ephemeral_simulation_groups_end_time = ephemeral_simulation_groups_df.groupby("group")['timestamp'].max()
+
+for group in itertools.chain(amphora_simulation_groups_df['group'].drop_duplicates(),
+                             ephemeral_simulation_groups_df['group'].drop_duplicates()):
     for metric_name, promQL in zip(CADVISOR_METRICS, AMPHORA_CADVISOR_METRICS):
-        apollo_cAdvisor_dict = APOLLO_PROMETHEUS_CLIENT.custom_query_range(query=promQL,
-                                                                           start_time=START_TIME,
-                                                                           end_time=END_TIME, step='15s')
+        apollo_cAdvisor_metrics_dict = APOLLO_PROMETHEUS_CLIENT.custom_query_range(query=promQL,
+                                                                                   start_time=START_TIME,
+                                                                                   end_time=END_TIME, step='15s')
 
-        apollo_cAdvisor_df = MetricRangeDataFrame(apollo_cAdvisor_dict)
+        apollo_cAdvisor_metrics_df = MetricRangeDataFrame(apollo_cAdvisor_metrics_dict)
 
         # Plotting the data
         plt.figure(figsize=(11, 7))
-        plt.plot(apollo_cAdvisor_df.index, apollo_cAdvisor_df['value'], label='Apollo')
+        plt.plot(apollo_cAdvisor_metrics_df.index, apollo_cAdvisor_metrics_df['value'], label='Apollo')
 
         # Highlighting the area from the top to bottom of the plot, not limited to the line
-        plt.fill_betweenx([min(apollo_cAdvisor_df['value']), max(apollo_cAdvisor_df['value'])],
-                          (gatling_groups_start_time[group] - timedelta(minutes=2)),
-                          gatling_groups_end_time[group], color='orange', alpha=0.1)
+        plt.fill_betweenx([min(apollo_cAdvisor_metrics_df['value']), max(apollo_cAdvisor_metrics_df['value'])],
+                          (amphora_simulation_groups_start_time[group] - timedelta(minutes=2)),
+                          amphora_simulation_groups_end_time[group], color='orange', alpha=0.15)
 
         # Adding grid
         plt.grid(True, which='both', linestyle='--', linewidth=0.5)
