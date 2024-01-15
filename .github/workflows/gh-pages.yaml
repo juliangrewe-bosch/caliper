@@ -1,0 +1,36 @@
+name: Deploy to Github Pages
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: .cache
+          restore-keys: |
+            mkdocs-material-
+      - run: |
+          pip install mkdocs-material
+          pip install mike
+
+      - name: Configure Git user
+        run: |
+          git config --local user.email "julian.grewe@de.bosch.com"
+          git config --local user.name "juliangrewe-bosch"
+
+      - name: Deploy mkdocs
+        run: |
+          git fetch origin
+          git branch gh-pages origin/gh-pages
+          mike deploy ${GITHUB_REF#refs/tags/} latest --push --update-aliases
+        working-directory: mkdocs

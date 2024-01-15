@@ -1,0 +1,110 @@
+name: 'Caliper-Load-Tests'
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: "Caliper"
+  cancel-in-progress: false
+
+jobs:
+  caliper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: juliangrewe-bosch/carbynestack #TODO replace with carbynestack/carbynestack
+          token: ${{secrets.CALIPER_PRIVATE_REPOS_PAT}}
+          ref: cdktf-caliper #TODO main
+          path: carbynestack
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - run: npm install --global cdktf-cli@0.16.3
+
+      - name: Provision AzureVM
+        id: provision-vm
+        run: |
+          npm install
+          cdktf get
+          cdktf synth
+          terraform -chdir=cdktf.out/stacks/private-aks/ init -input=false
+          terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
+        working-directory: carbynestack/deployments
+        env:
+          TF_VAR_adminPassword: ${{ secrets.ADMIN_PASSWORD }}
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AzureVM IP Address
+        id: get-ip
+        run: |
+          AZURE_VM_IP=$(terraform -chdir=cdktf.out/stacks/private-aks/ output -raw caliper-vm-public-ip)
+          echo "AZURE_VM_IP=$AZURE_VM_IP" >> $GITHUB_ENV
+          sleep 300 # sleep 5m until AzureVM provision is done, otherwise ssh might fail
+        working-directory: carbynestack/deployments
+
+      - name: Run Load-Tests
+        id: load-tests
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          CALIPER_PRIVATE_REPOS_PAT: ${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_T_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          CALIPER_PAT: ${{ secrets.CALIPER_PAT }}
+          GITHUB_USERNAME: juliangrewe-bosch
+          PRIME: 198766463529478683931867765928436695041
+          R: 141515903391459779531506841503331516415
+          INVR: 133854242216446749056083838363708373830
+          PROGRAM: ephemeral-generic-default
+          TUPLE_THRESHOLD: 1000000 # klyshko config
+        with:
+          host: ${{ env.AZURE_VM_IP }}
+          username: caliper
+          password: ${{ secrets.ADMIN_PASSWORD }}
+          command_timeout: 5h
+          envs: CALIPER_PRIVATE_REPOS_PAT,AZURE_CLIENT_ID,AZURE_CLIENT_SECRET,AZURE_T_ID,AZURE_SUBSCRIPTION_ID,
+            CALIPER_PAT,GITHUB_USERNAME,PRIME,R,INVR,PROGRAM,TUPLE_THRESHOLD
+          script: |
+            # temporary
+            git clone https://github.com/juliangrewe-bosch/caliper.git "$HOME/caliper"
+            git clone https://${{ env.CALIPER_PRIVATE_REPOS_PAT }}@github.com/juliangrewe-bosch/carbynestack.git "$HOME/carbynestack"
+
+            git -C "$HOME/caliper" checkout -b caliper-workflow origin/caliper-workflow
+            git -C "$HOME/carbynestack" checkout -b cdktf-caliper origin/cdktf-caliper
+
+            #TODO replace with
+            #git clone https://github.com/carbynestack/caliper.git "$HOME/caliper"
+            #git clone https://github.com/carbynestack/carbynestack.git "$HOME/carbynestack"
+
+            chmod +x "$HOME/caliper/scripts/run_caliper_load_tests.sh"
+            mv "$HOME/caliper/scripts/run_caliper_load_tests.sh" "$HOME"
+            "$HOME/run_caliper_load_tests.sh"
+#
+#  destroy:
+#    needs: caliper
+#    if: always()
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Azure Login
+#        uses: azure/login@v1
+#        with:
+#          creds: ${{ secrets.AZURE_CREDENTIALS }}
+#
+#      - name: Azure CLI script
+#        uses: azure/CLI@v1
+#        with:
+#          azcliversion: 2.30.0
+#          inlineScript: |
+#            az group delete --name caliper-rg --yes
