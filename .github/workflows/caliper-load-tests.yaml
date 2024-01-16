@@ -1,7 +1,7 @@
 name: 'Caliper-Load-Tests'
 
 on:
-  #push:
+  push:
   workflow_dispatch:
 
 concurrency:
@@ -39,7 +39,7 @@ jobs:
           terraform -chdir=cdktf.out/stacks/private-aks/ apply -auto-approve -input=false
         working-directory: carbynestack/deployments
         env:
-          TF_VAR_adminPassword: ${{ secrets.ADMIN_PASSWORD }}
+          TF_VAR_adminPassword: ${{ secrets.CALIPER_PUBLIC_KEY }}
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -72,7 +72,7 @@ jobs:
         with:
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
-          password: ${{ secrets.ADMIN_PASSWORD }}
+          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           command_timeout: 5h
           envs: CALIPER_PRIVATE_REPOS_PAT,AZURE_CLIENT_ID,AZURE_CLIENT_SECRET,AZURE_T_ID,AZURE_SUBSCRIPTION_ID,
             CALIPER_PAT,GITHUB_USERNAME,PRIME,R,INVR,PROGRAM,TUPLE_THRESHOLD

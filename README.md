@@ -263,7 +263,7 @@ finally deploy a new version of the *report*.
 - *Destroy*: Deletes the Azure resource group 'caliper-rg' to ensure that in
   case steps fails, all deployed resources are destroyed.
 
-> **Important**: The following secrets must be avaiable to run the GitHub
+> **Important**: The following secrets must be available to run the GitHub
 > Actions Workflow:
 
 | Secret                  | Description                                                              | Expiration |
@@ -273,7 +273,8 @@ finally deploy a new version of the *report*.
 | `AZURE_TENANT_ID`       | Authenticate Terraform to Azure                                          | -          |
 | `AZURE_CLIENT_ID`       | Authenticate Terraform to Azure                                          | -          |
 | `CALIPER_PAT`           | Caliper maven project uses this to download Clients from Github Packages | DATE       |
-| `ADMIN_PASSWORD`        | Password for the AzureVM that is peered with the AKS                     | -          |
+| `CALIPER_PRIVATE_KEY`   | SSH keypair private key                                                  | -          |
+| `CALIPER_PUBLIC_KEY`    | SSH keypair public key                                                   | -          |
 
 Caliper uses *MkDocs* to host the report via GitHub pages. To provide
 versioning, the [mike](http:/google.com) plugin is implemented. Each time the

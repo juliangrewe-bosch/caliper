@@ -45,7 +45,6 @@ class AmphoraSimulation extends Simulation {
 
   val numberOfTags = 100
   val lengthOfTag = 100
-  val numberOfSecretValuesPerSecret = 10
   val secretValueLowerBound = 1000000000L
   val secretValueUpperBound = 9999999999L
 
@@ -76,55 +75,94 @@ class AmphoraSimulation extends Simulation {
     Secret.of(tags, secretValues)
   }
 
-  val generateFeeder: Int => Iterator[Map[String, Secret]] = (numberOfSecrets: Int) => {
+  val generateFeeder: Int => Iterator[Map[String, Secret]] = (numberOfSecretValues: Int) => {
     Iterator.continually {
-      Map("secret" -> generateSecret(numberOfSecrets))
+      Map("secret" -> generateSecret(numberOfSecretValues))
     }
   }
 
   val emptySystemScenario = scenario("empty_system_scenario")
-    .group("amphora_createSecret_100000_empty") {
+    .group("createSecret_100000") {
       repeat(1) {
         feed(generateFeeder(100000))
           .exec(amphora.createSecret(("#{secret}")))
       }
     }
-    .pause(60 * 10)
-    .group("amphora_getSecrets_100000_empty") {
+    .pause(60 * 3)
+    .group("getSecrets_100000") {
       repeat(1) {
         exec(amphora.getSecrets())
       }
     }
-    .pause(60 * 10)
-
-  val loadedSystemScenario = scenario("loaded_system_scenario")
-    .group("amphora_createSecret_2000000") {
-      repeat(20) {
-        feed(generateFeeder(10000))
-          .exec(amphora.createSecret("#{secret}"))
-      }
+    .exec(amphora.getSecrets())
+    .foreach("#{uuids}", "uuid") {
+      exec(amphora.deleteSecret("#{uuid}"))
     }
-    .pause(60 * 10)
-    .group("amphora_createSecret_100000_loaded") {
+    .pause(60 * 3)
+    .group("createSecret_300000") {
       repeat(1) {
-        feed(generateFeeder(100000))
+        feed(generateFeeder(300000))
           .exec(amphora.createSecret(("#{secret}")))
       }
     }
-    .pause(60 * 10)
-    .group("amphora_getSecrets_100000_loaded") {
+    .pause(60 * 3)
+    .group("getSecrets_300000") {
       repeat(1) {
         exec(amphora.getSecrets())
       }
     }
-    .pause(60 * 10)
+    .exec(amphora.getSecrets())
+    .foreach("#{uuids}", "uuid") {
+      exec(amphora.deleteSecret("#{uuid}"))
+    }
+    .pause(60 * 3)
+    .group("createSecret_500000") {
+      repeat(1) {
+        feed(generateFeeder(500000))
+          .exec(amphora.createSecret(("#{secret}")))
+      }
+    }
+    .pause(60 * 3)
+    .group("getSecrets_500000") {
+      repeat(1) {
+        exec(amphora.getSecrets())
+      }
+    }
+    .exec(amphora.getSecrets())
+    .foreach("#{uuids}", "uuid") {
+      exec(amphora.deleteSecret("#{uuid}"))
+    }
 
-  val concurrentRequestsScenario = scenario("concurrent_requests_scenario")
-    .group("amphora_getSecrets_400000_concurrency_10") {
-      repeat(1) {
-        exec(amphora.getSecrets())
-      }
-    }
+
+//  val loadedSystemScenario = scenario("loaded_system_scenario")
+//    .group("createSecret_2000000_empty") {
+//      repeat(20) {
+//        feed(generateFeeder(1000))
+//          .exec(amphora.createSecret("#{secret}"))
+//      }
+//    }
+//    .pause(60 * 3)
+//    .group("createSecret_100000_loaded") {
+//      repeat(1) {
+//        feed(generateFeeder(10000))
+//          .exec(amphora.createSecret("#{secret}"))
+//      }
+//    }
+//    .pause(60 * 3)
+//    .group("getSecrets_100000_loaded") {
+//      repeat(1) {
+//        exec(amphora.getSecrets())
+//      }
+//    }
+//    .pause(60 * 3)
+
+//  val concurrentRequestsScenario = scenario("concurrent_requests_scenario")
+//    .group("getSecrets_400000_concurrency_10") {
+//      repeat(1) {
+//        exec(amphora.getSecrets())
+//      }
+//    }
+//    .pause(60 * 3)
 
   val deleteAllSecrets = scenario("deleteAllSecrets")
     .exec(amphora.getSecrets())
@@ -135,8 +173,6 @@ class AmphoraSimulation extends Simulation {
   setUp(
     emptySystemScenario
       .inject(atOnceUsers(1))
-      .andThen(loadedSystemScenario.inject(atOnceUsers(1)))
-      .andThen(concurrentRequestsScenario.inject(atOnceUsers(10)))
       .andThen(deleteAllSecrets.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }

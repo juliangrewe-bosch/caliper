@@ -2,36 +2,25 @@ nav:
   - Home: index.md
   - Amphora:
       - createSecret:
-          - secret_values_10000_group: reports/amphora/createSecret_scenario/secret_values_10000_group.md
-          - secret_values_25000_group: reports/amphora/createSecret_scenario/secret_values_50000_group.md
-          - secret_values_50000_group: reports/amphora/createSecret_scenario/secret_values_25000_group.md
+          - 100000_secret_values: reports/amphora/createSecret_scenario/100000_secret_values.md
+          - 300000_secret_values: reports/amphora/createSecret_scenario/300000_secret_values.md
       - getSecrets:
-          - secret_values_10000_group: reports/amphora/getSecrets_scenario/secret_values_10000_group.md
-          - secret_values_25000_group: reports/amphora/getSecrets_scenario/secret_values_25000_group.md
-          - secret_values_50000_group: reports/amphora/getSecrets_scenario/secret_values_50000_group.md
+          - 100000_secret_values: reports/amphora/getSecrets_scenario/100000_secret_values.md
+          - 300000_secret_values: reports/amphora/getSecrets_scenario/300000_secret_values.md
       - deleteSecret:
-          - secret_values_10000_group: reports/amphora/deleteSecret_scenario/secret_values_10000_group.md
-          - secret_values_25000_group: reports/amphora/deleteSecret_scenario/secret_values_25000_group.md
-          - secret_values_50000_group: reports/amphora/deleteSecret_scenario/secret_values_50000_group.md
+          - 400000_concurrency_10: reports/amphora/getSecrets_scenario/400000_concurrency_10.md
+
   - Castor:
       - createSecret:
-          - secret_values_10000_group: reports/castor/createSecret_scenario/secret_values_10000_group.md
-          - secret_values_25000_group: reports/castor/createSecret_scenario/secret_values_25000_group.md
-          - secret_values_50000_group: reports/castor/createSecret_scenario/secret_values_50000_group.md
+         - 100000_secret_values: reports/castor/createSecret_scenario/100000_secret_values.md
+         - 300000_secret_values: reports/castor/createSecret_scenario/300000_secret_values.md
       - getSecrets:
-          - secret_values_10000_group: reports/castor/getSecrets_scenario/secret_values_10000_group.md
-          - secret_values_25000_group: reports/castor/getSecrets_scenario/secret_values_25000_group.md
-          - secret_values_50000_group: reports/castor/getSecrets_scenario/secret_values_50000_group.md
+         - 100000_secret_values: reports/castor/getSecrets_scenario/100000_secret_values.md
+         - 300000_secret_values: reports/castor/getSecrets_scenario/300000_secret_values.md
       - deleteSecret:
-          - secret_values_10000_group: reports/castor/deleteSecret_scenario/secret_values_10000_group.md
-          - secret_values_25000_group: reports/castor/deleteSecret_scenario/secret_values_25000_group.md
-          - secret_values_50000_group: reports/castor/deleteSecret_scenario/secret_values_50000_group.md
+         - 400000_concurrency_10: reports/castor/getSecrets_scenario/400000_concurrency_10.md
   - Ephemeral:
       - emptyProgram:
-          - secret_values_10000_group: reports/ephemeral/emptyProgram_scenario/secret_values_10000_group.md
-          - secret_values_25000_group: reports/ephemeral/emptyProgram_scenario/secret_values_25000_group.md
-          - secret_values_50000_group: reports/ephemeral/emptyProgram_scenario/secret_values_50000_group.md
+          - 400000_concurrency_10: reports/ephemeral/getSecrets_scenario/400000_concurrency_10.md
       - scalarValueOptProgram:
-          - secret_values_10000_group: reports/ephemeral/scalarValueOptProgram_scenario/secret_values_10000_group.md
-          - secret_values_25000_group: reports/ephemeral/scalarValueOptProgram_scenario/secret_values_25000_group.md
-          - secret_values_50000_group: reports/ephemeral/scalarValueOptProgram_scenario/secret_values_50000_group.md
+          - 400000_concurrency_10: reports/ephemeral/getSecrets_scenario/400000_concurrency_10.md
