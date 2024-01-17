@@ -11,14 +11,12 @@ import scala.util.Random
 class AmphoraSimulation extends Simulation {
 
   val apolloFqdn: String = sys.env.get("APOLLO_FQDN") match {
-    case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}(?:\.sslip\.io)?$""") => fqdn
-    case Some(fqdn) => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
+    case Some(fqdn) => fqdn
     case None => throw new IllegalStateException("Environment variable APOLLO_FQDN not set")
   }
 
   val starbuckFqdn: String = sys.env.get("STARBUCK_FQDN") match {
-    case Some(fqdn) if fqdn.matches("""^(\d{1,3}\.){3}\d{1,3}(?:\.sslip\.io)?$""") => fqdn
-    case Some(fqdn) => throw new IllegalStateException(s"Invalid IP address format: $fqdn")
+    case Some(fqdn) => fqdn
     case None => throw new IllegalStateException("Environment variable STARBUCK_FQDN not set")
   }
 
