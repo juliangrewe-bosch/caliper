@@ -88,7 +88,7 @@ export PROGRAM="$PROGRAM"
 #done
 
 chmod +x mvnw
-#./mvnw -q gatling:test
+./mvnw -q gatling:test
 
 # Generate report
 export PROMETHEUS_SERVER_PORT=32767
