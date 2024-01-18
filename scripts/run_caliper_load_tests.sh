@@ -66,10 +66,6 @@ cd "$HOME"/caliper || exit 1
 export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
 kubectl config use-context apollo-private
 export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
-export PRIME="$PRIME"
-export R="$R"
-export INVR="$INVR"
-export PROGRAM="$PROGRAM"
 
 #kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p "{\"spec\":{\"threshold\":$TUPLE_THRESHOLD, \"concurrency\": 10}}" --type=merge
 #timeout=7200 # 2 hours

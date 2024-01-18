@@ -56,27 +56,25 @@ jobs:
       - name: Run Load-Tests
         id: load-tests
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          CALIPER_PRIVATE_REPOS_PAT: ${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          AZURE_T_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          CALIPER_PAT: ${{ secrets.CALIPER_PAT }}
-          GITHUB_USERNAME: juliangrewe-bosch
-          PRIME: 198766463529478683931867765928436695041
-          R: 141515903391459779531506841503331516415
-          INVR: 133854242216446749056083838363708373830
-          PROGRAM: ephemeral-generic-default
-          TUPLE_THRESHOLD: 1000000 # klyshko config
         with:
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
           key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           command_timeout: 5h
-          envs: CALIPER_PRIVATE_REPOS_PAT,AZURE_CLIENT_ID,AZURE_CLIENT_SECRET,AZURE_T_ID,AZURE_SUBSCRIPTION_ID,
-            CALIPER_PAT,GITHUB_USERNAME,PRIME,R,INVR,PROGRAM,TUPLE_THRESHOLD
           script: |
+            export CALIPER_PRIVATE_REPOS_PAT=${{ secrets.CALIPER_PRIVATE_REPOS_PAT }}
+            export AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
+            export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
+            export AZURE_T_ID=${{ secrets.AZURE_TENANT_ID }}
+            export AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            export CALIPER_PAT=${{ secrets.CALIPER_PAT }}
+            export GITHUB_USERNAME=juliangrewe-bosch
+            export PRIME=198766463529478683931867765928436695041
+            export R=141515903391459779531506841503331516415
+            export INVR=133854242216446749056083838363708373830
+            export PROGRAM=ephemeral-generic-default
+            export TUPLE_THRESHOLD=1000000 # klyshko config
+
             # temporary
             git clone https://github.com/juliangrewe-bosch/caliper.git "$HOME/caliper"
             git clone https://${{ env.CALIPER_PRIVATE_REPOS_PAT }}@github.com/juliangrewe-bosch/carbynestack.git "$HOME/carbynestack"
