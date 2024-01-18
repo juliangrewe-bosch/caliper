@@ -170,10 +170,10 @@ class EphemeralSimulation extends Simulation {
     .exec(performDeleteSecretRequest())
 
   setUp(
-    scalarValueOptProgramScenario
+    emptyProgramScenario
       .inject(atOnceUsers(1))
-//      .andThen(deleteAllSecretsAfterEmptyProgramScenario.inject(atOnceUsers(1)))
-//      .andThen(scalarValueOptProgramScenario.inject(atOnceUsers(1)))
-//      .andThen(deleteAllSecretsAfterScalarValueOptProgramScenario.inject(atOnceUsers(1)))
+      .andThen(deleteAllSecretsAfterEmptyProgramScenario.inject(atOnceUsers(1)))
+      .andThen(scalarValueOptProgramScenario.inject(atOnceUsers(1)))
+      .andThen(deleteAllSecretsAfterScalarValueOptProgramScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }
