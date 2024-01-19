@@ -77,18 +77,39 @@ jobs:
 
             # temporary
             git clone https://github.com/juliangrewe-bosch/caliper.git "$HOME/caliper"
-            git clone https://"$GITHUB_USERNAME"@github.com/juliangrewe-bosch/carbynestack.git "$HOME/carbynestack"
-
             git -C "$HOME/caliper" checkout -b caliper-workflow origin/caliper-workflow
-            git -C "$HOME/carbynestack" checkout -b cdktf-caliper origin/cdktf-caliper
 
-            #TODO replace with
             #git clone https://github.com/carbynestack/caliper.git "$HOME/caliper"
             #git clone https://github.com/carbynestack/carbynestack.git "$HOME/carbynestack"
 
             chmod +x "$HOME/caliper/scripts/run_caliper_load_tests.sh"
             mv "$HOME/caliper/scripts/run_caliper_load_tests.sh" "$HOME"
             "$HOME/run_caliper_load_tests.sh"
+
+#      - name: Deploy latest Report to gh-pages
+#        id: deploy-report
+#        uses: appleboy/ssh-action@v1.0.3
+#        with:
+#          host: ${{ env.AZURE_VM_IP }}
+#          username: caliper
+#          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
+#          script: |
+#            pip install mkdocs-material
+#            pip install mike
+#
+#            export GITHUB_USER=juliangrewe-bosch
+#            export GITHUB_USER_MAIL=julian.grewe@de.bosch.com
+#
+#            git config --local user.email "$GITHUB_USER_MAIL"
+#            git config --local user.name "$GITHUB_USER"
+#
+#            cd "$HOME"/caliper/mkdocs || exit 1
+#
+#            git fetch origin
+#            git branch gh-pages origin/gh-pages
+#
+#            DATE=$(date +"%d-%m-%Y")
+#            mike deploy "$DATE" latest --push --update-aliases
 
 #  destroy:
 #    needs: caliper

@@ -46,11 +46,26 @@ LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-ope
 curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/"${LATEST}"/bundle.yaml
 
 # Install dependencies and synthesize infrastructure using cdktf
+git clone https://"$CALIPER_PRIVATE_REPOS_PAT"@github.com/juliangrewe-bosch/carbynestack.git "$HOME/carbynestack"
+git -C "$HOME/carbynestack" checkout -b cdktf-caliper origin/cdktf-caliper
+
 cd "$HOME"/carbynestack/deployments || exit 1
 npm install >/dev/null
 cdktf get >/dev/null
 cdktf synth >/dev/null
 
+
+export CASTOR_CHART="0.1-SNAPSHOT-2375669729-20-79c4e23"
+export CASTOR_IMAGE="0.1-SNAPSHOT-2375669729-20-79c4e23"
+export AMPHORA_CHART="0.1-SNAPSHOT-1576737535-6-7798b9e"
+export AMPHORA_IMAGE="0.1-SNAPSHOT-1576737535-6-7798b9e"
+export EPHEMERAL_CHART="0.1-SNAPSHOT-4243288527-23-5bd2cf6"
+export EPHEMERAL_DISCOVERY="0.1-SNAPSHOT-2804677120-20-efc7f8d"
+export EPHEMERAL_IMAGE="0.1-SNAPSHOT-2804677120-20-efc7f8d"
+export EPHEMERAL_NET_CONTROLLER_IMAGE="0.1-SNAPSHOT-2804677120-20-efc7f8d"
+export KLYSHKO_CHART="0.2.0"
+export KLYSHKO_CONTROLLER_IMAGE="0.2.0"
+export KLYSHKO_PROVISIONER_IMAGE="0.1.0"
 # Initialize and apply Terraform
 export TF_VAR_azureSubscriptionID=$AZURE_SUBSCRIPTION_ID
 terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ init -input=false >/dev/null
@@ -67,21 +82,21 @@ export STARBUCK_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o j
 kubectl config use-context apollo-private
 export APOLLO_FQDN=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}').sslip.io
 
-#kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p "{\"spec\":{\"threshold\":$TUPLE_THRESHOLD, \"concurrency\": 10}}" --type=merge
-#timeout=7200 # 2 hours
-#while true; do
-#  tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
-#
-#  if [[ $tuples_available -ge $TUPLE_THRESHOLD ]]; then
-#    break
-#  fi
-#
-#  if [[ $SECONDS -ge $timeout ]]; then
-#    break
-#  fi
-#
-#  sleep 300
-#done
+kubectl patch tuplegenerationscheduler cs-klyshko-tuplegenerationscheduler -p "{\"spec\":{\"threshold\":$TUPLE_THRESHOLD, \"concurrency\": 10}}" --type=merge
+timeout=7200 # 2 hours
+while true; do
+  tuples_available=$(curl -s http://"$APOLLO_FQDN"/castor/intra-vcp/telemetry | jq '.metrics[] | select(.type == "INPUT_MASK_GFP") | .available')
+
+  if [[ $tuples_available -ge $TUPLE_THRESHOLD ]]; then
+    break
+  fi
+
+  if [[ $SECONDS -ge $timeout ]]; then
+    break
+  fi
+
+  sleep 300
+done
 
 chmod +x mvnw
 ./mvnw -q gatling:test
@@ -94,10 +109,3 @@ export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addres
 
 #pip3 install -r scripts/requirements.txt
 #python3 scripts/generate_report.py
-
-#cd "$HOME/caliper/mkdocs"
-
-#git config --local user.email "julian.grewe@de.bosch.com"
-#git config --local user.name "juliangrewe-bosch"
-
-# run mike to deploy mkdocs to gh-pages with updated version
