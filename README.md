@@ -275,6 +275,7 @@ finally deploy a new version of the *report*.
 | `CALIPER_PAT`           | Caliper maven project uses this to download Clients from Github Packages | DATE       |
 | `CALIPER_PRIVATE_KEY`   | SSH keypair private key                                                  | -          |
 | `CALIPER_PUBLIC_KEY`    | SSH keypair public key                                                   | -          |
+| `AZURE_CREDENTIALS`     | Login to Azure with a Service Principal Secret                           | -          |
 
 Caliper uses *MkDocs* to host the report via GitHub pages. To provide
 versioning, the [mike](http:/google.com) plugin is implemented. Each time the
