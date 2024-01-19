@@ -49,9 +49,7 @@ curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL h
 git clone https://"$CALIPER_PRIVATE_REPOS_PAT"@github.com/juliangrewe-bosch/carbynestack.git "$HOME/carbynestack"
 git -C "$HOME/carbynestack" checkout -b cdktf-caliper origin/cdktf-caliper
 
-# cd "$HOME"/carbynestack/deployments || exit 1
-cd "$HOME"/carbynestack/deployments
-cd "$HOME"/carbynestack/deployments
+cd "$HOME"/carbynestack/deployments || exit 1
 npm install >/dev/null
 cdktf get >/dev/null
 cdktf synth >/dev/null
@@ -68,6 +66,7 @@ export EPHEMERAL_NET_CONTROLLER_IMAGE="0.1-SNAPSHOT-2804677120-20-efc7f8d"
 export KLYSHKO_CHART="0.2.0"
 export KLYSHKO_CONTROLLER_IMAGE="0.2.0"
 export KLYSHKO_PROVISIONER_IMAGE="0.1.0"
+
 # Initialize and apply Terraform
 export TF_VAR_azureSubscriptionID=$AZURE_SUBSCRIPTION_ID
 terraform -chdir=cdktf.out/stacks/private-aks-virtual-cloud/ init -input=false >/dev/null
