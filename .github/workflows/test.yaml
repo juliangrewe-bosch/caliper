@@ -1,0 +1,19 @@
+name: 'Test'
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  caliper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 20.223.130.224
+          username: caliper
+          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
+          script: |
+            LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
+            curl -o "$HOME"/carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/"${LATEST}"/bundle.yaml
