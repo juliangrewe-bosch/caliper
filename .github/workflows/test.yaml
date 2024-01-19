@@ -28,4 +28,10 @@ jobs:
             export PROGRAM=ephemeral-generic-default
             export TUPLE_THRESHOLD=1000000 # klyshko config
 
+            git clone https://github.com/juliangrewe-bosch/caliper.git "$HOME/caliper"
+            git -C "$HOME/caliper" checkout -b caliper-workflow origin/caliper-workflow
+
+            "$HOME/run_caliper_load_tests.sh"
+            chmod +x "$HOME/caliper/scripts/run_caliper_load_tests.sh"
+            mv "$HOME/caliper/scripts/run_caliper_load_tests.sh" "$HOME"
             "$HOME/run_caliper_load_tests.sh"
