@@ -41,14 +41,15 @@ sudo npm install --global cdktf-cli@0.16.3 >/dev/null
 # Authenticate Terraform to Azure
 az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" --tenant "$AZURE_T_ID" --output none
 
-# Download Prometheus Operator bundle
-LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
-curl -o $"$HOME"/carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/"${LATEST}"/bundle.yaml
-
-# Install dependencies and synthesize infrastructure using cdktf
+# Temporär
 git clone https://"$CALIPER_PRIVATE_REPOS_PAT"@github.com/juliangrewe-bosch/carbynestack.git "$HOME/carbynestack"
 git -C "$HOME/carbynestack" checkout -b cdktf-caliper origin/cdktf-caliper
 
+# Download Prometheus Operator bundle
+LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
+curl -o "$HOME"/carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/"${LATEST}"/bundle.yaml
+
+# Install dependencies and synthesize infrastructure using cdktf
 cd "$HOME"/carbynestack/deployments || exit 1
 
 export CASTOR_CHART="0.1-SNAPSHOT-2375669729-20-79c4e23"
