@@ -47,7 +47,7 @@ git -C "$HOME/carbynestack" checkout -b cdktf-caliper origin/cdktf-caliper
 
 # Download Prometheus Operator bundle
 LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)
-curl -o "$HOME"/carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -L https://github.com/prometheus-operator/prometheus-operator/releases/download/"${LATEST}"/bundle.yaml
+curl -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/"${LATEST}"/bundle.yaml
 
 # Install dependencies and synthesize infrastructure using cdktf
 cd "$HOME"/carbynestack/deployments || exit 1
