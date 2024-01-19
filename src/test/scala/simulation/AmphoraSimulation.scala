@@ -160,7 +160,7 @@ class AmphoraSimulation extends Simulation {
 //        exec(amphora.getSecrets())
 //      }
 //    }
-//    .pause(60 * 3)
+//    .pause(60 * 3)vv
 
   val deleteAllSecrets = scenario("deleteAllSecrets")
     .exec(amphora.getSecrets())
