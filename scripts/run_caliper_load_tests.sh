@@ -50,10 +50,6 @@ git clone https://"$CALIPER_PRIVATE_REPOS_PAT"@github.com/juliangrewe-bosch/carb
 git -C "$HOME/carbynestack" checkout -b cdktf-caliper origin/cdktf-caliper
 
 cd "$HOME"/carbynestack/deployments || exit 1
-npm install >/dev/null
-cdktf get >/dev/null
-cdktf synth >/dev/null
-
 
 export CASTOR_CHART="0.1-SNAPSHOT-2375669729-20-79c4e23"
 export CASTOR_IMAGE="0.1-SNAPSHOT-2375669729-20-79c4e23"
@@ -66,6 +62,10 @@ export EPHEMERAL_NET_CONTROLLER_IMAGE="0.1-SNAPSHOT-2804677120-20-efc7f8d"
 export KLYSHKO_CHART="0.2.0"
 export KLYSHKO_CONTROLLER_IMAGE="0.2.0"
 export KLYSHKO_PROVISIONER_IMAGE="0.1.0"
+
+npm install >/dev/null
+cdktf get >/dev/null
+cdktf synth >/dev/null
 
 # Initialize and apply Terraform
 export TF_VAR_azureSubscriptionID=$AZURE_SUBSCRIPTION_ID
