@@ -49,7 +49,9 @@ curl -o carbynestack/deployments/manifests/prometheus-operator-bundle.yaml -sL h
 git clone https://"$CALIPER_PRIVATE_REPOS_PAT"@github.com/juliangrewe-bosch/carbynestack.git "$HOME/carbynestack"
 git -C "$HOME/carbynestack" checkout -b cdktf-caliper origin/cdktf-caliper
 
-cd "$HOME"/carbynestack/deployments || exit 1
+# cd "$HOME"/carbynestack/deployments || exit 1
+cd "$HOME"/carbynestack/deployments
+cd "$HOME"/carbynestack/deployments
 npm install >/dev/null
 cdktf get >/dev/null
 cdktf synth >/dev/null
