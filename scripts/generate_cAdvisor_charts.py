@@ -7,7 +7,7 @@ import matplotlib.ticker as ticker
 from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 
 # Path to the MkDocs folder
-home_dir = home_dir = os.getcwd() #os.environ['HOME'] # TODO change to home_env
+home_dir = os.environ['HOME']
 AMPHORA_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'charts', 'amphorasimulation')
 EPHEMERAL_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'charts', 'ephemeralsimulation')
 
