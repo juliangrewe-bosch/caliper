@@ -36,6 +36,7 @@ class AmphoraAction[R](
           list.asScala.foreach {
             case metadata: Metadata => uuids.add(metadata.getSecretId)
           }
+        case _: Unit =>
         case other => throw new IllegalArgumentException(s"Unexpected response type: ${other.getClass.getName}")
       }
       val modifiedSession = session.set("uuids", uuids)

@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta, timezone
 
 import matplotlib.dates as mdates
@@ -6,15 +7,22 @@ import matplotlib.ticker as ticker
 from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 
 # Path to the MkDocs folder
-# home_dir = os.environ['HOME']
-# AMPHORA_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'amphorasimulation')
-# AMPHORA_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'ephemeralsimulation')
+home_dir = home_dir = os.getcwd() #os.environ['HOME'] # TODO change to home_env
+AMPHORA_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'charts', 'amphorasimulation')
+EPHEMERAL_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'charts', 'ephemeralsimulation')
 
-APOLLO_PROMETHEUS_CLIENT = PrometheusConnect(url="http://20.67.136.118:9090", disable_ssl=True)
-STARBUCK_PROMETHEUS_CLIENT = PrometheusConnect(url="http://20.54.34.230:9090", disable_ssl=True)
+# Prometheus Server Address
+APOLLO_NODE_IP = os.environ['APOLLO_NODE_IP']
+STARBUCK_NODE_IP = os.environ['STARBUCK_NODE_IP']
+PROMETHEUS_SERVER_PORT = os.environ['PROMETHEUS_SERVER_PORT']
+
+APOLLO_PROMETHEUS_CLIENT = PrometheusConnect(url=f"http://{APOLLO_NODE_IP}:{PROMETHEUS_SERVER_PORT}",
+                                             disable_ssl=True)
+STARBUCK_PROMETHEUS_CLIENT = PrometheusConnect(url=f"http://{STARBUCK_NODE_IP}:{PROMETHEUS_SERVER_PORT}",
+                                               disable_ssl=True)
 
 END_TIME = datetime.now(timezone.utc)  # Prometheus uses UTC
-START_TIME = END_TIME - timedelta(hours=1)
+START_TIME = END_TIME - timedelta(hours=1) #TODO change to 5
 
 AMPHORA_SIMULATION_GROUPS = 'caliper{simulation="amphorasimulation", metric="percentiles99", scope="ok"}'
 EPHEMERAL_SIMULATION_GROUPS = 'caliper{simulation="ephemeralsimulation", metric="percentiles99", scope="ok"}'
@@ -71,21 +79,24 @@ amphora_simulation_groups_df["timestamp"] = amphora_simulation_groups_df.index
 # ephemeral_simulation_groups_df = MetricRangeDataFrame(ephemeral_simulation_groups_dict)
 # ephemeral_simulation_groups_df["timestamp"] = amphora_simulation_groups_df.index
 
-amphora_simulation_groups_start_time = amphora_simulation_groups_df.groupby("group")['timestamp'].min()
-amphora_simulation_groups_end_time = amphora_simulation_groups_df.groupby("group")['timestamp'].max()
+amphora_simulation_groups_start_times = amphora_simulation_groups_df.groupby("group")['timestamp'].min()
+amphora_simulation_groups_end_times = amphora_simulation_groups_df.groupby("group")['timestamp'].max()
+
+# ephemeral_simulation_groups_start_times = ephemeral_simulation_groups_df.groupby("group")['timestamp'].min()
+# ephemeral_simulation_groups_end_times = ephemeral_simulation_groups_df.groupby("group")['timestamp'].max()
 
 
-# ephemeral_simulation_groups_start_time = ephemeral_simulation_groups_df.groupby("group")['timestamp'].min()
-# ephemeral_simulation_groups_end_time = ephemeral_simulation_groups_df.groupby("group")['timestamp'].max()
-
-
-def create_charts_for_groups(groups, cadvisor_metrics_names, cadvisor_metrics_promQL, service_name):
+def create_charts_for_groups(groups, cadvisor_metrics_names, cadvisor_metrics_promQL, simulation_groups_start_times,
+                             simulation_groups_end_times, dir, service_name):
     """
     Plots metrics for specified groups and metrics.
 
     :param groups: Series containing group names.
     :param cadvisor_metrics_names: List with metric names.
     :param cadvisor_metrics_promQL: List with corresponding PromQL queries.
+    :param simulation_groups_start_time: OBJECT with start times per group for a simulation
+    :param simulation_groups_end_time: OBJECT with end time per group for a simulation
+    :param dir: directory to store charts
     :param service_name: Name of the service.
     """
     for group in groups:
@@ -94,24 +105,25 @@ def create_charts_for_groups(groups, cadvisor_metrics_names, cadvisor_metrics_pr
                                                                                        start_time=START_TIME,
                                                                                        end_time=END_TIME, step='15s')
 
+            starbuck_cAdvisor_metrics_dict = STARBUCK_PROMETHEUS_CLIENT.custom_query_range(query=promQL,
+                                                                                           start_time=START_TIME,
+                                                                                           end_time=END_TIME,
+                                                                                           step='15s')
+
             apollo_cAdvisor_metrics_df = MetricRangeDataFrame(apollo_cAdvisor_metrics_dict)
+            starbuck_cAdvisor_metrics_df = MetricRangeDataFrame(starbuck_cAdvisor_metrics_dict)
 
             # Plotting the data
             plt.figure(figsize=(12, 7))
 
-            # Get the relevant data per group
-            apollo_cAdvisor_metrics_df_sliced = apollo_cAdvisor_metrics_df[
-                (apollo_cAdvisor_metrics_df.index >= (
-                        amphora_simulation_groups_start_time[group] - timedelta(minutes=2))) &
-                (apollo_cAdvisor_metrics_df.index <= amphora_simulation_groups_end_time[group])]
+            # Get the relevant data per group per cluster
+            for label, df in [('Apollo', apollo_cAdvisor_metrics_df), ('Starbuck', starbuck_cAdvisor_metrics_df)]:
+                cAdvisor_metrics_df_sliced = df[
+                    (df.index >= (
+                            simulation_groups_start_times[group] - timedelta(minutes=2))) &
+                    (df.index <= simulation_groups_end_times[group])]
 
-            plt.plot(apollo_cAdvisor_metrics_df_sliced.index, apollo_cAdvisor_metrics_df_sliced['value'],
-                     label='Apollo')
-
-            # Highlighting the area from the top to bottom of the plot, not limited to the line
-            # plt.fill_betweenx([min(apollo_cAdvisor_metrics_df['value']), max(apollo_cAdvisor_metrics_df['value'])],
-            #                   (amphora_simulation_groups_start_time[group] - timedelta(minutes=2)),
-            #                   amphora_simulation_groups_end_time[group], color='orange', alpha=0.15)
+                plt.plot(cAdvisor_metrics_df_sliced.index, cAdvisor_metrics_df_sliced['value'], label=label)
 
             # Adding grid
             plt.grid(True, which='both', linestyle='--', linewidth=0.5)
@@ -139,24 +151,45 @@ def create_charts_for_groups(groups, cadvisor_metrics_names, cadvisor_metrics_pr
             # adjust padding
             plt.subplots_adjust(left=0.1)
 
-            # if not os.path.isdir(AMPHORA_CHART_PATH):
-            #     os.makedirs(AMPHORA_CHART_PATH)
-            plt.savefig(service_name + "_" + group + "_" + metric_name)
+            # Save the chart to the specified path
+            file_name = f"{service_name}_{group}_{metric_name}"
+            file_path = os.path.join(dir, service_name, file_name)
+            plt.savefig(file_path)
             plt.close()
 
 
 # Create charts for the amphora service from the amphorasimulation
-create_charts_for_groups(amphora_simulation_groups_df['group'].drop_duplicates(),
-                         CADVISOR_METRICS, AMPHORA_CADVISOR_METRICS, "amphora")
+create_charts_for_groups(groups=amphora_simulation_groups_df['group'].drop_duplicates(),
+                         cadvisor_metrics_names=CADVISOR_METRICS,
+                         cadvisor_metrics_promQL=AMPHORA_CADVISOR_METRICS,
+                         simulation_groups_start_times=amphora_simulation_groups_start_times,
+                         simulation_groups_end_times=amphora_simulation_groups_start_times,
+                         dir=AMPHORA_CHART_PATH,
+                         service_name="amphora")
 
 # Create charts for the castor service from the amphorasimulation
-create_charts_for_groups(amphora_simulation_groups_df['group'].drop_duplicates(),
-                         CADVISOR_METRICS, CASTOR_CADVISOR_METRICS, "castor")
+create_charts_for_groups(groups=amphora_simulation_groups_df['group'].drop_duplicates(),
+                         cadvisor_metrics_names=CADVISOR_METRICS,
+                         cadvisor_metrics_promQL=CASTOR_CADVISOR_METRICS,
+                         simulation_groups_start_times=amphora_simulation_groups_start_times,
+                         simulation_groups_end_times=amphora_simulation_groups_start_times,
+                         dir=AMPHORA_CHART_PATH,
+                         service_name="castor")
 
 # Create charts for the castor service from the amphorasimulation
-# create_charts_for_groups(ephemeral_simulation_groups_df['group'].drop_duplicates(),
-#                          zip(CADVISOR_METRICS, EPHEMERAL_CADVISOR_METRICS), "ephemeral")
+# create_charts_for_groups(groups=ephemeral_simulation_groups_df['group'].drop_duplicates(),
+#                          cadvisor_metrics_names=CADVISOR_METRICS,
+#                          cadvisor_metrics_promQL=EPHEMERAL_CADVISOR_METRICS,
+#                          simulation_groups_start_times=ephemeral_simulation_groups_start_times,
+#                          simulation_groups_end_times=ephemeral_simulation_groups_start_times,
+#                          path=EPHEMERAL_CHART_PATH,
+#                          service_name="ephemeral")
 
 # Create charts for the castor service from the amphorasimulation
-# create_charts_for_groups(ephemeral_simulation_groups_df['group'].drop_duplicates(),
-#                          zip(CADVISOR_METRICS, CASTOR_CADVISOR_METRICS), "castor")
+# create_charts_for_groups(groups=ephemeral_simulation_groups_df['group'].drop_duplicates(),
+#                          cadvisor_metrics_names=CADVISOR_METRICS,
+#                          cadvisor_metrics_promQL=CASTOR_CADVISOR_METRICS,
+#                          simulation_groups_start_times=ephemeral_simulation_groups_start_times,
+#                          simulation_groups_end_times=ephemeral_simulation_groups_start_times,
+#                          path=EPHEMERAL_CHART_PATH,
+#                          service_name="castor")
