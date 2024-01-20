@@ -126,4 +126,4 @@ jobs:
 #        with:
 #          azcliversion: 2.30.0
 #          inlineScript: |
-#            az group delete --name caliper-rg --yes
+#            az group delete --name caliper-rg --yes#
