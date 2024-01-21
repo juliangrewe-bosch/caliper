@@ -103,7 +103,7 @@ done
 chmod +x mvnw
 ./mvnw -q gatling:test
 
-# Generate report
+# Generate cAdvisor and gatling charts
 export PROMETHEUS_SERVER_PORT=32767
 export APOLLO_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 kubectl config use-context starbuck-private
@@ -111,3 +111,4 @@ export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addres
 
 pip3 install -r scripts/requirements.txt
 python3 scripts/generate_cAdvisor_charts.py
+#python3 scripts/generate_gatling_charts.py
