@@ -11,10 +11,11 @@ jobs:
       - name: test
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 20.238.85.121
+          host: 20.166.86.218
           username: caliper
           key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           script: |
+            env
             export PATH="$HOME"/.local/bin
 
             pip install mkdocs-material
