@@ -29,5 +29,6 @@ jobs:
             git fetch origin
             git branch gh-pages origin/gh-pages
 
+            env
             export DATE=$(date +"%d-%m-%Y")
             mike deploy "$DATE" latest --push --update-aliases
