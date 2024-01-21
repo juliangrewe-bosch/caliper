@@ -73,7 +73,19 @@ jobs:
             export R=141515903391459779531506841503331516415
             export INVR=133854242216446749056083838363708373830
             export PROGRAM=ephemeral-generic-default
-            export TUPLE_THRESHOLD=1000000 # klyshko config
+            export TUPLE_THRESHOLD=2000000 # klyshko config
+
+            export CASTOR_CHART="0.1-SNAPSHOT-2375669729-20-79c4e23"
+            export CASTOR_IMAGE="0.1-SNAPSHOT-2375669729-20-79c4e23"
+            export AMPHORA_CHART="0.1-SNAPSHOT-1576737535-6-7798b9e"
+            export AMPHORA_IMAGE="0.1-SNAPSHOT-1576737535-6-7798b9e"
+            export EPHEMERAL_CHART="0.1-SNAPSHOT-4243288527-23-5bd2cf6"
+            export EPHEMERAL_DISCOVERY="0.1-SNAPSHOT-2804677120-20-efc7f8d"
+            export EPHEMERAL_IMAGE="0.1-SNAPSHOT-2804677120-20-efc7f8d"
+            export EPHEMERAL_NET_CONTROLLER_IMAGE="0.1-SNAPSHOT-2804677120-20-efc7f8d"
+            export KLYSHKO_CHART="0.2.0"
+            export KLYSHKO_CONTROLLER_IMAGE="0.2.0"
+            export KLYSHKO_PROVISIONER_IMAGE="0.1.0"
 
             # temporary
             git clone https://github.com/juliangrewe-bosch/caliper.git "$HOME/caliper"
@@ -111,19 +123,19 @@ jobs:
             export DATE=$(date +"%d-%m-%Y")
             mike deploy "$DATE" latest --push --update-aliases
 
-#  destroy:
-#    needs: caliper
-#    if: always()
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Azure Login
-#        uses: azure/login@v1
-#        with:
-#          creds: ${{ secrets.AZURE_CREDENTIALS }}
-#
-#      - name: Azure CLI script
-#        uses: azure/CLI@v1
-#        with:
-#          azcliversion: 2.30.0
-#          inlineScript: |
-#            az group delete --name caliper-rg --yes#
+  destroy:
+    needs: caliper
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Azure CLI script
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
+            az group delete --name caliper-rg --yes

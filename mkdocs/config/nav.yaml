@@ -2,21 +2,21 @@ nav:
   - Home: index.md
   - Amphora:
       - createSecret:
-          - 100000_secret_values: reports/amphora/createSecret_scenario/100000_secret_values.md
-          - 300000_secret_values: reports/amphora/createSecret_scenario/300000_secret_values.md
+          - 100000_secret_values: reports/amphora/createSecret_scenario/100_000_secret_values.md
+          - 300000_secret_values: reports/amphora/createSecret_scenario/250_000_secret_values.md
       - getSecrets:
-          - 100000_secret_values: reports/amphora/getSecrets_scenario/100000_secret_values.md
-          - 300000_secret_values: reports/amphora/getSecrets_scenario/300000_secret_values.md
+          - 100000_secret_values: reports/amphora/getSecrets_scenario/100_000_secret_values.md
+          - 300000_secret_values: reports/amphora/getSecrets_scenario/250_000_secret_values.md
       - deleteSecret:
           - 400000_concurrency_10: reports/amphora/getSecrets_scenario/400000_concurrency_10.md
 
   - Castor:
       - createSecret:
-         - 100000_secret_values: reports/castor/createSecret_scenario/100000_secret_values.md
-         - 300000_secret_values: reports/castor/createSecret_scenario/300000_secret_values.md
+         - 100000_secret_values: reports/castor/createSecret_scenario/100_000_secret_values.md
+         - 300000_secret_values: reports/castor/createSecret_scenario/250_000_secret_values.md
       - getSecrets:
-         - 100000_secret_values: reports/castor/getSecrets_scenario/100000_secret_values.md
-         - 300000_secret_values: reports/castor/getSecrets_scenario/300000_secret_values.md
+         - 100000_secret_values: reports/castor/getSecrets_scenario/100_000_secret_values.md
+         - 300000_secret_values: reports/castor/getSecrets_scenario/250_000_secret_values.md
       - deleteSecret:
          - 400000_concurrency_10: reports/castor/getSecrets_scenario/400000_concurrency_10.md
   - Ephemeral:
