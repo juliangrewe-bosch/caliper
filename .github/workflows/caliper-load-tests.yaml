@@ -106,6 +106,8 @@ jobs:
           username: caliper
           key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           script: |
+            export PATH="$HOME"/.local/bin
+
             pip install mkdocs-material
             pip install mike
 
@@ -123,19 +125,19 @@ jobs:
             export DATE=$(date +"%d-%m-%Y")
             mike deploy "$DATE" latest --push --update-aliases
 
-  destroy:
-    needs: caliper
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Azure CLI script
-        uses: azure/CLI@v1
-        with:
-          azcliversion: 2.30.0
-          inlineScript: |
-            az group delete --name caliper-rg --yes
+#  destroy:
+#    needs: caliper
+#    if: always()
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Azure Login
+#        uses: azure/login@v1
+#        with:
+#          creds: ${{ secrets.AZURE_CREDENTIALS }}
+#
+#      - name: Azure CLI script
+#        uses: azure/CLI@v1
+#        with:
+#          azcliversion: 2.30.0
+#          inlineScript: |
+#            az group delete --name caliper-rg --yes
