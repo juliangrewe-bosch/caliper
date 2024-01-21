@@ -15,8 +15,7 @@ jobs:
           username: caliper
           key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           script: |
-            env
-            export PATH="$HOME"/.local/bin
+            PATH=$PATH:~/.local/bin
 
             pip install mkdocs-material
             pip install mike
