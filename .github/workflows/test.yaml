@@ -8,16 +8,18 @@ jobs:
   caliper:
     runs-on: ubuntu-latest
     steps:
-      - name: Copy Caliper Repository
-        id: copy
+      - uses: actions/checkout@v4
+      - name: Copy MkDocs Directory
+        id: copy-mkdocs
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.CALIPER_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 137.135.206.217 >> ~/.ssh/known_hosts
 
-          scp caliper@137.135.206.217:/home/caliper/caliper.zip $GITHUB_WORKSPACE
-          unzip caliper.zip
+          scp caliper@137.135.206.217:/home/caliper/mkdocs.zip $GITHUB_WORKSPACE
+          unzip mkdocs.zip
+        working-directory: caliper
 
       - name: test
         uses: appleboy/ssh-action@v1.0.3
