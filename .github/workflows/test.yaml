@@ -21,7 +21,7 @@ jobs:
             pip install mike
 
             export GIT_COMMITTER_NAME=juliangrewe-bosch
-            export GIT_COMMITTER_EMAIL =julian.grewe@de.bosch.com
+            export GIT_COMMITTER_EMAIL=julian.grewe@de.bosch.com
 
             cd "$HOME"/caliper/mkdocs || exit 1
 
