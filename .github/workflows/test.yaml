@@ -19,8 +19,8 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 137.135.206.217 >> ~/.ssh/known_hosts
 
-          scp caliper@137.135.206.217:/home/caliper/caliper/mkdocs/docs/images/charts.zip
-          unzip mkdocs.zip
+          scp caliper@137.135.206.217:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
+          unzip charts.zip
           cp -r charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
 
       - name: test
