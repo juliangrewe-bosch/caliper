@@ -19,7 +19,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 137.135.206.217 >> ~/.ssh/known_hosts
 
-          scp caliper@137.135.206.217:/home/caliper/mkdocs.zip .
+          scp caliper@137.135.206.217:/home/caliper/caliper/mkdocs.zip .
           unzip mkdocs.zip
           mv mkdocs $GITHUB_WORKSPACE/caliper
 
