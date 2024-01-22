@@ -1,7 +1,7 @@
 name: 'Caliper-Load-Tests'
 
 on:
-  push:
+  #push:
   workflow_dispatch:
 
 concurrency:
@@ -106,18 +106,15 @@ jobs:
           username: caliper
           key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           script: |
-            export PATH="$HOME"/.local/bin
+            PATH=$PATH:~/.local/bin
 
             pip install mkdocs-material
             pip install mike
 
-            export GITHUB_USER=juliangrewe-bosch
-            export GITHUB_USER_MAIL=julian.grewe@de.bosch.com
+            export GIT_COMMITTER_NAME=juliangrewe-bosch
+            export GIT_COMMITTER_EMAIL =julian.grewe@de.bosch.com
 
             cd "$HOME"/caliper/mkdocs || exit 1
-
-            git config --local user.email "$GITHUB_USER_MAIL"
-            git config --local user.name "$GITHUB_USER"
 
             git fetch origin
             git branch gh-pages origin/gh-pages

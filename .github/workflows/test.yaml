@@ -8,6 +8,14 @@ jobs:
   caliper:
     runs-on: ubuntu-latest
     steps:
+      - name: test-ssh
+        run: |
+          mkdir -p ~/.ssh
+            echo ${{ secrets.CALPER_PRIVATE_KEY }} > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
+            ssh caliper@137.135.206.217
+
       - name: test
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -15,18 +23,18 @@ jobs:
           username: caliper
           key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           script: |
-            PATH=$PATH:~/.local/bin
-
-            pip install mkdocs-material
-            pip install mike
-
-            export GIT_COMMITTER_NAME=juliangrewe-bosch
-            export GIT_COMMITTER_EMAIL=julian.grewe@de.bosch.com
-
-            cd "$HOME"/caliper/mkdocs || exit 1
-
-            git fetch origin
-            git branch gh-pages origin/gh-pages
-
-            export DATE=$(date +"%d-%m-%Y")
-            mike deploy "$DATE" latest --push --update-aliases
+#            PATH=$PATH:~/.local/bin
+#
+#            pip install mkdocs-material
+#            pip install mike
+#
+#            export GIT_COMMITTER_NAME=juliangrewe-bosch
+#            export GIT_COMMITTER_EMAIL=julian.grewe@de.bosch.com
+#
+#            cd "$HOME"/caliper/mkdocs || exit 1
+#
+#            git fetch origin
+#            git branch gh-pages origin/gh-pages
+#
+#            export DATE=$(date +"%d-%m-%Y")
+#            mike deploy "$DATE" latest --push --update-aliases
