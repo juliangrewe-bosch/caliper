@@ -8,7 +8,8 @@ jobs:
   caliper:
     runs-on: ubuntu-latest
     steps:
-      - name: test-ssh
+      - name: Copy Caliper Repository
+        id: copy
         run: |
 
           mkdir -p ~/.ssh
@@ -16,7 +17,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 137.135.206.217 >> ~/.ssh/known_hosts
 
-          ssh -T caliper@137.135.206.217
+          scp . caliper@137.135.206.217:/$HOME/caliper.zip
 
       - name: test
         uses: appleboy/ssh-action@v1.0.3
