@@ -16,7 +16,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 137.135.206.217 >> ~/.ssh/known_hosts
 
-          scp . caliper@137.135.206.217:/home/caliper/caliper.zip
+          scp caliper@137.135.206.217:/$HOME/caliper.zip ${{ env.GITHUB_WORKSPACE }}
           unzip caliper.zip
 
       - name: test
