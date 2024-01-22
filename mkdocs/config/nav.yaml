@@ -17,7 +17,7 @@ nav:
           - 411_000_secret_values: reports/amphora/getSecrets_scenario/411_000_secret_values.md
           - 911_000_secret_values: reports/amphora/getSecrets_scenario/911_000_secret_values.md
       - deleteSecret:
-          - 1_661_000_secret_values: reports/amphora/deleteSecret_scenario/1_661_secret_values.md
+          - 1_661_000_secret_values: reports/amphora/deleteSecret_scenario/1_661_000_secret_values.md
 
   - Castor:
       - createSecret:
@@ -36,7 +36,7 @@ nav:
           - 411_000_secret_values: reports/castor/getSecrets_scenario/411_000_secret_values.md
           - 911_000_secret_values: reports/castor/getSecrets_scenario/911_000_secret_values.md
       - deleteSecret:
-          - 1_661_000_secret_values: reports/castor/deleteSecret_scenario/1_661_secret_values.md
+          - 1_661_000_secret_values: reports/castor/deleteSecret_scenario/1_661_000_secret_values.md
 
   - Ephemeral:
       - emptyProgram:

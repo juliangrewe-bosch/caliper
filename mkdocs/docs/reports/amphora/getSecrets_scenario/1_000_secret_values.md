@@ -18,8 +18,8 @@
 
 ## network_receive_bytes_total
 
-![Graph](../../../images/charts/amphorasimulation/amphora/amphora_createSecret_1000_container_network_receive_bytes_total.png)
+![Graph](../../../images/charts/amphorasimulation/amphora/amphora_getSecrets_1000_container_network_receive_bytes_total.png)
 
 ## network_transmit_bytes_total
 
-![Graph](../../../images/charts/amphorasimulation/amphora/amphora_createSecret_1000_container_network_transmit_bytes_total.png)
+![Graph](../../../images/charts/amphorasimulation/amphora/amphora_getSecrets_1000_container_network_transmit_bytes_total.png)
