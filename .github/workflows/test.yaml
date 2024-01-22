@@ -10,11 +10,13 @@ jobs:
     steps:
       - name: test-ssh
         run: |
-          mkdir -p ~/.ssh
-            echo ${{ secrets.CALPER_PRIVATE_KEY }} > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
 
-            ssh caliper@137.135.206.217
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan 137.135.206.217 >> ~/.ssh/known_hosts
+
+          ssh -T caliper@137.135.206.217
 
       - name: test
         uses: appleboy/ssh-action@v1.0.3
