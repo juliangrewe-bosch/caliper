@@ -41,7 +41,7 @@ jobs:
           git branch gh-pages origin/gh-pages
 
           export DATE=$(date +"%d-%m-%Y")
-          mike deploy "$DATE" --push latest --update-aliases
+          mike deploy "$DATE" latest --push --update-aliases
 
 #      - name: Push Changes to gh-pages
 #        id: push-changes
