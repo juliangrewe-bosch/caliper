@@ -292,10 +292,12 @@ A Simulation class contains multiple scenario(s),
 - Define scenario(s) which contain(s) group(s): The scenario name is not
   relevant and only used for logical separation. A group divides one or multiple
   requests for which the *response times* and *cAdvisor charts* are created.
-- The *generate_report.py* script automatically creates for each *group* the
+- The *generate_x\_.py* scripts automatically create for each *group* the
   corresponding charts.
 - If *groups* are created or deleted, the mkdocs report needs to be updated
   manually.
+  - Update nav.yaml to include or exclude the *group*
+  - Update the file in reports/(amphora|castor|ephemeral)
 
 ## Namesake
 

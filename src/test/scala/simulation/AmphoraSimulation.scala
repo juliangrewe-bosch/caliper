@@ -119,9 +119,9 @@ class AmphoraSimulation extends Simulation {
     .pause(60 * 3)
     .exec(performGetSecretsRequest("getSecrets_411000"))
     .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(450000), 1,"createSecret_500000"))
+    .exec(performCreateSecretRequest(generateFeeder(450000), 1,"createSecret_450000"))
     .pause(60 * 3)
-    .exec(performGetSecretsRequest("getSecrets_811000"))
+    .exec(performGetSecretsRequest("getSecrets_861000"))
     .pause(60 * 3)
 
   //  val loadedSystemScenario = scenario("loaded_system_scenario")
@@ -154,40 +154,25 @@ class AmphoraSimulation extends Simulation {
   //    }
   //    .pause(60 * 3)
 
+//
 //  val responseTimesScenario = scenario("response_times_scenario")
-//    .exec(performCreateSecretRequest(generateFeeder(1000), 1, "createSecret_1000"))
+//    .exec(performCreateSecretRequest(generateFeeder(1000), 10, "createSecret_1000_response_times"))
 //    .pause(60 * 3)
-//    .exec(performGetSecretsRequest("getSecrets_1000"))
+//    .exec(performCreateSecretRequest(generateFeeder(10000), 10, "createSecret_10000_response_times"))
 //    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(10000), 1, "createSecret_10000"))
+//    .exec(performCreateSecretRequest(generateFeeder(50000), 10, "createSecret_50000_response_times"))
 //    .pause(60 * 3)
-//    .exec(performGetSecretsRequest("getSecrets_11000"))
+//    .exec(performCreateSecretRequest(generateFeeder(100000), 5, "createSecret_100000_response_times"))
 //    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(50000), 1, "createSecret_50000"))
+//    .exec(performCreateSecretRequest(generateFeeder(250000), 1, "createSecret_250000_response_times"))
 //    .pause(60 * 3)
-//    .exec(performGetSecretsRequest("getSecrets_61000"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(100000), 1, "createSecret_100000"))
-//    .pause(60 * 3)
-//    .exec(performGetSecretsRequest("getSecrets_161000"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(250000), 1, "createSecret_250000"))
-//    .pause(60 * 3)
-//    .exec(performGetSecretsRequest("getSecrets_411000"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(500000), 1, "createSecret_500000"))
-//    .pause(60 * 3)
-//    .exec(performGetSecretsRequest("getSecrets_911000"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(750000), 1, "createSecret_750000"))
+//    .exec(performCreateSecretRequest(generateFeeder(400000), 1, "createSecret_400000_response_times"))
 //    .pause(60 * 3)
 
 
   val deleteAllSecrets = scenario("deleteAllSecrets")
-    .exec(group("getSecrets_1661000") {
-      exec(amphora.getSecrets())
-    })
-    .exec(group("deleteSecret_1661000") {
+    .exec(amphora.getSecrets())
+    .exec(group("deleteSecret_861000") {
       foreach("#{uuids}", "uuid") {
         exec(amphora.deleteSecret("#{uuid}"))
       }
