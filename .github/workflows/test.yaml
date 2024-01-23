@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   caliper:
     runs-on: ubuntu-latest
@@ -39,3 +42,13 @@ jobs:
 
           export DATE=$(date +"%d-%m-%Y")
           mike deploy "$DATE" latest --update-aliases
+
+          git status
+
+#      - name: Push Changes to gh-pages
+#        id: push-changes
+#        uses: stefanzweifel/git-auto-commit-action@v5
+#        with:
+#          branch: gh-pages
+#          file_pattern: mkdocs/*
+#        working-directory: caliper
