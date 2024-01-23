@@ -39,7 +39,7 @@ class AmphoraAction[R](
         case _: Unit =>
         case other => throw new IllegalArgumentException(s"Unexpected response type: ${other.getClass.getName}")
       }
-      val modifiedSession = session.set("uuids", uuids)
+      val modifiedSession = if (!uuids.isEmpty) session.set("uuids", uuids) else session
 
       coreComponents.statsEngine.logResponse(
         modifiedSession.scenario,

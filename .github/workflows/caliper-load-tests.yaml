@@ -4,6 +4,9 @@ on:
   #push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: "Caliper"
   cancel-in-progress: false
@@ -12,6 +15,10 @@ jobs:
   caliper:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: caliper
+
       - uses: actions/checkout@v3
         with:
           repository: juliangrewe-bosch/carbynestack #TODO replace with carbynestack/carbynestack
@@ -98,29 +105,33 @@ jobs:
             mv "$HOME/caliper/scripts/run_caliper_load_tests.sh" "$HOME"
             "$HOME/run_caliper_load_tests.sh"
 
-      - name: Deploy latest Report to gh-pages
+              zip -r "$HOME"/caliper/mkdocs/docs/images/charts.zip "$HOME"/caliper/mkdocs/docs/images/charts/
+
+      - name: Copy Report Charts
+        id: copy-charts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CALIPER_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan ${{ env.AZURE_VM_IP }} >> ~/.ssh/known_hosts
+
+          scp caliper@${{ env.AZURE_VM_IP }}:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
+          unzip charts.zip
+          cp -r charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
+
+      - name: Deploy latest Report
         id: deploy-report
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ env.AZURE_VM_IP }}
-          username: caliper
-          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
-          script: |
-            PATH=$PATH:~/.local/bin
+        run: |
+          pip install mkdocs-material
+          pip install mike
 
-            pip install mkdocs-material
-            pip install mike
+          cd $GITHUB_WORKSPACE/caliper/mkdocs || exit 1
 
-            export GIT_COMMITTER_NAME=juliangrewe-bosch
-            export GIT_COMMITTER_EMAIL =julian.grewe@de.bosch.com
+          git fetch origin
+          git branch gh-pages origin/gh-pages
 
-            cd "$HOME"/caliper/mkdocs || exit 1
-
-            git fetch origin
-            git branch gh-pages origin/gh-pages
-
-            export DATE=$(date +"%d-%m-%Y")
-            mike deploy "$DATE" latest --push --update-aliases
+          export DATE=$(date +"%d-%m-%Y")
+          mike deploy "$DATE" latest --push --update-aliases
 
 #  destroy:
 #    needs: caliper

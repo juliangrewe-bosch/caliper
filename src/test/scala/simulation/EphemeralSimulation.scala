@@ -2,7 +2,9 @@ package simulation
 
 import io.carbynestack.amphora.client.Secret
 import io.carbynestack.amphora.common.{Tag, TagValueType}
+import io.gatling.app.Gatling
 import io.gatling.core.Predef._
+import io.gatling.core.config.GatlingPropertiesBuilder
 import org.gatling.plugin.carbynestack.PreDef._
 
 import scala.jdk.CollectionConverters._
@@ -176,4 +178,13 @@ class EphemeralSimulation extends Simulation {
       .andThen(scalarValueOptProgramScenario.inject(atOnceUsers(1)))
       .andThen(deleteAllSecretsAfterScalarValueOptProgramScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
+}
+
+object Main {
+  def main(args: Array[String]): Unit =
+    Gatling.fromMap(
+      (new GatlingPropertiesBuilder)
+        .simulationClass(classOf[EphemeralSimulation].getName)
+        .build,
+    )
 }
