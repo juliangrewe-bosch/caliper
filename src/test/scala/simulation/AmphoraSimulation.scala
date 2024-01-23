@@ -119,12 +119,10 @@ class AmphoraSimulation extends Simulation {
     .pause(60 * 3)
     .exec(performGetSecretsRequest("getSecrets_411000"))
     .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(500000), 1,"createSecret_500000"))
-//    .pause(60 * 3)
-//    .exec(performGetSecretsRequest("getSecrets_911000"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(750000), 1,"createSecret_750000"))
-//    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(450000), 1,"createSecret_500000"))
+    .pause(60 * 3)
+    .exec(performGetSecretsRequest("getSecrets_811000"))
+    .pause(60 * 3)
 
   //  val loadedSystemScenario = scenario("loaded_system_scenario")
   //    .group("createSecret_2000000_empty") {
