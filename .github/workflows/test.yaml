@@ -19,35 +19,23 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 137.135.206.217 >> ~/.ssh/known_hosts
 
-          cd $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/charts/amphorasimulation/amphora
-          ls
-
           scp caliper@137.135.206.217:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
           unzip charts.zip
           cp -r charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
 
-          cd $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/charts/amphorasimulation/amphora
-          ls
+      - name: Deploy latest Report
+        id: deploy-report
+        run: |
+          pip install mkdocs-material
+          pip install mike
 
-      - name: test
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 137.135.206.217
-          username: caliper
-          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
-          script: |
-#            PATH=$PATH:~/.local/bin
-#
-#            pip install mkdocs-material
-#            pip install mike
-#
-#            export GIT_COMMITTER_NAME=juliangrewe-bosch
-#            export GIT_COMMITTER_EMAIL=julian.grewe@de.bosch.com
-#
-#            cd "$HOME"/caliper/mkdocs || exit 1
-#
-#            git fetch origin
-#            git branch gh-pages origin/gh-pages
-#
-#            export DATE=$(date +"%d-%m-%Y")
-#            mike deploy "$DATE" latest --push --update-aliases
+          git config user.name juliangrewe-bosch
+          git config user.email julian.grewe@de.bosch.com
+
+          cd $GITHUB_WORKSPACE/caliper/mkdocs || exit 1
+
+          git fetch origin
+          git branch gh-pages origin/gh-pages
+
+          export DATE=$(date +"%d-%m-%Y")
+          mike deploy "$DATE" latest --update-aliases
