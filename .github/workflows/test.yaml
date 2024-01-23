@@ -29,10 +29,10 @@ jobs:
           pip install mkdocs-material
           pip install mike
 
+          cd $GITHUB_WORKSPACE/caliper/mkdocs || exit 1
+
           git config user.name juliangrewe-bosch
           git config user.email julian.grewe@de.bosch.com
-
-          cd $GITHUB_WORKSPACE/caliper/mkdocs || exit 1
 
           git fetch origin
           git branch gh-pages origin/gh-pages
