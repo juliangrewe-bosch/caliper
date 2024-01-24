@@ -34,6 +34,9 @@ jobs:
 
           cd $GITHUB_WORKSPACE/caliper/mkdocs || exit 1
 
+          git config user.name juliangrewe-bosch
+          git config user.email julian.grewe@de.bosch.com
+
           git fetch origin
           git branch gh-pages origin/gh-pages
 
