@@ -179,12 +179,3 @@ class EphemeralSimulation extends Simulation {
       .andThen(deleteAllSecretsAfterScalarValueOptProgramScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }
-
-object Main {
-  def main(args: Array[String]): Unit =
-    Gatling.fromMap(
-      (new GatlingPropertiesBuilder)
-        .simulationClass(classOf[EphemeralSimulation].getName)
-        .build,
-    )
-}
