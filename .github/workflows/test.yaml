@@ -1,7 +1,7 @@
 name: 'Test'
 
 on:
-  #push:
+  push:
   workflow_dispatch:
 
 permissions:
@@ -20,11 +20,12 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.CALIPER_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan 137.135.206.217 >> ~/.ssh/known_hosts
+          ssh-keyscan 13.69.143.73 >> ~/.ssh/known_hosts
 
-          scp caliper@137.135.206.217:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
+          scp caliper@13.69.143.73:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
           unzip charts.zip
-          cp -r charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
+          cp -r $GITHUB_WORKSPACE/charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
+
 
       - name: Deploy latest Report
         id: deploy-report

@@ -22,8 +22,17 @@ STARBUCK_PROMETHEUS_CLIENT = PrometheusConnect(url=f"http://{STARBUCK_NODE_IP}:{
                                                disable_ssl=True)
 
 END_TIME = datetime.now(timezone.utc)  # Prometheus uses UTC
-START_TIME = END_TIME - timedelta(hours=1) #TODO change to 5
+START_TIME = END_TIME - timedelta(hours=5)
 
+"""
+Graphite and InfluxDB can’t store distributions but only numbers.
+As a result, only one-second-resolution non-aggregated response time stats are correct.
+
+That means all statistics for a single request hold the same value which is the response time but gatling
+still exports all statistics (min, max, mean, ...), to reduce the size of the dataset only one metric
+is fetched, e.g. percentiles99
+
+"""
 AMPHORA_SIMULATION_GROUPS = 'caliper{simulation="amphorasimulation", metric="percentiles99", scope="ok"}'
 EPHEMERAL_SIMULATION_GROUPS = 'caliper{simulation="ephemeralsimulation", metric="percentiles99", scope="ok"}'
 
