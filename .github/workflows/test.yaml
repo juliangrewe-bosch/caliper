@@ -23,7 +23,9 @@ jobs:
           ssh-keyscan 13.69.143.73 >> ~/.ssh/known_hosts
 
           scp caliper@13.69.143.73:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
+          pwd
           unzip charts.zip
+          ls -l
           cp -r $GITHUB_WORKSPACE/charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
 
 
