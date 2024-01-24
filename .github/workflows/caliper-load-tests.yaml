@@ -105,7 +105,8 @@ jobs:
             mv "$HOME/caliper/scripts/run_caliper_load_tests.sh" "$HOME"
             "$HOME/run_caliper_load_tests.sh"
 
-            zip -r charts.zip "$HOME"/caliper/mkdocs/docs/images/charts/
+            cd "$HOME"/caliper/mkdocs/docs/images/ || exit 1
+            zip -r charts.zip charts/
 
       - name: Copy Report Charts
         id: copy-charts
@@ -115,7 +116,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan ${{ env.AZURE_VM_IP }} >> ~/.ssh/known_hosts
 
-          scp caliper@${{ env.AZURE_VM_IP }}:/home/caliper/charts.zip .
+          scp caliper@${{ env.AZURE_VM_IP }}:/home/caliper/mkdocs/docs/images/charts.zip .
           unzip charts.zip
           cp -r $GITHUB_WORKSPACE/charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
 
