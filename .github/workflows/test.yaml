@@ -22,7 +22,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 13.69.143.73 >> ~/.ssh/known_hosts
 
-          scp caliper@13.69.143.73:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
+          scp caliper@13.69.143.73:/home/caliper/charts.zip .
           pwd
           unzip charts.zip
           ls -l
