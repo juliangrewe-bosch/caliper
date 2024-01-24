@@ -116,7 +116,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan ${{ env.AZURE_VM_IP }} >> ~/.ssh/known_hosts
 
-          scp caliper@${{ env.AZURE_VM_IP }}:/home/caliper/mkdocs/docs/images/charts.zip .
+          scp caliper@${{ env.AZURE_VM_IP }}:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
           unzip charts.zip
           cp -r $GITHUB_WORKSPACE/charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
 
