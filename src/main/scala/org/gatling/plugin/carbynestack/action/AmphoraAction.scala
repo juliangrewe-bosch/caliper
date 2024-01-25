@@ -1,6 +1,6 @@
 package org.gatling.plugin.carbynestack.action
 
-import io.carbynestack.amphora.client.AmphoraClient
+import io.carbynestack.amphora.client.{AmphoraClient, Secret}
 import io.carbynestack.amphora.common.Metadata
 import io.gatling.commons.stats.{KO, OK}
 import io.gatling.core.CoreComponents
@@ -36,6 +36,7 @@ class AmphoraAction[R](
           list.asScala.foreach {
             case metadata: Metadata => uuids.add(metadata.getSecretId)
           }
+        case _: Secret =>
         case _: Unit =>
         case other => throw new IllegalArgumentException(s"Unexpected response type: ${other.getClass.getName}")
       }

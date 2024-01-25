@@ -7,7 +7,7 @@ nav:
           - createSecret_50000: reports/amphora/createSecret/createSecret_50000.md
           - createSecret_100000: reports/amphora/createSecret/createSecret_100000.md
           - createSecret_250000: reports/amphora/createSecret/createSecret_250000.md
-          - createSecret_450000: reports/amphora/createSecret/createSecret_450000.md
+          - createSecret_450000: reports/amphora/createSecret/createSecret_400000.md
       - getSecrets:
           - getSecrets_1000: reports/amphora/getSecrets/getSecrets_1000.md
           - getSecrets_11000: reports/amphora/getSecrets/getSecrets_11000.md
@@ -16,7 +16,7 @@ nav:
           - getSecrets_411000: reports/amphora/getSecrets/getSecrets_411000.md
           - getSecrets_861000: reports/amphora/getSecrets/getSecrets_861000.md
       - deleteSecret:
-          - deleteSecret_861000: reports/amphora/deleteSecret/deleteSecret_861000.md
+          - deleteSecret_861000: reports/amphora/deleteSecret/deleteSecret_811000.md
 
   - Castor:
       - createSecret:
@@ -25,7 +25,7 @@ nav:
           - createSecret_50000: reports/castor/createSecret/createSecret_50000.md
           - createSecret_100000: reports/castor/createSecret/createSecret_100000.md
           - createSecret_250000: reports/castor/createSecret/createSecret_250000.md
-          - createSecret_450000: reports/castor/createSecret/createSecret_450000.md
+          - createSecret_450000: reports/castor/createSecret/createSecret_400000.md
       - getSecrets:
           - getSecrets_1000: reports/castor/getSecrets/getSecrets_1000.md
           - getSecrets_11000: reports/castor/getSecrets/getSecrets_11000.md
@@ -34,7 +34,7 @@ nav:
           - getSecrets_411000: reports/castor/getSecrets/getSecrets_411000.md
           - getSecrets_861000: reports/castor/getSecrets/getSecrets_861000.md
       - deleteSecret:
-          - deleteSecret_861000: reports/castor/deleteSecret/deleteSecret_861000.md
+          - deleteSecret_861000: reports/castor/deleteSecret/deleteSecret_811000.md
 
   - Ephemeral:
       - emptyProgram:

@@ -33,6 +33,18 @@ class Amphora() {
       (client, _) => client.getSecrets()
     )
 
+  def getSecret(uuid: Expression[java.util.UUID]): AmphoraActionBuilder[Secret] =
+    new AmphoraActionBuilder[Secret](
+      new AmphoraClientBuilder,
+      (client, session) => {
+        val uuidValue = uuid(session) match{
+          case Success(value) => value
+          case Failure(message) => throw new IllegalArgumentException(message)
+        }
+        client.getSecret(uuidValue)
+      }
+    )
+
   def deleteSecret(uuid: Expression[java.util.UUID]): AmphoraActionBuilder[Unit] =
     new AmphoraActionBuilder[Unit](
       new AmphoraClientBuilder,
