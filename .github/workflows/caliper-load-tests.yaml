@@ -105,10 +105,18 @@ jobs:
             mv "$HOME/caliper/scripts/run_caliper_load_tests.sh" "$HOME"
             "$HOME/run_caliper_load_tests.sh"
 
+      - name: Zip Charts
+        id: zip-charts
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.AZURE_VM_IP }}
+          username: caliper
+          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
+          script: |
             cd "$HOME"/caliper/mkdocs/docs/images/ || exit 1
             zip -r charts.zip charts/
 
-      - name: Copy Report Charts
+      - name: Copy Charts
         id: copy-charts
         run: |
           mkdir -p ~/.ssh
