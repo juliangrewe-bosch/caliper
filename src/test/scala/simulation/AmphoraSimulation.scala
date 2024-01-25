@@ -108,15 +108,15 @@ class AmphoraSimulation extends Simulation {
     .pause(60 * 3)
     .exec(performCreateSecretRequest(generateFeeder(10000), 1, "createSecret_10000")) //13000
     .pause(60 * 3)
-    .exec(performGetSecretRequest("getSecrets_11000")) //35000
+    .exec(performGetSecretRequest("getSecret_11000")) //35000
     .pause(60 * 3)
     .exec(performCreateSecretRequest(generateFeeder(50000), 1, "createSecret_50000")) //85000
     .pause(60 * 3)
-    .exec(performGetSecretRequest("getSecrets_61000")) //207000
+    .exec(performGetSecretRequest("getSecret_61000")) //207000
     .pause(60 * 3)
     .exec(performCreateSecretRequest(generateFeeder(100000), 1, "createSecret_100000")) //307000
     .pause(60 * 3)
-    .exec(performGetSecretRequest("getSecrets_161000")) //629000
+    .exec(performGetSecretRequest("getSecret_161000")) //629000
     .pause(60 * 3)
     .exec(performCreateSecretRequest(generateFeeder(250000), 1, "createSecret_250000")) //879000
     .pause(60 * 10) // genereate tuples

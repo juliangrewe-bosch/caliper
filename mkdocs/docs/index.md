@@ -1,7 +1,5 @@
 # Caliper Report
 
-finale
-
 ## Test Environment
 
 | Size           | vCPU | Memory (GiB) | Temp storage SSD (GiB) | Max temp storage throughput: IOPS/ Read MBps/ Write MBps | Max data disks | Throughput IOPS | Max NICs | Expected network bandwidth (Mbps) |
@@ -28,14 +26,17 @@ resources to maintain node performance and functionality (see
 | -------------------------------- | --------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------ | -------------------------------- |
 | create_values_10000              | Evaluate performance when uploading secrets with small secret size    | 1 Virtual User  | Upload the secret                                                                                | fixed secret size, fixed tags    |
 | create_values_50000              | Evaluate performance when uploading secrets with larger secret size   | 1 Virtual User  | Upload the secret                                                                                | fixed secret size, fixed tags    |
-| create_values_50000_under_load   | Evaluate performance when uploading secrets when system is under load | 1 Virtual User  | Upload the secret after 2.000.000 secrets were uploaded                                          | fixed secret size, fixed tags    |
+| create_values_50000_under_load   | Evaluate performance when uploading secrets when system is under load | 1 Virtual User  | Upload the secret after 1.000.000 secrets were uploaded                                          | fixed secret size, fixed tags    |
 | createSecret_getSecrets_parallel | Evaluate performance during concurrent operations                     | 10 Virtual User | Secrets are uploaded by 5 users concurrently, and parallel 5 users download secrets concurrently | variable secret size, fixed tags |
+| getSecret_10000                  | Evaluate performance when downloading secrets with small secret size  | 1 Virtual User  | Download all secrets                                                                             | fixed secret size, fixed tags    |
+| getSecret_61000                  | Evaluate performance when downloading secrets with larger secret size | 1 Virtual User  | Download all secrets                                                                             | fixed secret size, fixed tags    |
+| getSecret_161000                 | Evaluate performance when downloading secrets with large secret size  | 1 Virtual User  | Download all secrets                                                                             | fixed secret size, fixed tags    |
 
 ## Castor
 
 _Castor_ offers no _Client Interface_, therefore cAdvisor metrics for _Castor_
 are collected during the execution of _Amphora_ and _Ephemeral_ scenario(s). For
-each group a the corresponding charts are created.
+each group the corresponding charts are created.
 
 ## Ephemeral
 
