@@ -9,6 +9,7 @@ import io.gatling.core.session.Session
 import io.gatling.core.util.NameGen
 
 import scala.jdk.CollectionConverters._
+import scala.util.control.NonFatal
 
 class AmphoraAction[R](
   client: AmphoraClient,
@@ -54,7 +55,7 @@ class AmphoraAction[R](
       )
       next ! modifiedSession
     } catch {
-      case e: Throwable =>
+      case NonFatal(e) =>
         logger.error(e.getMessage, e)
         coreComponents.statsEngine.logResponse(
           session.scenario,

@@ -8,6 +8,8 @@ import io.gatling.core.session.Session
 import io.gatling.core.util.NameGen
 import io.vavr.concurrent.Future
 
+import scala.util.control.NonFatal
+
 class EphemeralAction(
   client: EphemeralMultiClient,
   requestFunction: (EphemeralMultiClient, Session) => Future[
@@ -43,7 +45,7 @@ class EphemeralAction(
       )
       next ! session
     } catch {
-      case e: Throwable =>
+      case NonFatal(e) =>
         logger.error(e.getMessage, e)
         coreComponents.statsEngine.logResponse(
           session.scenario,

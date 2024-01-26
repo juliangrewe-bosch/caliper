@@ -131,16 +131,26 @@ jobs:
       - name: Deploy latest Report
         id: deploy-report
         run: |
-          pip install mkdocs-material
-          pip install mike
+          export GITHUB_USERNAME=juliangrewe-bosch
+          export GITHUB_EMAIL=julian.grewe@de.bosch.com
+
+          pip install mkdocs-material >/dev/null
+          pip install mike >/dev/null
 
           cd $GITHUB_WORKSPACE/caliper/mkdocs || exit 1
+
+          git config user.name $GITHUB_USERNAME
+          git config user.email $GITHUB_EMAIL
 
           git fetch origin
           git branch gh-pages origin/gh-pages
 
+          # mike list
+          # mike delete [identifier]
+          # keep only latest 10 entries
           export DATE=$(date +"%d-%m-%Y")
           mike deploy "$DATE" latest --push --update-aliases
+
 
 #  destroy:
 #    needs: caliper

@@ -98,6 +98,6 @@ kubectl config use-context starbuck-private
 export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
 pip3 install -r scripts/python/requirements.txt >/dev/null
-#python3 scripts/python/generate_gatling_charts.py
-#python3 scripts/python/generate_cAdvisor_charts.py
-#python3 scripts/python/generate_report_files.py
+python3 scripts/python/generate_gatling_charts.py
+python3 scripts/python/generate_cAdvisor_charts.py
+python3 scripts/python/generate_report_files.py

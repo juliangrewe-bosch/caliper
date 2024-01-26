@@ -7,8 +7,11 @@
         </encoder>
         <immediateFlush>false</immediateFlush>
     </appender>
-    <root level="DEBUG">
+
+    <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>
+
+<!--    <logger name="org.gatling.plugin.carbynestack" level="INFO"/>-->
 
 </configuration>

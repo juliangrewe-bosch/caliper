@@ -2,9 +2,7 @@ package simulation
 
 import io.carbynestack.amphora.client.Secret
 import io.carbynestack.amphora.common.{Tag, TagValueType}
-import io.gatling.app.Gatling
 import io.gatling.core.Predef._
-import io.gatling.core.config.GatlingPropertiesBuilder
 import org.gatling.plugin.carbynestack.PreDef._
 
 import scala.jdk.CollectionConverters._
@@ -74,13 +72,14 @@ class EphemeralSimulation extends Simulation {
       )
       .asJava
 
-  val secretValues: Int = 10
-  val dataSize: Int = secretValues * 2
+  val numberOfSecretValues: Int = 10
+  val dataSize: Int = numberOfSecretValues * 2
+  val secretValue: String = "10"
 
   val feeder = Iterator.continually {
     Map(
       "secret" -> Secret
-        .of(vectorBTag, Array.fill[java.math.BigInteger](secretValues)(new java.math.BigInteger("10")))
+        .of(vectorBTag, Array.fill[java.math.BigInteger](numberOfSecretValues)(new java.math.BigInteger(secretValue)))
     )
   }
 
@@ -98,9 +97,9 @@ class EphemeralSimulation extends Simulation {
        |acceptclientconnection(socket_id, port)
        |data = Array.create_from(sint.read_from_socket(socket_id, $dataSize))
        |scalar_product = Array(1, sint)
-       |@for_range($secretValues)
+       |@for_range($numberOfSecretValues)
        |def f(i):
-       |   scalar_product[0] += data[i] * data[$secretValues + i]
+       |   scalar_product[0] += data[i] * data[$numberOfSecretValues + i]
        |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
 
   val scalarValueProgramOpt: String =
@@ -110,21 +109,9 @@ class EphemeralSimulation extends Simulation {
        |acceptclientconnection(socket_id, port)
        |data = Array.create_from(sint.read_from_socket(socket_id, $dataSize))
        |scalar_product = Array(1, sint)
-       |@for_range_opt($secretValues)
+       |@for_range_opt($numberOfSecretValues)
        |def f(i):
-       |   scalar_product[0] += data[i] * data[$secretValues + i]
-       |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
-
-  val additionProgram: String =
-    s"""port=regint(10000)
-       |listen(port)
-       |socket_id = regint()
-       |acceptclientconnection(socket_id, port)
-       |data = Array.create_from(sint.read_from_socket(socket_id, $dataSize))
-       |result = Array(1, sint)
-       |@for_range_opt($secretValues)
-       |def f(i):
-       |   result[0] += data[i] + data[$secretValues + i]
+       |   scalar_product[0] += data[i] * data[$numberOfSecretValues + i]
        |sint.write_to_socket(socket_id, scalar_product)""".stripMargin
 
   val emptyProgram: String =
@@ -145,12 +132,13 @@ class EphemeralSimulation extends Simulation {
     .feed((feeder))
     .exec(amphora.createSecret("#{secret}"))
     .exec(amphora.getSecrets())
-    .group("ephemeral_emptyProgram") {
+    .group("execute_empty") {
       repeat(1) {
         exec(ephemeral.execute(emptyProgram, "#{uuids}"))
       }
     }
-    .pause(60 * 5)
+    .exec(performDeleteSecretRequest())
+    .pause(60 * 3)
 
   val scalarValueOptProgramScenario = scenario("scalarValueOptProgramScenario")
     .feed(feeder)
@@ -158,24 +146,17 @@ class EphemeralSimulation extends Simulation {
     .feed((feeder))
     .exec(amphora.createSecret("#{secret}"))
     .exec(amphora.getSecrets())
-    .group("ephemeral_scalarValueOptProgram") {
+    .group("execute_scalarValue") {
       repeat(1) {
         exec(ephemeral.execute(scalarValueProgramOpt, "#{uuids}"))
       }
     }
-    .pause(60 * 5)
-
-  val deleteAllSecretsAfterEmptyProgramScenario = scenario("deleteAllSecretsAfterEmptyProgram")
     .exec(performDeleteSecretRequest())
-
-  val deleteAllSecretsAfterScalarValueOptProgramScenario = scenario("deleteAllSecretsAfterScalarValueOptProgram")
-    .exec(performDeleteSecretRequest())
+    .pause(60 * 3)
 
   setUp(
     emptyProgramScenario
       .inject(atOnceUsers(1))
-      .andThen(deleteAllSecretsAfterEmptyProgramScenario.inject(atOnceUsers(1)))
       .andThen(scalarValueOptProgramScenario.inject(atOnceUsers(1)))
-      .andThen(deleteAllSecretsAfterScalarValueOptProgramScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }

@@ -118,9 +118,13 @@ class AmphoraSimulation extends Simulation {
     .pause(60 * 3)
     .exec(performGetSecretRequest("getSecret_161000")) //629000
     .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(250000), 1, "createSecret_250000")) //879000
+    .exec(performCreateSecretRequest(generateFeeder(100000), 1, "")) //729000
+    .pause(60 * 3)
+    .exec(performGetSecretRequest("getSecret_261000")) //1151000
     .pause(60 * 10) // genereate tuples
-    .exec(performCreateSecretRequest(generateFeeder(400000), 1, "createSecret_400000")) //400000
+    .exec(performCreateSecretRequest(generateFeeder(250000), 1, "createSecret_250000")) //250000
+    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(400000), 1, "createSecret_400000")) //650000
     .pause(60 * 3)
 
   //  val loadedSystemScenario = scenario("loaded_system_scenario")
@@ -176,7 +180,7 @@ class AmphoraSimulation extends Simulation {
 
   val deleteAllSecrets = scenario("deleteAllSecrets")
     .exec(amphora.getSecrets())
-    .exec(group("test") {
+    .exec(group("deleteSecret_all ") {
       foreach("#{uuids}", "uuid") {
         exec(amphora.deleteSecret("#{uuid}"))
       }
