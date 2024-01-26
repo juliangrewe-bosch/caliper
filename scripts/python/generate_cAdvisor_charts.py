@@ -1,17 +1,21 @@
+import logging.config
 import os
 from datetime import datetime, timedelta, timezone
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import pandas as pd
+import yaml
 from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 
-# Path to the MkDocs folder
-home_dir = os.environ['HOME']
-AMPHORA_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'charts', 'amphorasimulation')
-EPHEMERAL_CHART_PATH = os.path.join(home_dir, 'caliper', 'mkdocs', 'docs', 'images', 'charts', 'ephemeralsimulation')
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger('generate_cAdvisor_charts')
 
-# Prometheus Server Address
+# config file
+with open('config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
 APOLLO_NODE_IP = os.environ['APOLLO_NODE_IP']
 STARBUCK_NODE_IP = os.environ['STARBUCK_NODE_IP']
 PROMETHEUS_SERVER_PORT = os.environ['PROMETHEUS_SERVER_PORT']
@@ -21,46 +25,26 @@ APOLLO_PROMETHEUS_CLIENT = PrometheusConnect(url=f"http://{APOLLO_NODE_IP}:{PROM
 STARBUCK_PROMETHEUS_CLIENT = PrometheusConnect(url=f"http://{STARBUCK_NODE_IP}:{PROMETHEUS_SERVER_PORT}",
                                                disable_ssl=True)
 
+HOME_DIR = HOME_DIR = os.getcwd()  # os.environ['HOME'] # TODO change to home_env
+
 END_TIME = datetime.now(timezone.utc)  # Prometheus uses UTC
-START_TIME = END_TIME - timedelta(hours=5)
+START_TIME = END_TIME - timedelta(hours=config['simulation']['time_delta'])
 
-"""
-Graphite and InfluxDB can’t store distributions but only numbers.
-As a result, only one-second-resolution non-aggregated response time stats are correct.
+CADVISOR_METRICS = config['cadvisor_metrics']
+CADVISOR_METRICS_TEMPLATE = config['cadvisor_metrics_template']
 
-That means all statistics for a single request hold the same value which is the response time but gatling
-still exports all statistics (min, max, mean, ...), to reduce the size of the dataset only one metric
-is fetched, e.g. percentiles99
+AMPHORA_CHART_PATH = os.path.join(HOME_DIR, config['mkdocs']['chart_paths']['amphora_simulation'])
+EPHEMERAL_CHART_PATH = os.path.join(HOME_DIR, config['mkdocs']['chart_paths']['ephemeral_simulation'])
 
-"""
-AMPHORA_SIMULATION_GROUPS = 'caliper{simulation="amphorasimulation", metric="percentiles99", scope="ok"}'
-EPHEMERAL_SIMULATION_GROUPS = 'caliper{simulation="ephemeralsimulation", metric="percentiles99", scope="ok"}'
-
-# The metric name is part of the file name
-CADVISOR_METRICS = [
-    'container_memory_working_set_bytes',
-    'container_cpu_usage_seconds_total',
-    'container_fs_writes_bytes_total',
-    'container_fs_reads_bytes_total',
-    'container_network_receive_bytes_total',
-    'container_network_transmit_bytes_total']
-
-CADVISOR_METRICS_TEMPLATE = [
-    # container_memory_working_set_bytes
-    'container_memory_working_set_bytes{{container="{container}", pod=~"{pod}.*", service="kubelet"}}',
-    # container_cpu_usage_seconds_total
-    'irate(container_cpu_usage_seconds_total{{container="{container}", pod=~"{pod}.*", service="kubelet"}}[5m])',
-    # container_fs_writes_bytes_total
-    'container_fs_writes_bytes_total{{container="{container}", pod=~"{pod}.*", service="kubelet"}}',
-    # container_fs_reads_bytes_total
-    'container_fs_reads_bytes_total{{container="{container}", pod=~"{pod}.*", service="kubelet"}}',
-    # container_network_receive_bytes_total
-    'container_network_receive_bytes_total{{pod=~"{pod}.*", service="kubelet"}}',
-    # container_network_transmit_bytes_total
-    'container_network_transmit_bytes_total{{pod=~"{pod}.*", service="kubelet"}}']
+AMPHORA_SIMULATION_CREATE_SECRET_GROUPS = config['simulation_groups']['amphora']['createSecret']
+AMPHORA_SIMULATION_GET_SECRET_GROUPS = config['simulation_groups']['amphora']['getSecret']
+AMPHORA_SIMULATION_DELETE_SECRET_GROUPS = config['simulation_groups']['amphora']['deleteSecret']
+EPHEMERAL_SIMULATION_GROUPS = config['simulation_groups']['ephemeral']['execute']
+AMPHORA_SIMULATION_GROUPS = pd.concat([AMPHORA_SIMULATION_CREATE_SECRET_GROUPS, AMPHORA_SIMULATION_GET_SECRET_GROUPS,
+                                       AMPHORA_SIMULATION_DELETE_SECRET_GROUPS], ignore_index=False)
 
 
-def generate_cadvisor_metrics(container, pod):
+def generate_cAdvisor_metrics(container, pod):
     all_metrics = []
 
     metric = [metric_query.format(container=container, pod=pod)
@@ -70,9 +54,9 @@ def generate_cadvisor_metrics(container, pod):
     return all_metrics
 
 
-AMPHORA_CADVISOR_METRICS = generate_cadvisor_metrics(container="amphora", pod="cs-amphora")
-CASTOR_CADVISOR_METRICS = generate_cadvisor_metrics(container="castor", pod="cs-castor")
-EPHEMERAL_CADVISOR_METRICS = generate_cadvisor_metrics(container="ephemeral-ephemeral", pod="ephemeral")
+AMPHORA_CADVISOR_METRICS = generate_cAdvisor_metrics(container="amphora", pod="cs-amphora")
+CASTOR_CADVISOR_METRICS = generate_cAdvisor_metrics(container="castor", pod="cs-castor")
+EPHEMERAL_CADVISOR_METRICS = generate_cAdvisor_metrics(container="ephemeral-ephemeral", pod="ephemeral")
 
 amphora_simulation_groups_dict = APOLLO_PROMETHEUS_CLIENT.custom_query_range(query=AMPHORA_SIMULATION_GROUPS,
                                                                              start_time=START_TIME,
@@ -82,31 +66,33 @@ ephemeral_simulation_groups_dict = APOLLO_PROMETHEUS_CLIENT.custom_query_range(q
                                                                                start_time=START_TIME,
                                                                                end_time=END_TIME, step='15s')
 # Time ranges per group
-amphora_simulation_groups_df = MetricRangeDataFrame(amphora_simulation_groups_dict)
-amphora_simulation_groups_df["timestamp"] = amphora_simulation_groups_df.index
+if len(amphora_simulation_groups_dict) > 0:
+    amphora_simulation_groups_df = MetricRangeDataFrame(amphora_simulation_groups_dict)
+    amphora_simulation_groups_df["timestamp"] = amphora_simulation_groups_df.index
 
-# ephemeral_simulation_groups_df = MetricRangeDataFrame(ephemeral_simulation_groups_dict)
-# ephemeral_simulation_groups_df["timestamp"] = amphora_simulation_groups_df.index
+if len(ephemeral_simulation_groups_dict) > 0:
+    ephemeral_simulation_groups_df = MetricRangeDataFrame(ephemeral_simulation_groups_dict)
+    ephemeral_simulation_groups_df["timestamp"] = amphora_simulation_groups_df.index
 
 amphora_simulation_groups_start_times = amphora_simulation_groups_df.groupby("group")['timestamp'].min()
 amphora_simulation_groups_end_times = amphora_simulation_groups_df.groupby("group")['timestamp'].max()
 
-# ephemeral_simulation_groups_start_times = ephemeral_simulation_groups_df.groupby("group")['timestamp'].min()
-# ephemeral_simulation_groups_end_times = ephemeral_simulation_groups_df.groupby("group")['timestamp'].max()
+ephemeral_simulation_groups_start_times = ephemeral_simulation_groups_df.groupby("group")['timestamp'].min()
+ephemeral_simulation_groups_end_times = ephemeral_simulation_groups_df.groupby("group")['timestamp'].max()
 
 
-def create_charts_for_groups(groups, cadvisor_metrics_names, cadvisor_metrics_promQL, simulation_groups_start_times,
-                             simulation_groups_end_times, dir, service_name):
+def generate_cAdvisor_charts(groups, cadvisor_metrics_names, cadvisor_metrics_promQL, simulation_groups_start_times,
+                             simulation_groups_end_times, chart_path, service):
     """
-    Plots metrics for specified groups and metrics.
+    Generates charts for specified groups and metrics.
 
     :param groups: Series containing group names.
     :param cadvisor_metrics_names: List with metric names.
     :param cadvisor_metrics_promQL: List with corresponding PromQL queries.
-    :param simulation_groups_start_time: OBJECT with start times per group for a simulation
-    :param simulation_groups_end_time: OBJECT with end time per group for a simulation
-    :param dir: directory to store charts
-    :param service_name: Name of the service.
+    :param simulation_groups_start_time: start times per group for a simulation.
+    :param simulation_groups_end_time: end time per group for a simulation.
+    :param chart_path: directory to store charts.
+    :param service: Name of the service.
     """
     for group in groups:
         for metric_name, promQL in zip(cadvisor_metrics_names, cadvisor_metrics_promQL):
@@ -161,44 +147,44 @@ def create_charts_for_groups(groups, cadvisor_metrics_names, cadvisor_metrics_pr
             plt.subplots_adjust(left=0.1)
 
             # Save the chart to the specified path
-            file_name = f"{service_name}_{group}_{metric_name}"
-            file_path = os.path.join(dir, service_name, file_name)
+            file_name = f"{service}_{group}_{metric_name}"
+            file_path = os.path.join(chart_path, service, file_name)
             plt.savefig(file_path)
             plt.close()
 
 
 # Create charts for the amphora service from the amphorasimulation
-create_charts_for_groups(groups=amphora_simulation_groups_df['group'].drop_duplicates(),
+generate_cAdvisor_charts(groups=amphora_simulation_groups_df['group'].drop_duplicates(),
                          cadvisor_metrics_names=CADVISOR_METRICS,
                          cadvisor_metrics_promQL=AMPHORA_CADVISOR_METRICS,
                          simulation_groups_start_times=amphora_simulation_groups_start_times,
                          simulation_groups_end_times=amphora_simulation_groups_start_times,
-                         dir=AMPHORA_CHART_PATH,
-                         service_name="amphora")
+                         chart_path=AMPHORA_CHART_PATH,
+                         service="amphora")
 
 # Create charts for the castor service from the amphorasimulation
-create_charts_for_groups(groups=amphora_simulation_groups_df['group'].drop_duplicates(),
+generate_cAdvisor_charts(groups=amphora_simulation_groups_df['group'].drop_duplicates(),
                          cadvisor_metrics_names=CADVISOR_METRICS,
                          cadvisor_metrics_promQL=CASTOR_CADVISOR_METRICS,
                          simulation_groups_start_times=amphora_simulation_groups_start_times,
                          simulation_groups_end_times=amphora_simulation_groups_start_times,
-                         dir=AMPHORA_CHART_PATH,
+                         chart_path=AMPHORA_CHART_PATH,
+                         service="castor")
+
+# Create charts for the castor service from the ephemeralsimulation
+generate_cAdvisor_charts(groups=ephemeral_simulation_groups_df['group'].drop_duplicates(),
+                         cadvisor_metrics_names=CADVISOR_METRICS,
+                         cadvisor_metrics_promQL=EPHEMERAL_CADVISOR_METRICS,
+                         simulation_groups_start_times=ephemeral_simulation_groups_start_times,
+                         simulation_groups_end_times=ephemeral_simulation_groups_start_times,
+                         path=EPHEMERAL_CHART_PATH,
+                         service_name="ephemeral")
+
+# Create charts for the castor service from the ephemeralsimulation
+generate_cAdvisor_charts(groups=ephemeral_simulation_groups_df['group'].drop_duplicates(),
+                         cadvisor_metrics_names=CADVISOR_METRICS,
+                         cadvisor_metrics_promQL=CASTOR_CADVISOR_METRICS,
+                         simulation_groups_start_times=ephemeral_simulation_groups_start_times,
+                         simulation_groups_end_times=ephemeral_simulation_groups_start_times,
+                         path=EPHEMERAL_CHART_PATH,
                          service_name="castor")
-
-# Create charts for the castor service from the amphorasimulation
-# create_charts_for_groups(groups=ephemeral_simulation_groups_df['group'].drop_duplicates(),
-#                          cadvisor_metrics_names=CADVISOR_METRICS,
-#                          cadvisor_metrics_promQL=EPHEMERAL_CADVISOR_METRICS,
-#                          simulation_groups_start_times=ephemeral_simulation_groups_start_times,
-#                          simulation_groups_end_times=ephemeral_simulation_groups_start_times,
-#                          path=EPHEMERAL_CHART_PATH,
-#                          service_name="ephemeral")
-
-# Create charts for the castor service from the amphorasimulation
-# create_charts_for_groups(groups=ephemeral_simulation_groups_df['group'].drop_duplicates(),
-#                          cadvisor_metrics_names=CADVISOR_METRICS,
-#                          cadvisor_metrics_promQL=CASTOR_CADVISOR_METRICS,
-#                          simulation_groups_start_times=ephemeral_simulation_groups_start_times,
-#                          simulation_groups_end_times=ephemeral_simulation_groups_start_times,
-#                          path=EPHEMERAL_CHART_PATH,
-#                          service_name="castor")

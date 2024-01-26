@@ -225,7 +225,7 @@ specified:
 ```text
  graphite {
       #light = false
-      host = "10.1.1.5"           # AKS node IP
+      host = "10.1.1.5"           # Apollo node IP
       port = 32766                # GraphiteExporter
       protocol = "tcp"
       rootPathPrefix = "gatling"
@@ -290,14 +290,16 @@ To add or remove test-cases the following steps must be peformed:
 A Simulation class contains multiple scenario(s),
 
 - Define scenario(s) which contain(s) group(s): The scenario name is not
-  relevant and only used for logical separation. A group divides one or multiple
-  requests for which the *response times* and *cAdvisor charts* are created.
+  relevant and only used for logical separation. A *group* combines one or
+  multiple requests for which the *response times* and *cAdvisor charts* are
+  created.
 - The *generate_x\_.py* scripts automatically create for each *group* the
   corresponding charts.
-- If *groups* are created or deleted, the mkdocs report needs to be updated
-  manually.
-  - Update nav.yaml to include or exclude the *group*
-  - Update the file in reports/(amphora|castor|ephemeral)
+- Naming convention for groups: `{request_name}_{test_objective}`, e.g.
+  createSecret_10000
+- After a run of caliper the python scripts located under `/scripts` will
+  generate the cAdvisor and gatling respones times charts, as well as the
+  markdown files for the report.
 
 ## Namesake
 
