@@ -1,8 +1,8 @@
 mkdocs:
   charts:
-    amphora_simulation: "mkdocs/docs/images/charts/amphorasimulation"
-    ephemeral_simulation: "mkdocs/docs/images/charts/ephemeralsimulation"
-  report: "mkdocs/docs/report"
+    amphora_simulation: "caliper/mkdocs/docs/images/charts/amphorasimulation"
+    ephemeral_simulation: "caliper/mkdocs/docs/images/charts/ephemeralsimulation"
+  report: "caliper/mkdocs/docs/report"
 
 simulation:
   time_delta: 5
