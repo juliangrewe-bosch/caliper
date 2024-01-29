@@ -101,6 +101,15 @@ class AmphoraSimulation extends Simulation {
       }
   }
 
+  def deleteAllSecretes() = {
+    exec(amphora.getSecrets())
+      .exec(group("deleteSecret_all ") {
+        foreach("#{uuids}", "uuid") {
+          exec(amphora.deleteSecret("#{uuid}"))
+        }
+      })
+  }
+
   val singleUserScenario = scenario("single_user_scenario")
     .exec(performCreateSecretRequest(generateFeeder(1000), 1, "createSecret_1000")) //1000
     .pause(60 * 3)
@@ -126,6 +135,8 @@ class AmphoraSimulation extends Simulation {
     .pause(60 * 3)
     .exec(performCreateSecretRequest(generateFeeder(400000), 1, "createSecret_400000")) //650000
     .pause(60 * 10) // genereate tuples
+    .exec(deleteAllSecretes())
+    .pause(60 * 3)
 
   val multipleUserScenario = scenario("multiple_user_scenario")
     .exec(performCreateSecretRequest(generateFeeder(1000), 1, "createSecret_1000_users_10")) //1000 * 10
@@ -136,6 +147,8 @@ class AmphoraSimulation extends Simulation {
     .pause(60 * 3)
     .exec(performCreateSecretRequest(generateFeeder(70000), 1, "createSecret_70000_users_10")) //70000 * 10
     .pause(60 * 10) // genereate tuples
+    .exec(deleteAllSecretes())
+    .pause(60 * 3)
 
   val responseTimesScenario = scenario("response_times_scenario")
     .exec(performCreateSecretRequest(generateFeeder(1000), 10, "createSecret_1000_repeat_10")) // 1000 * 10
@@ -147,21 +160,11 @@ class AmphoraSimulation extends Simulation {
     .exec(performCreateSecretRequest(generateFeeder(100000), 5, "createSecret_100000_repeat_5")) // 100000 * 5
     .pause(60 * 3)
 
-  val deleteAllSecrets = scenario("deleteAllSecrets")
-    .exec(amphora.getSecrets())
-    .exec(group("deleteSecret_all ") {
-      foreach("#{uuids}", "uuid") {
-        exec(amphora.deleteSecret("#{uuid}"))
-      }
-    })
-    .pause(60 * 5)
-
   setUp(
     singleUserScenario
       .inject(atOnceUsers(1))
-      .andThen(deleteAllSecrets.inject(atOnceUsers(1)))
       .andThen(multipleUserScenario.inject(atOnceUsers(10)))
-      .andThen(deleteAllSecrets.inject(atOnceUsers(1)))
+      .andThen(responseTimesScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }
 
