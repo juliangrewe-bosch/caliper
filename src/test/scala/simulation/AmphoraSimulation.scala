@@ -138,36 +138,33 @@ class AmphoraSimulation extends Simulation {
 //    .exec(deleteAllSecretes())
 //    .pause(60 * 3)
 
-  val multipleUserScenario = scenario("multiple_user_scenario")
-    .exec(performCreateSecretRequest(generateFeeder(10), 1, "createSecret_1000_users_10")) //1000 * 10
-    .pause(60 * 3)
-    .exec(performGetSecretRequest("getSecret_10000")) //10000 * 2 * 10
-    .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(50), 1, "createSecret_50000_users_10")) //50000 * 10
-    .pause(60 * 10) // genereate tuples
-    .exec(performCreateSecretRequest(generateFeeder(70), 1, "createSecret_70000_users_10")) //70000 * 10
-    .pause(60 * 10) // genereate tuples
+//  val multipleUserScenario = scenario("multiple_user_scenario")
+//    .exec(performCreateSecretRequest(generateFeeder(10), 1, "createSecret_1000_users_10")) //1000 * 10
+//    .pause(60 * 1)
+//    .exec(performGetSecretRequest("getSecret_10000")) //10000 * 2 * 10
+//    .pause(60 * 1)
+//    .exec(performCreateSecretRequest(generateFeeder(50), 1, "createSecret_50000_users_10")) //50000 * 10
+//    .pause(60 * 1) // genereate tuples
+//    .exec(performCreateSecretRequest(generateFeeder(70), 1, "createSecret_70000_users_10")) //70000 * 10
+//    .pause(60 * 1) // genereate tuples
 
-  val deleteAllSecretsAfterMultipleUserScenario = scenario("delete_all_secrets_after_multiple_user_scenario")
-    .exec(deleteAllSecretes())
-    .pause(60 * 3)
+//  val deleteAllSecretsAfterMultipleUserScenario = scenario("delete_all_secrets_after_multiple_user_scenario")
+//    .exec(deleteAllSecretes())
+//    .pause(60 * 3)
 
-  //  val responseTimesScenario = scenario("response_times_scenario")
-//    .exec(performCreateSecretRequest(generateFeeder(1000), 10, "createSecret_1000_repeat_10")) // 1000 * 10
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(10000), 10, "createSecret_10000_repeat_10")) // 10000 * 10
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(50000), 10, "createSecret_50000_repeat_10")) // 50000 * 10
-//    .pause(60 * 10) // genereate tuples
-//    .exec(performCreateSecretRequest(generateFeeder(100000), 5, "createSecret_100000_repeat_5")) // 100000 * 5
-//    .pause(60 * 3)
+  val responseTimesScenario = scenario("response_times_scenario")
+    .exec(performCreateSecretRequest(generateFeeder(1000), 10, "createSecret_1000_repeat_10")) // 1000 * 10
+    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(10000), 10, "createSecret_10000_repeat_10")) // 10000 * 10
+    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(50000), 10, "createSecret_50000_repeat_10")) // 50000 * 10
+    .pause(60 * 10) // genereate tuples
+    .exec(performCreateSecretRequest(generateFeeder(100000), 5, "createSecret_100000_repeat_5")) // 100000 * 5
+    .pause(60 * 3)
 
   setUp(
-    multipleUserScenario
-      .inject(atOnceUsers(10))
-//      .andThen(multipleUserScenario.inject(atOnceUsers(10)))
-    //      .andThen(deleteAllSecretsAfterMultipleUserScenario.inject(atOnceUsers(1)))
-//      .andThen(responseTimesScenario.inject(atOnceUsers(1)))
+    responseTimesScenario
+      .inject(atOnceUsers(1))
   ).protocols(csProtocol)
 }
 
