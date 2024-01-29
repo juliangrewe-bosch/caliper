@@ -260,6 +260,7 @@ finally deploy a new version of the *report*.
 - *Provision AzureVM*: Deploys an AzureVM.
 - *Run Load-Tests*: Connects to the deployed AzureVM via SSH and runs a
   *setup-script* located under 'scripts/run_caliper_load_tests.sh'.
+- *copy* and *deploy report* steps
 - *Destroy*: Deletes the Azure resource group 'caliper-rg' to ensure that in
   case steps fails, all deployed resources are destroyed.
 
@@ -282,6 +283,10 @@ versioning, the [mike](http:/google.com) plugin is implemented. Each time the
 *generate_report.py* script creates new charts, *Mike* uploads the updated
 report to the `gh-pages` branch in a new directory labeled with the current
 date.
+
+> **Important**: Is it mandatory to create a gh-pages branch before and what
+> needs to be configured so the github action automatically updates it ? enable
+> github pages with branch gh-pages ?!
 
 ### Add/ Remove Test-cases
 

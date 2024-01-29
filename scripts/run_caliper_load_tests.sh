@@ -102,4 +102,4 @@ export STARBUCK_NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addres
 pip3 install -r requirements.txt >/dev/null
 python3 generate_cAdvisor_charts.py
 python3 generate_gatling_response_times_files.py
-#python3 generate_report_files.py
+python3 generate_cAdvisor_report_files.py
