@@ -101,7 +101,7 @@ class AmphoraSimulation extends Simulation {
       }
   }
 
-  val emptySystemScenario = scenario("empty_system_scenario")
+  val singleUserScenario = scenario("single_user_scenario")
     .exec(performCreateSecretRequest(generateFeeder(1000), 1, "createSecret_1000")) //1000
     .pause(60 * 3)
     .exec(performGetSecretRequest("getSecret_1000")) //3000
@@ -125,58 +125,27 @@ class AmphoraSimulation extends Simulation {
     .exec(performCreateSecretRequest(generateFeeder(250000), 1, "createSecret_250000")) //250000
     .pause(60 * 3)
     .exec(performCreateSecretRequest(generateFeeder(400000), 1, "createSecret_400000")) //650000
+    .pause(60 * 10) // genereate tuples
+
+  val multipleUserScenario = scenario("multiple_user_scenario")
+    .exec(performCreateSecretRequest(generateFeeder(1000), 1, "createSecret_1000_users_10")) //1000 * 10
     .pause(60 * 3)
+    .exec(performGetSecretRequest("getSecret_10000")) //10000 * 2 * 10
+    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(50000), 1, "createSecret_50000_users_10")) //50000 * 10
+    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(70000), 1, "createSecret_70000_users_10")) //70000 * 10
+    .pause(60 * 10) // genereate tuples
 
-  //  val loadedSystemScenario = scenario("loaded_system_scenario")
-  //    .group("createSecret_2000000_empty") {
-  //      repeat(20) {
-  //        feed(generateFeeder(1000))
-  //          .exec(amphora.createSecret("#{secret}"))
-  //      }
-  //    }
-  //    .pause(60 * 3)
-  //    .group("createSecret_100000_loaded") {
-  //      repeat(1) {
-  //        feed(generateFeeder(10000))
-  //          .exec(amphora.createSecret("#{secret}"))
-  //      }
-  //    }
-  //    .pause(60 * 3)
-  //    .group("getSecrets_100000_loaded") {
-  //      repeat(1) {
-  //        exec(amphora.getSecrets())
-  //      }
-  //    }
-  //    .pause(60 * 3)
-
-  //  val concurrentRequestsScenario = scenario("concurrent_requests_scenario")
-  //    .group("getSecrets_400000_concurrency_10") {
-  //      repeat(1) {
-  //        exec(amphora.getSecrets())
-  //      }
-  //    }
-  //    .pause(60 * 3)
-
-//
-//  val responseTimesScenario = scenario("response_times_scenario")
-//    .exec(performCreateSecretRequest(generateFeeder(1000), 10, "createSecret_1000_response_times"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(10000), 10, "createSecret_10000_response_times"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(50000), 10, "createSecret_50000_response_times"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(100000), 5, "createSecret_100000_response_times"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(250000), 1, "createSecret_250000_response_times"))
-//    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(400000), 1, "createSecret_400000_response_times"))
-//    .pause(60 * 3)
-
-//  val test = scenario("test")
-//    .exec(performCreateSecretRequest(generateFeeder(300000), 1, "test"))
-//    .pause(60 * 5)
-//    .exec(performGetSecretRequest("test"))
-//    .pause(60 * 1)
+  val responseTimesScenario = scenario("response_times_scenario")
+    .exec(performCreateSecretRequest(generateFeeder(1000), 10, "createSecret_1000_repeat_10")) // 1000 * 10
+    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(10000), 10, "createSecret_10000_repeat_10")) // 10000 * 10
+    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(50000), 10, "createSecret_50000_repeat_10")) // 50000 * 10
+    .pause(60 * 10) // genereate tuples
+    .exec(performCreateSecretRequest(generateFeeder(100000), 5, "createSecret_100000_repeat_5")) // 100000 * 5
+    .pause(60 * 3)
 
   val deleteAllSecrets = scenario("deleteAllSecrets")
     .exec(amphora.getSecrets())
@@ -185,10 +154,13 @@ class AmphoraSimulation extends Simulation {
         exec(amphora.deleteSecret("#{uuid}"))
       }
     })
+    .pause(60 * 5)
 
   setUp(
-    emptySystemScenario
+    singleUserScenario
       .inject(atOnceUsers(1))
+      .andThen(deleteAllSecrets.inject(atOnceUsers(1)))
+      .andThen(multipleUserScenario.inject(atOnceUsers(10)))
       .andThen(deleteAllSecrets.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }
