@@ -110,45 +110,45 @@ class AmphoraSimulation extends Simulation {
       })
   }
 
-  val singleUserScenario = scenario("single_user_scenario")
-    .exec(performCreateSecretRequest(generateFeeder(1000), 1, "createSecret_1000")) //1000
-    .pause(60 * 3)
-    .exec(performGetSecretRequest("getSecret_1000")) //3000
-    .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(10000), 1, "createSecret_10000")) //13000
-    .pause(60 * 3)
-    .exec(performGetSecretRequest("getSecret_11000")) //35000
-    .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(50000), 1, "createSecret_50000")) //85000
-    .pause(60 * 3)
-    .exec(performGetSecretRequest("getSecret_61000")) //207000
-    .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(100000), 1, "createSecret_100000")) //307000
-    .pause(60 * 3)
-    .exec(performGetSecretRequest("getSecret_161000")) //629000
-    .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(100000), 1, "")) //729000
-    .pause(60 * 10) // genereate tuples
-    .exec(performGetSecretRequest("getSecret_261000")) //522000
-    .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(250000), 1, "createSecret_250000")) //772000
-    .pause(60 * 10) // genereate tuples
-    .exec(performCreateSecretRequest(generateFeeder(400000), 1, "createSecret_400000")) //400000
-    .pause(60 * 10) // genereate tuples
-    .exec(deleteAllSecretes())
-    .pause(60 * 3)
-
-//  val multipleUserScenario = scenario("multiple_user_scenario")
-//    .exec(performCreateSecretRequest(generateFeeder(1000), 1, "createSecret_1000_users_10")) //1000 * 10
+//  val singleUserScenario = scenario("single_user_scenario")
+//    .exec(performCreateSecretRequest(generateFeeder(1000), 1, "createSecret_1000")) //1000
 //    .pause(60 * 3)
-//    .exec(performGetSecretRequest("getSecret_10000")) //10000 * 2 * 10
+//    .exec(performGetSecretRequest("getSecret_1000")) //3000
 //    .pause(60 * 3)
-//    .exec(performCreateSecretRequest(generateFeeder(50000), 1, "createSecret_50000_users_10")) //50000 * 10
+//    .exec(performCreateSecretRequest(generateFeeder(10000), 1, "createSecret_10000")) //13000
+//    .pause(60 * 3)
+//    .exec(performGetSecretRequest("getSecret_11000")) //35000
+//    .pause(60 * 3)
+//    .exec(performCreateSecretRequest(generateFeeder(50000), 1, "createSecret_50000")) //85000
+//    .pause(60 * 3)
+//    .exec(performGetSecretRequest("getSecret_61000")) //207000
+//    .pause(60 * 3)
+//    .exec(performCreateSecretRequest(generateFeeder(100000), 1, "createSecret_100000")) //307000
+//    .pause(60 * 3)
+//    .exec(performGetSecretRequest("getSecret_161000")) //629000
+//    .pause(60 * 3)
+//    .exec(performCreateSecretRequest(generateFeeder(100000), 1, "")) //729000
 //    .pause(60 * 10) // genereate tuples
-//    .exec(performCreateSecretRequest(generateFeeder(70000), 1, "createSecret_70000_users_10")) //70000 * 10
+//    .exec(performGetSecretRequest("getSecret_261000")) //522000
+//    .pause(60 * 3)
+//    .exec(performCreateSecretRequest(generateFeeder(250000), 1, "createSecret_250000")) //772000
+//    .pause(60 * 10) // genereate tuples
+//    .exec(performCreateSecretRequest(generateFeeder(400000), 1, "createSecret_400000")) //400000
 //    .pause(60 * 10) // genereate tuples
 //    .exec(deleteAllSecretes())
 //    .pause(60 * 3)
+
+  val multipleUserScenario = scenario("multiple_user_scenario")
+    .exec(performCreateSecretRequest(generateFeeder(1000), 1, "createSecret_1000_users_10")) //1000 * 10
+    .pause(60 * 3)
+    .exec(performGetSecretRequest("getSecret_10000")) //10000 * 2 * 10
+    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(50000), 1, "createSecret_50000_users_10")) //50000 * 10
+    .pause(60 * 10) // genereate tuples
+    .exec(performCreateSecretRequest(generateFeeder(70000), 1, "createSecret_70000_users_10")) //70000 * 10
+    .pause(60 * 10) // genereate tuples
+    .exec(deleteAllSecretes())
+    .pause(60 * 3)
 
 //  val responseTimesScenario = scenario("response_times_scenario")
 //    .exec(performCreateSecretRequest(generateFeeder(1000), 10, "createSecret_1000_repeat_10")) // 1000 * 10
@@ -161,8 +161,8 @@ class AmphoraSimulation extends Simulation {
 //    .pause(60 * 3)
 
   setUp(
-    singleUserScenario
-      .inject(atOnceUsers(1))
+    multipleUserScenario
+      .inject(atOnceUsers(10))
 //      .andThen(multipleUserScenario.inject(atOnceUsers(10)))
 //      .andThen(responseTimesScenario.inject(atOnceUsers(1)))
   ).protocols(csProtocol)

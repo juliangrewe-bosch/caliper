@@ -145,9 +145,6 @@ jobs:
           git fetch origin
           git branch gh-pages origin/gh-pages
 
-          # mike list
-          # mike delete [identifier]
-          # keep only latest 10 entries
           export DATE=$(date +"%d-%m-%Y")
           mike deploy "$DATE" latest --push --update-aliases
 

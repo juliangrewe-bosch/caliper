@@ -27,7 +27,7 @@ CADVISOR_METRIC_NAMES = config['cAdvisor']['container']['metric_names']
 
 AMPHORA_CHART_PATH = os.path.join(HOME_DIR, config['mkdocs']['charts']['amphora_simulation'])
 EPHEMERAL_CHART_PATH = os.path.join(HOME_DIR, config['mkdocs']['charts']['ephemeral_simulation'])
-REPORT_PATH = os.path.join(HOME_DIR, config['mkdocs']['report'])
+REPORT_PATH = os.path.join(HOME_DIR, config['mkdocs']['report']['services'])
 
 AMPHORA_SIMULATION_CREATE_SECRET_GROUPS = config['simulation']['groups']['amphora']['createSecret']
 AMPHORA_SIMULATION_GET_SECRET_GROUPS = config['simulation']['groups']['amphora']['getSecret']
