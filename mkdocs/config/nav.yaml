@@ -9,14 +9,15 @@ nav:
           - createSecret_100000: report/amphora/createSecret/createSecret_100000.md
           - createSecret_250000: report/amphora/createSecret/createSecret_250000.md
           - createSecret_400000: report/amphora/createSecret/createSecret_400000.md
-      - getSecrets:
-          - getSecret_response_times: report/amphora/getSecrets/getSecret_response_times.md
-          - getSecret_1000: report/amphora/getSecrets/getSecret_1000.md
-          - getSecret_11000: report/amphora/getSecrets/getSecret_11000.md
-          - getSecret_61000: report/amphora/getSecrets/getSecret_61000.md
-          - getSecret_161000: report/amphora/getSecrets/getSecret_161000.md
+      - getSecret:
+          - getSecret_response_times: report/amphora/getSecret/getSecret_response_times.md
+          - getSecret_1000: report/amphora/getSecret/getSecret_1000.md
+          - getSecret_11000: report/amphora/getSecret/getSecret_11000.md
+          - getSecret_61000: report/amphora/getSecret/getSecret_61000.md
+          - getSecret_161000: report/amphora/getSecret/getSecret_161000.md
+          - getSecret_261000: report/amphora/getSecret/getSecret_261000.md
       - deleteSecret:
-          - deleteSecret_811000: report/amphora/deleteSecret/deleteSecret_811000.md
+          - deleteSecret_811000: report/amphora/deleteSecret/deleteSecret_all.md
 
   - Castor:
       - createSecret:
@@ -27,12 +28,13 @@ nav:
           - createSecret_250000: report/castor/createSecret/createSecret_250000.md
           - createSecret_400000: report/castor/createSecret/createSecret_400000.md
       - getSecrets:
-          - getSecrets_1000: report/castor/getSecrets/getSecret_1000.md
-          - getSecrets_11000: report/castor/getSecrets/getSecret_11000.md
-          - getSecrets_61000: report/castor/getSecrets/getSecret_61000.md
-          - getSecrets_161000: report/castor/getSecrets/getSecret_161000.md
+          - getSecrets_1000: report/castor/getSecret/getSecret_1000.md
+          - getSecrets_11000: report/castor/getSecret/getSecret_11000.md
+          - getSecrets_61000: report/castor/getSecret/getSecret_61000.md
+          - getSecrets_161000: report/castor/getSecret/getSecret_161000.md
+          - getSecret_261000: report/castor/getSecret/getSecret_261000.md
       - deleteSecret:
-          - deleteSecret_811000: report/castor/deleteSecret/deleteSecret_811000.md
+          - deleteSecret_811000: report/castor/deleteSecret/deleteSecret_all.md
 
   - Ephemeral:
       - emptyProgram:
