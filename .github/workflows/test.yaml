@@ -13,26 +13,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: caliper
-      - name: Run
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 4.245.206.60
-          username: caliper
-          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
-          command_timeout: 5h
-          script: |
-            export PRIME=198766463529478683931867765928436695041
-            export R=141515903391459779531506841503331516415
-            export INVR=133854242216446749056083838363708373830
-            export PROGRAM=ephemeral-generic-default
-            export STARBUCK_FQDN=20.166.212.21.sslip.io
-            export APOLLO_FQDN=20.166.211.245.sslip.io
-
-            cd "$HOME"/caliper
-
-            git pull origin caliper-workflow
-
-            //./mvnw gatling:test
 
       - name: Zip Charts
         id: zip-charts

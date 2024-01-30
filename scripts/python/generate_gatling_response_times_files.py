@@ -46,6 +46,7 @@ def generate_markdown_file(simulation_groups_df, service, report_chart_path, cha
     :param chart_filename: chart filename.
     """
     response_times_statistics = simulation_groups_df.groupby('group')['value'].agg(
+        count='count',
         min='min',
         percentile_50=lambda x: x.quantile(0.5),
         percentile_75=lambda x: x.quantile(0.75),
@@ -131,7 +132,6 @@ def generate_report_file(simulation_groups_promQL, request_name, service, chart_
                 f'{value / 1e3:.2f} s' if value >= 1e3 else
                 f'{value:.0f} ms'
             )))
-            plt.legend(loc='best')
             # adjust padding
             plt.subplots_adjust(left=0.1)
 
