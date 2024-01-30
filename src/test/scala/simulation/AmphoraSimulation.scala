@@ -141,8 +141,6 @@ class AmphoraSimulation extends Simulation {
 //    .exec(deleteAllSecretes())
 //    .pause(60 * 3)
 
-
-
   val responseTimesScenario = scenario("response_times_scenario")
     .exec(performCreateSecretRequest(generateFeeder(1000), 10, "createSecret_1000_repeat_10")) //10000
     .pause(60 * 3)
@@ -150,9 +148,9 @@ class AmphoraSimulation extends Simulation {
     .pause(60 * 3)
     .exec(performCreateSecretRequest(generateFeeder(10000), 10, "createSecret_10000_repeat_10")) //130000
     .pause(60 * 3)
-    .exec(performGetSecretRequest("getSecret_10000_repeat_10")) //330000
-    .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(50000), 10, "createSecret_50000_repeat_10")) //830000
+//    .exec(performGetSecretRequest("getSecret_10000_repeat_10")) //330000
+//    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(50000), 10, "createSecret_50000_repeat_10")) //630000
     .pause(60 * 10) // genereate tuples
     .exec(performCreateSecretRequest(generateFeeder(100000), 5, "createSecret_100000_repeat_5")) //500000
     .pause(60 * 3)
