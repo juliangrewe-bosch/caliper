@@ -22,29 +22,24 @@ resources to maintain node performance and functionality (see
 
 ## Amphora
 
-| Name                         | Objective                   | Users          | Description       | Test data                   |
-| ---------------------------- | --------------------------- | -------------- | ----------------- | --------------------------- |
-| createSecret_1000            | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-| createSecret_10000           | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-| createSecret_50000           | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-| createSecret_100000          | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-| createSecret_250000          | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-| createSecret_400000          | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-| createSecret_1000_repeat_10  | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-| createSecret_10000_repeat_10 | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-| createSecret_50000_repeat_10 | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-| createSecret_100000_repeat_5 | Evaluate upload performance | 1 Virtual User | Upload the secret | fixed secret size, 100 tags |
-
-| getSecret_1000 | Evaluate download performance | 1 Virtual User | Download the
-secret | fixed secret size, 100 tags | | getSecret_11000 | Evaluate download
-performance | 1 Virtual User | Download the secret | fixed secret size, 100 tags
-| | getSecret_61000 | Evaluate download performance | 1 Virtual User | Download
-the secret | fixed secret size, 100 tags | | getSecret_161000 | Evaluate
-download performance | 1 Virtual User | Download the secret | fixed secret size,
-100 tags | | getSecret_261000 | Evaluate download performance | 1 Virtual User |
-Download the secret | fixed secret size, 100 tags | | deleteSecret_all |
-Evaluate deletion performance | 1 Virtual User | Delete all secret | fixed
-secret size, 100 tags |
+| Name                         | Objective                     | Users          | Description                        | Test data                   |
+| ---------------------------- | ----------------------------- | -------------- | ---------------------------------- | --------------------------- |
+| createSecret_1000            | Evaluate upload performance   | 1 Virtual User | Upload the secret                  | fixed secret size, 100 tags |
+| createSecret_10000           | Evaluate upload performance   | 1 Virtual User | Upload the secret                  | fixed secret size, 100 tags |
+| createSecret_50000           | Evaluate upload performance   | 1 Virtual User | Upload the secret                  | fixed secret size, 100 tags |
+| createSecret_100000          | Evaluate upload performance   | 1 Virtual User | Upload the secret                  | fixed secret size, 100 tags |
+| createSecret_250000          | Evaluate upload performance   | 1 Virtual User | Upload the secret                  | fixed secret size, 100 tags |
+| createSecret_400000          | Evaluate upload performance   | 1 Virtual User | Upload the secret                  | fixed secret size, 100 tags |
+| createSecret_1000_repeat_10  | Evaluate upload performance   | 1 Virtual User | Upload the secret, repeat 10 times | fixed secret size, 100 tags |
+| createSecret_10000_repeat_10 | Evaluate upload performance   | 1 Virtual User | Upload the secret, repeat 10 times | fixed secret size, 100 tags |
+| createSecret_50000_repeat_10 | Evaluate upload performance   | 1 Virtual User | Upload the secret, repeat 10 times | fixed secret size, 100 tags |
+| createSecret_100000_repeat_5 | Evaluate upload performance   | 1 Virtual User | Upload the secret, repeat 5 times  | fixed secret size, 100 tags |
+| getSecret_1000               | Evaluate download performance | 1 Virtual User | Download the secret                | fixed secret size, 100 tags |
+| getSecret_11000              | Evaluate download performance | 1 Virtual User | Download the secret                | fixed secret size, 100 tags |
+| getSecret_61000              | Evaluate download performance | 1 Virtual User | Download the secret                | fixed secret size, 100 tags |
+| getSecret_161000             | Evaluate download performance | 1 Virtual User | Download the secret                | fixed secret size, 100 tags |
+| getSecret_261000             | Evaluate download performance | 1 Virtual User | Download the secret                | fixed secret size, 100 tags |
+| deleteSecret_all             | Evaluate deletion performance | 1 Virtual User | Delete all secret                  | fixed secret size, 100 tags |
 
 ## Castor
 
