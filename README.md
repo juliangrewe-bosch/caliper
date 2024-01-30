@@ -249,9 +249,6 @@ secrets to the *Virtual Cloud* might look like this:
 `caliper{simulation="amphorasimulation", group=~"createSecret_.*",`
 `metric="percentiles99", scope="ok"}`.
 
-The python scripts use these metrics to extract start- and end time per group to
-slice the cAdvisor charts accordingly, and to extract response times per group.
-
 The Python scripts use these metrics to extract the start and end times for each
 group in order to slice the cAdvisor charts accordingly, and to extract response
 times for each group.
@@ -320,21 +317,19 @@ The value for AZURE_CREDENTIALS has the format:
 
 ## Add/ Remove Test-cases
 
-To add or remove test-cases the following steps must be peformed:
+To add test-cases, the following steps must be performed:
 
-A Simulation class contains multiple scenario(s),
+A *Simulation class* contains multiple *scenarios*,
 
-- Define scenario(s) which contain(s) group(s): The scenario name is not
-  relevant and only used for logical separation. A *group* combines one or
-  multiple requests for which the *response times* and *cAdvisor charts* are
-  created.
-- The *generate_x\_.py* scripts automatically create for each *group* the
-  corresponding charts.
-- Naming convention for groups: `{request_name}_{test_objective}`, e.g.
-  createSecret_10000
-- After a run of caliper the python scripts located under `/scripts` will
-  generate the cAdvisor and gatling respones times charts, as well as the
-  markdown files for the report.
+1. Define a scenario which contains one or multiple *groups*: The scenario name
+   is not relevant and only used for logical separation. A group combines one or
+   multiple requests for which the *response times* and *cAdvisor charts* are
+   generated.
+1. The groups are named using the format `{request}_{test_objective}`, e.g. a
+   group containing tests for uploading secrets with 1000 secret-values might be
+   named `createSecret_1000`.
+1. Add a test description to `mkdocs/docs/index.md` and update
+   `mkdocs/config/nav.yaml` to include the test-cases.
 
 ## Namesake
 
