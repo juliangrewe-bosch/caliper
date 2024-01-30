@@ -15,28 +15,28 @@ jobs:
         with:
           path: caliper
 
-      - name: Zip Charts
-        id: zip-charts
+      - name: Zip Docs
+        id: zip-docs
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 4.245.206.60
           username: caliper
           key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           script: |
-            cd "$HOME"/caliper/mkdocs/docs/images/ || exit 1
-            zip -r charts.zip charts/
+            cd "$HOME"/caliper/mkdocs/ || exit 1
+            zip -r docs.zip docs/
 
-      - name: Copy Charts
-        id: copy-charts
+      - name: Copy Docs
+        id: copy-docs
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.CALIPER_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 4.245.206.60 >> ~/.ssh/known_hosts
 
-          scp caliper@4.245.206.60:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
-          unzip charts.zip
-          cp -r $GITHUB_WORKSPACE/charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
+          scp caliper@4.245.206.60:/home/caliper/caliper/mkdocs/docs.zip .
+          unzip docs.zip
+          cp -r $GITHUB_WORKSPACE/docs/ $GITHUB_WORKSPACE/caliper/mkdocs/
 
       - name: Deploy latest Report
         id: deploy-report

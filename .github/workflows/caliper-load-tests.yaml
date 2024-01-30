@@ -113,7 +113,7 @@ jobs:
           username: caliper
           key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           script: |
-            cd "$HOME"/caliper/mkdocs/docs/ || exit 1
+            cd "$HOME"/caliper/mkdocs/ || exit 1
             zip -r docs.zip docs/
 
       - name: Copy Docs
