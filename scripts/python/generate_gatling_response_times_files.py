@@ -110,7 +110,7 @@ def generate_report_file(simulation_groups_promQL, request_name, service, chart_
             colors = plt.cm.jet(np.linspace(0, 1, len(simulation_groups_df)))
 
             for counter, (i, row) in enumerate(simulation_groups_df.iterrows()):
-                plt.scatter([row['timestamp']], [row['value']], color=colors[counter], label=row['group'])
+                plt.scatter([row['timestamp']], [row['value']], color=colors[counter])
 
             # Adding grid
             plt.grid(True, which='both', linestyle='--', linewidth=0.5)

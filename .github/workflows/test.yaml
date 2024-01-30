@@ -29,4 +29,50 @@ jobs:
             export APOLLO_FQDN=20.166.211.245.sslip.io
 
             cd "$HOME"/caliper
-            ./mvnw gatling:test
+
+            git pull origin caliper-workflow
+
+            //./mvnw gatling:test
+
+      - name: Zip Charts
+        id: zip-charts
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 4.245.206.60
+          username: caliper
+          key: ${{ secrets.CALIPER_PRIVATE_KEY }}
+          script: |
+            cd "$HOME"/caliper/mkdocs/docs/images/ || exit 1
+            zip -r charts.zip charts/
+
+      - name: Copy Charts
+        id: copy-charts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CALIPER_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan 4.245.206.60 >> ~/.ssh/known_hosts
+
+          scp caliper@$4.245.206.60:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
+          unzip charts.zip
+          cp -r $GITHUB_WORKSPACE/charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
+
+      - name: Deploy latest Report
+        id: deploy-report
+        run: |
+          export GITHUB_USERNAME=juliangrewe-bosch
+          export GITHUB_EMAIL=julian.grewe@de.bosch.com
+
+          pip install mkdocs-material >/dev/null
+          pip install mike >/dev/null
+
+          cd $GITHUB_WORKSPACE/caliper/mkdocs || exit 1
+
+          git config user.name $GITHUB_USERNAME
+          git config user.email $GITHUB_EMAIL
+
+          git fetch origin
+          git branch gh-pages origin/gh-pages
+
+          export DATE=$(date +"%d-%m-%Y")
+          mike deploy "$DATE" latest --push --update-aliases

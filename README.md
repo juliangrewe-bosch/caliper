@@ -171,9 +171,11 @@ class CarbynestackSimulation extends Simulation { // 1
 
 ## Test Infrastructure
 
-To run the load-tests a *Carbyne Stack Virtual Cloud* has to be deployed. The
-\[LINK\] IaC repository is used to deploy a two-party VC hosted on *Microsoft
-Azure*. The following resources are created by running the IaC deployment:
+To run the load-tests a *Carbyne Stack Virtual Cloud* has to be deployed.
+Caliper uses
+[Infrastructure as Code](https://carbynestack.io/getting-started/deployment/infrastructure-as-code/)
+to deploy a two-party VC hosted on *Microsoft Azure*. The following resources
+are created by running the IaC deployment:
 
 - *PrivateAksStack*: Deploys an AzureVM that is later peered with the Carbyne
   Stack VC.
@@ -195,8 +197,8 @@ Azure*. The following resources are created by running the IaC deployment:
 
 *Caliper* creates a report that provides charts about resource consumption and
 response times of the deployed services. To visualize the data, the *Matplotlib*
-library is used in a python script located under `/scripts/generate_report.py`.
-The following data sources are used to create the report:
+library is used in python scripts located under `/scripts/python`. The following
+data sources are used to create the report:
 
 ### cAdvisor
 
@@ -234,24 +236,31 @@ specified:
     }
 ```
 
-### generate_report Script
+### Generate Charts
 
-Prometheus offers metrics in the format
-`<metric name>{<label name>=<label value>, ...}`, the *GraphiteExporter* sends
-the following metrics to the Prometheus Server:
-`caliper{simulation=value, group=value, metric=value, scope=value}`.
+Prometheus provides metrics in the format
+`<metric name>{<label name>=<label value>, ...}`, and the *GraphiteExporter*
+sends the following metrics to the Prometheus Server:
+`caliper{simulation=<SimulationClass>, group=<ScenarioGroup>,`
+`metric=<GatlingMetric>, scope=<OK|KO|ALL>}`.
 
-An example PromQL might look like this: caliper{simulation="amphorasimulation",
-group="secret_values_10000", metric="percentiles99", scope="ok"}.
+An example *Prometheus-PromQL* to retrieve all groups related to uploading
+secrets to the *Virtual Cloud* might look like this:
+`caliper{simulation="amphorasimulation", group=~"createSecret_.*",`
+`metric="percentiles99", scope="ok"}`.
 
-The *generate_report.py* script extracts the time range for each group and
-visualizes the time ranges per group in the cAdvisor charts.
+The python scripts use these metrics to extract start- and end time per group to
+slice the cAdvisor charts accordingly, and to extract response times per group.
 
-Each chart is saved in the format
-`[Gatling group name]_[cAdvisor metric name].png` under
-`mkdocs/docs/images/[Simulation class]/[Chart name]`.
+To host the report on a *MkDocs* site, the Charts are stored under
+`mkdocs/docs/images/charts/{amphorasimulation|ephemeralsimulation}/{amphora|Castor|ephemeral}/{filename}.png`,
+where `filename` has the format
+`{amphora|castor|ephemeral}_{group}_{metric}.png`.
 
-### GitHub Actions Workflow
+The report files are stored under
+`mkdocs/docs/report/{service}/{request}/{group}.md`.
+
+## GitHub Actions Workflow
 
 A GitHub Actions Workflow `.github/workflows/caliper-load-tests.yaml` is used to
 automatically *deploy a two party VC*, run the specified *test-cases* and
@@ -260,23 +269,40 @@ finally deploy a new version of the *report*.
 - *Provision AzureVM*: Deploys an AzureVM.
 - *Run Load-Tests*: Connects to the deployed AzureVM via SSH and runs a
   *setup-script* located under 'scripts/run_caliper_load_tests.sh'.
-- *copy* and *deploy report* steps
-- *Destroy*: Deletes the Azure resource group 'caliper-rg' to ensure that in
-  case steps fails, all deployed resources are destroyed.
+- *Deploy latest Report*: pushes the latest report tagged with the current date
+  to the `gh-pages` branch
+- *destroy*: Deletes the Azure resource group 'caliper-rg' to ensure that in
+  case steps fail, all deployed resources are destroyed.
 
 > **Important**: The following secrets must be available to run the GitHub
 > Actions Workflow:
 
-| Secret                  | Description                                                              | Expiration |
-| ----------------------- | ------------------------------------------------------------------------ | ---------- |
-| `AZURE_SUBSCRIPTION_ID` | Authenticate Terraform to Azure                                          | -          |
-| `AZURE_CLIENT_SECRET`   | Authenticate Terraform to Azure                                          | 2/27/2024  |
-| `AZURE_TENANT_ID`       | Authenticate Terraform to Azure                                          | -          |
-| `AZURE_CLIENT_ID`       | Authenticate Terraform to Azure                                          | -          |
-| `CALIPER_PAT`           | Caliper maven project uses this to download Clients from Github Packages | DATE       |
-| `CALIPER_PRIVATE_KEY`   | SSH keypair private key                                                  | -          |
-| `CALIPER_PUBLIC_KEY`    | SSH keypair public key                                                   | -          |
-| `AZURE_CREDENTIALS`     | Login to Azure with a Service Principal Secret                           | -          |
+| Secret                  | Description                                    | Expiration |
+| ----------------------- | ---------------------------------------------- | ---------- |
+| `AZURE_SUBSCRIPTION_ID` | Authenticate Terraform to Azure                | -          |
+| `AZURE_CLIENT_SECRET`   | Authenticate Terraform to Azure                | 2/27/2024  |
+| `AZURE_TENANT_ID`       | Authenticate Terraform to Azure                | -          |
+| `AZURE_CLIENT_ID`       | Authenticate Terraform to Azure                | -          |
+| `CALIPER_PAT`           | Authenticate to Carbyne Stack Github Packages  | DATE       |
+| `CALIPER_PRIVATE_KEY`   | SSH keypair private key                        | -          |
+| `CALIPER_PUBLIC_KEY`    | SSH keypair public key                         | -          |
+| `AZURE_CREDENTIALS`     | Login to Azure with a Service Principal Secret | -          |
+
+> **NOTE**: See
+> [Azure login](https://github.com/Azure/login?tab=readme-ov-file#login-with-a-service-principal-secret)
+> for the AZURE_CREDENTIALS value.
+
+```json
+{
+    "clientSecret":  "******",
+    "subscriptionId":  "******",
+    "tenantId":  "******",
+    "clientId":  "******"
+}
+```
+
+> **NOTE**: See [Setting up a SSH Key](https://github.com/appleboy/ssh-action)
+> for creating the SSH Keys.
 
 Caliper uses *MkDocs* to host the report via GitHub pages. To provide
 versioning, the [mike](http:/google.com) plugin is implemented. Each time the
@@ -288,7 +314,7 @@ date.
 > needs to be configured so the github action automatically updates it ? enable
 > github pages with branch gh-pages ?!
 
-### Add/ Remove Test-cases
+## Add/ Remove Test-cases
 
 To add or remove test-cases the following steps must be peformed:
 
