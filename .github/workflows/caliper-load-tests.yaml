@@ -105,28 +105,28 @@ jobs:
             mv "$HOME/caliper/scripts/run_caliper_load_tests.sh" "$HOME"
             "$HOME/run_caliper_load_tests.sh"
 
-      - name: Zip Charts
-        id: zip-charts
+      - name: Zip Docs
+        id: zip-docs
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ env.AZURE_VM_IP }}
           username: caliper
           key: ${{ secrets.CALIPER_PRIVATE_KEY }}
           script: |
-            cd "$HOME"/caliper/mkdocs/docs/images/ || exit 1
-            zip -r charts.zip charts/
+            cd "$HOME"/caliper/mkdocs/docs/ || exit 1
+            zip -r docs.zip docs/
 
-      - name: Copy Charts
-        id: copy-charts
+      - name: Copy Docs
+        id: copy-docs
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.CALIPER_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan ${{ env.AZURE_VM_IP }} >> ~/.ssh/known_hosts
 
-          scp caliper@${{ env.AZURE_VM_IP }}:/home/caliper/caliper/mkdocs/docs/images/charts.zip .
-          unzip charts.zip
-          cp -r $GITHUB_WORKSPACE/charts/ $GITHUB_WORKSPACE/caliper/mkdocs/docs/images/
+          scp caliper@${{ env.AZURE_VM_IP }}:/home/caliper/caliper/mkdocs/docs.zip .
+          unzip docs.zip
+          cp -r $GITHUB_WORKSPACE/docs/ $GITHUB_WORKSPACE/caliper/mkdocs/
 
       - name: Deploy latest Report
         id: deploy-report
