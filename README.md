@@ -252,6 +252,10 @@ secrets to the *Virtual Cloud* might look like this:
 The python scripts use these metrics to extract start- and end time per group to
 slice the cAdvisor charts accordingly, and to extract response times per group.
 
+The Python scripts use these metrics to extract the start and end times for each
+group in order to slice the cAdvisor charts accordingly, and to extract response
+times for each group.
+
 To host the report on a *MkDocs* site, the Charts are stored under
 `mkdocs/docs/images/charts/{amphorasimulation|ephemeralsimulation}/{amphora|Castor|ephemeral}/{filename}.png`,
 where `filename` has the format
@@ -268,11 +272,19 @@ finally deploy a new version of the *report*.
 
 - *Provision AzureVM*: Deploys an AzureVM.
 - *Run Load-Tests*: Connects to the deployed AzureVM via SSH and runs a
-  *setup-script* located under 'scripts/run_caliper_load_tests.sh'.
+  *setup-script* located under `scripts/run_caliper_load_tests.sh`.
 - *Deploy latest Report*: pushes the latest report tagged with the current date
-  to the `gh-pages` branch
+  to the `gh-pages` branch.
 - *destroy*: Deletes the Azure resource group 'caliper-rg' to ensure that in
   case steps fail, all deployed resources are destroyed.
+
+> **Important**: GitHub Pages needs to be enabled for the Caliper repository,
+> with the branch the site is build from being set to `gh-pages` from the
+> `/root` folder.
+
+To provide versioning, the [mike](http:/google.com) plugin is used. Each time
+the workflow is triggered, *Mike* uploads the latest report to the `gh-pages`
+branch.
 
 > **Important**: The following secrets must be available to run the GitHub
 > Actions Workflow:
@@ -292,6 +304,8 @@ finally deploy a new version of the *report*.
 > [Azure login](https://github.com/Azure/login?tab=readme-ov-file#login-with-a-service-principal-secret)
 > for the AZURE_CREDENTIALS value.
 
+The value for AZURE_CREDENTIALS has the format:
+
 ```json
 {
     "clientSecret":  "******",
@@ -303,16 +317,6 @@ finally deploy a new version of the *report*.
 
 > **NOTE**: See [Setting up a SSH Key](https://github.com/appleboy/ssh-action)
 > for creating the SSH Keys.
-
-Caliper uses *MkDocs* to host the report via GitHub pages. To provide
-versioning, the [mike](http:/google.com) plugin is implemented. Each time the
-*generate_report.py* script creates new charts, *Mike* uploads the updated
-report to the `gh-pages` branch in a new directory labeled with the current
-date.
-
-> **Important**: Is it mandatory to create a gh-pages branch before and what
-> needs to be configured so the github action automatically updates it ? enable
-> github pages with branch gh-pages ?!
 
 ## Add/ Remove Test-cases
 

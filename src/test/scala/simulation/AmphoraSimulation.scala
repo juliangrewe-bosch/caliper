@@ -154,6 +154,8 @@ class AmphoraSimulation extends Simulation {
     .pause(60 * 10) // genereate tuples
     .exec(performCreateSecretRequest(generateFeeder(100000), 5, "createSecret_100000_repeat_5")) //500000
     .pause(60 * 3)
+    .exec(deleteAllSecretes())
+    .pause(60 * 3)
 
   val delete = scenario("delete")
     .exec(deleteAllSecretes())

@@ -17,7 +17,7 @@ nav:
           - getSecret_161000: report/amphora/getSecret/getSecret_161000.md
           - getSecret_261000: report/amphora/getSecret/getSecret_261000.md
       - deleteSecret:
-          - deleteSecret_811000: report/amphora/deleteSecret/deleteSecret_all.md
+          - deleteSecret_all: report/amphora/deleteSecret/deleteSecret_all.md
 
   - Castor:
       - createSecret:
@@ -34,10 +34,10 @@ nav:
           - getSecrets_161000: report/castor/getSecret/getSecret_161000.md
           - getSecret_261000: report/castor/getSecret/getSecret_261000.md
       - deleteSecret:
-          - deleteSecret_811000: report/castor/deleteSecret/deleteSecret_all.md
+          - deleteSecret_all: report/castor/deleteSecret/deleteSecret_all.md
 
   - Ephemeral:
       - emptyProgram:
-          - 400000_concurrency_10: report/ephemeral/epmtyProgram/400000_concurrency_10.md
+          - execute_emptyProgram: report/ephemeral/epmtyProgram/execute_emptyProgram.md
       - scalarValueOptProgram:
-          - 400000_concurrency_10: report/ephemeral/scalarValueOptProgram/400000_concurrency_10.md
+          - execute_scalarValueOptProgram: report/ephemeral/scalarValueOptProgram/execute_scalarValueOptProgram.md
