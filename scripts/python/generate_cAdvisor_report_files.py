@@ -35,59 +35,105 @@ AMPHORA_SIMULATION_DELETE_SECRET_GROUPS = config['simulation']['groups']['amphor
 EPHEMERAL_SIMULATION_GROUPS = config['simulation']['groups']['ephemeral']['execute']
 
 
-def generate_markdown_file(chart_path, report_path, metrics, service, group, request_name):
+def generate_markdown_file(simulation_groups_promQL, report_chart_path, report_path, metrics, service, request_name):
     """
-    Generates a cAdvisor metrics markdown file for the report.
-
-    :param chart_path: path to the chart directory.
+    :param simulation_groups_promQL: query to retrieve simulation groups.
+    :param report_chart_path: relative path to the response times chart.
     :param report_path: path to the report directory.
     :param metrics: cAdvisor metrics.
     :param service: name of the service.
-    :param group: gatling group.
     :param request_name: Carbyne Stack client request.
     """
-    markdown_content = "# cAdvisor\n\n"
-
-    for metric in metrics:
-        chart_file = f"{chart_path}/{service}/{service}_{group}_{metric}.png"
-
-        markdown_content += f"## {metric}\n\n![Graph]({chart_file})\n\n"
-
-    report_directory = f"{report_path}/{service}/{request_name}"
-    filename = f"{report_directory}/{group}.md"
-
-    try:
-        with open(filename, 'w') as file:
-            file.write(markdown_content)
-
-        logger.info(f"Generated {filename}")
-    except Exception as e:
-        logger.error(f"Error: {e} for service: {service} and request: {request_name}")
-
-for promQL, request in [(AMPHORA_SIMULATION_CREATE_SECRET_GROUPS, "createSecret"),
-                        (AMPHORA_SIMULATION_GET_SECRET_GROUPS, "getSecret"),
-                        (AMPHORA_SIMULATION_DELETE_SECRET_GROUPS, "deleteSecret"),
-                        (EPHEMERAL_SIMULATION_GROUPS, "execute")]:
-
-    apollo_gatling_metrics_dict = APOLLO_PROMETHEUS_CLIENT.custom_query_range(
-        query=promQL,
+    simulation_groups_dict = APOLLO_PROMETHEUS_CLIENT.custom_query_range(
+        query=simulation_groups_promQL,
         start_time=START_TIME,
         end_time=END_TIME, step='15s')
 
-    try:
-        apollo_gatling_metrics_df = MetricRangeDataFrame(apollo_gatling_metrics_dict)
+    if len(simulation_groups_dict) > 0:
+        simulation_groups_df = MetricRangeDataFrame(simulation_groups_dict)
         # gatling sends the same metric in a configured interval, e.g. 1min
-        apollo_gatling_metrics_df = apollo_gatling_metrics_df.drop_duplicates()
+        simulation_groups_df = simulation_groups_df.drop_duplicates()
 
-        services = ["ephemeral", "castor"] if request == "execute" else ["amphora", "castor"]
-        for service in services:
-            for group in apollo_gatling_metrics_df['group'].drop_duplicates():
-                generate_markdown_file(
-                    chart_path=AMPHORA_RELATIVE_CHART_PATH,
-                    report_path=REPORT_PATH,
-                    metrics=CADVISOR_METRIC_NAMES,
-                    service=service,
-                    group=group,
-                    request_name=request)
-    except Exception as e:
-        logger.error(e)
+        for group in simulation_groups_df['group'].drop_duplicates():
+            markdown_content = "# cAdvisor\n\n"
+
+            for metric in metrics:
+                chart_file = f"{report_chart_path}/{service}/{service}_{group}_{metric}.png"
+                markdown_content += f"## {metric}\n\n![Graph]({chart_file})\n\n"
+
+                report_directory = f"{report_path}/{service}/{request_name}"
+                filename = f"{report_directory}/{group}.md"
+
+                try:
+                    with open(filename, 'w') as file:
+                        file.write(markdown_content)
+
+                    logger.info(f"Generated {filename}")
+                except Exception as e:
+                    logger.error(f"Error: {e} for service: {service} and request: {request_name}")
+    else:
+        logger.error(f"No simulation groups found for service: {service} and query: {simulation_groups_promQL}")
+
+# Create cAdvisor report for amphora createSecret request
+generate_markdown_file(simulation_groups_promQL=AMPHORA_SIMULATION_CREATE_SECRET_GROUPS,
+                       report_chart_path=AMPHORA_RELATIVE_CHART_PATH,
+                       report_path=REPORT_PATH,
+                       metrics=CADVISOR_METRIC_NAMES,
+                       service="amphora",
+                       request_name="createSecret")
+
+# Create cAdvisor report for amphora getSecret request
+generate_markdown_file(simulation_groups_promQL=AMPHORA_SIMULATION_GET_SECRET_GROUPS,
+                       report_chart_path=AMPHORA_RELATIVE_CHART_PATH,
+                       report_path=REPORT_PATH,
+                       metrics=CADVISOR_METRIC_NAMES,
+                       service="amphora",
+                       request_name="getSecret")
+
+# Create cAdvisor report for amphora deleteSecret request
+generate_markdown_file(simulation_groups_promQL=AMPHORA_SIMULATION_DELETE_SECRET_GROUPS,
+                       report_chart_path=AMPHORA_RELATIVE_CHART_PATH,
+                       report_path=REPORT_PATH,
+                       metrics=CADVISOR_METRIC_NAMES,
+                       service="amphora",
+                       request_name="deleteSecret")
+
+# Create cAdvisor report for castor createSecret request
+generate_markdown_file(simulation_groups_promQL=AMPHORA_SIMULATION_CREATE_SECRET_GROUPS,
+                       report_chart_path=AMPHORA_RELATIVE_CHART_PATH,
+                       report_path=REPORT_PATH,
+                       metrics=CADVISOR_METRIC_NAMES,
+                       service="castor",
+                       request_name="createSecret")
+
+# Create cAdvisor report for castor getSecret request
+generate_markdown_file(simulation_groups_promQL=AMPHORA_SIMULATION_GET_SECRET_GROUPS,
+                       report_chart_path=AMPHORA_RELATIVE_CHART_PATH,
+                       report_path=REPORT_PATH,
+                       metrics=CADVISOR_METRIC_NAMES,
+                       service="castor",
+                       request_name="getSecret")
+
+# Create cAdvisor report for castor deleteSecret request
+generate_markdown_file(simulation_groups_promQL=AMPHORA_SIMULATION_DELETE_SECRET_GROUPS,
+                       report_chart_path=AMPHORA_RELATIVE_CHART_PATH,
+                       report_path=REPORT_PATH,
+                       metrics=CADVISOR_METRIC_NAMES,
+                       service="castor",
+                       request_name="deleteSecret")
+
+# Create cAdvisor report for ephemeral execute request
+generate_markdown_file(simulation_groups_promQL=EPHEMERAL_SIMULATION_GROUPS,
+                       report_chart_path=EPHEMERAL_RELATIVE_CHART_PATH,
+                       report_path=REPORT_PATH,
+                       metrics=CADVISOR_METRIC_NAMES,
+                       service="ephemeral",
+                       request_name="execute")
+
+# Create cAdvisor report for castor execute request
+generate_markdown_file(simulation_groups_promQL=EPHEMERAL_SIMULATION_GROUPS,
+                       report_chart_path=EPHEMERAL_RELATIVE_CHART_PATH,
+                       report_path=REPORT_PATH,
+                       metrics=CADVISOR_METRIC_NAMES,
+                       service="castor",
+                       request_name="execute")
