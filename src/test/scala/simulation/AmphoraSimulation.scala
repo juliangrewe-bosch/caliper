@@ -148,16 +148,20 @@ class AmphoraSimulation extends Simulation {
     .pause(60 * 3)
     .exec(performCreateSecretRequest(generateFeeder(10000), 10, "createSecret_10000_repeat_10")) //130000
     .pause(60 * 3)
-//    .exec(performGetSecretRequest("getSecret_10000_repeat_10")) //330000
-//    .pause(60 * 3)
-    .exec(performCreateSecretRequest(generateFeeder(50000), 10, "createSecret_50000_repeat_10")) //630000
+    .exec(performGetSecretRequest("getSecret_10000_repeat_10")) //330000
+    .pause(60 * 3)
+    .exec(performCreateSecretRequest(generateFeeder(50000), 10, "createSecret_50000_repeat_10")) //830000
     .pause(60 * 10) // genereate tuples
     .exec(performCreateSecretRequest(generateFeeder(100000), 5, "createSecret_100000_repeat_5")) //500000
     .pause(60 * 3)
 
+  val delete = scenario("delete")
+    .exec(deleteAllSecretes())
+
   setUp(
     responseTimesScenario
       .inject(atOnceUsers(1))
+      .andThen(delete.inject(atOnceUsers(1)))
   ).protocols(csProtocol)
 }
 
